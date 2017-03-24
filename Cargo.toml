@@ -1,0 +1,8 @@
+[package]
+name = "RaumEn"
+version = "0.1.0"
+authors = ["Raum Dellamorte <elementalsin@gmail.com>"]
+
+[dependencies]
+glium = "*"
+glutin = "0.7"
