@@ -1,7 +1,8 @@
 #![allow(non_snake_case)]
 #![allow(dead_code)]
 
-pub mod rvec;
+pub mod util;
+use util::rvector::Vector3f;
 
 #[macro_use]
 extern crate glium;
