@@ -1,6 +1,9 @@
 #![allow(non_snake_case)]
 #![allow(dead_code)]
 
+
+use std::ops::{Add, AddAssign};
+
 #[derive(Debug, Copy, Clone)]
 pub struct Vector2f {
   pub x: f32,
@@ -62,6 +65,21 @@ impl Vector2f {
   }
 }
 
+impl Add for Vector2f {
+  type Output = Vector2f;
+  
+  fn add(self, other: Vector2f) -> Vector2f {
+    Vector2f {x: self.x + other.x, y: self.y + other.y}
+  }
+}
+
+impl AddAssign for Vector2f {
+  fn add_assign(&mut self, other: Vector2f) {
+    self.x += other.x;
+    self.y += other.y;
+  }
+}
+
 impl RVec for Vector3f {
   fn new() -> Self { Vector3f {x: 0.0_f32, y: 0.0_f32, z: 0.0_f32} }
   fn lenSqr(&self) -> f32 { (self.x * self.x) + (self.y * self.y) +  (self.z * self.z) }
@@ -87,6 +105,22 @@ impl Vector3f {
     (*dest).x = -self.x;
     (*dest).y = -self.y;
     (*dest).z = -self.z;
+  }
+}
+
+impl Add for Vector3f {
+  type Output = Vector3f;
+  
+  fn add(self, other: Vector3f) -> Vector3f {
+    Vector3f {x: self.x + other.x, y: self.y + other.y, z: self.z + other.z}
+  }
+}
+
+impl AddAssign for Vector3f {
+  fn add_assign(&mut self, other: Vector3f) {
+    self.x += other.x;
+    self.y += other.y;
+    self.z += other.z;
   }
 }
 
@@ -119,5 +153,22 @@ impl Vector4f {
     (*dest).y = -self.y;
     (*dest).z = -self.z;
     (*dest).w = -self.w;
+  }
+}
+
+impl Add for Vector4f {
+  type Output = Vector4f;
+  
+  fn add(self, other: Vector4f) -> Vector4f {
+    Vector4f {x: self.x + other.x, y: self.y + other.y, z: self.z + other.z, w: self.w + other.w}
+  }
+}
+
+impl AddAssign for Vector4f {
+  fn add_assign(&mut self, other: Vector4f) {
+    self.x += other.x;
+    self.y += other.y;
+    self.z += other.z;
+    self.w += other.w;
   }
 }
