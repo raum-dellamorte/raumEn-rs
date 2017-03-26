@@ -1,6 +1,7 @@
 #![allow(non_snake_case)]
 #![allow(dead_code)]
 
+// need sub, cross, dot, angle, and length between 2 vectors
 
 use std::ops::{Add, AddAssign};
 
