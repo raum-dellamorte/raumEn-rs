@@ -5,12 +5,12 @@
 extern crate nom;
 
 pub mod util;
-use util::rvector::Vector3f;
+//use util::rvector::Vector3f;
 
 pub mod model;
 use model::import::loadObj;
 use model::import::test_nom;
-use model::mesh::{Mesh, MeshBuffers};
+//use model::mesh::{Mesh, MeshBuffers};
 
 #[macro_use]
 extern crate glium;
@@ -47,15 +47,7 @@ fn main() {
     }
   "#;
   
-  let vertex1 = Vertex { position: [-0.5, -0.5] };
-  let vertex2 = Vertex { position: [ 0.0,  0.5] };
-  let vertex3 = Vertex { position: [ 0.5, -0.25] };
-  let shape = vec![vertex1, vertex2, vertex3];
-  
   let test_mesh = loadObj("lamp").unwrap().create_buffers(&display);
-  
-  let vertex_buffer = glium::VertexBuffer::new(&display, &shape).unwrap();
-  let indices = glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList);
   
   let program = glium::Program::from_source(&display, vertex_shader_src, fragment_shader_src, None).unwrap();
   

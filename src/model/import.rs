@@ -8,7 +8,7 @@ use std;
 use util::rvertex::*;
 use model::mesh::Mesh;
 
-use nom::{IResult, space, alpha, alphanumeric, float_s, digit};
+use nom::{space, float_s, digit}; // IResult, alpha, alphanumeric,
 
 named!(u16_digit<&str, u16 >,
     map_res!(
@@ -87,11 +87,11 @@ pub fn loadObj(objname: &str) -> Result<Mesh, &str> {
   let filename = format!("./res/obj/{}.obj", objname);
   let path = Path::new(&filename);
   let display = path.display();
-  let mut file = match File::open(&path) {
+  let file = match File::open(&path) {
     Err(why) => panic!("couldn't open {}: {}", display, why.description()),
     Ok(file) => file,
   };
-  let mut reader = BufReader::new(file);
+  let reader = BufReader::new(file);
   
   let mut verts: Vec<Vertex> = Vec::new();
   let mut txtrs: Vec<TextureMap> = Vec::new();

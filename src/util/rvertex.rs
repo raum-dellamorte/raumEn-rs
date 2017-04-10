@@ -1,4 +1,4 @@
-use util::rvector::{Vector2f, Vector3f, Vector4f};
+use util::rvector::{Vector2f, Vector3f}; // , Vector4f
 
 #[derive(Copy, Clone)]
 pub struct Vertex {
