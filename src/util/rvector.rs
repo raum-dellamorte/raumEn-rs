@@ -3,7 +3,7 @@
 
 // need sub, cross, dot, angle, and length between 2 vectors
 
-use std::ops::{Add, AddAssign};
+use std::ops::{Add, AddAssign, Sub, SubAssign}; // , Div, DivAssign, Mul, MulAssign
 
 #[derive(Debug, Copy, Clone)]
 pub struct Vector2f {
@@ -81,9 +81,39 @@ impl AddAssign for Vector2f {
   }
 }
 
+impl Sub for Vector2f {
+  type Output = Vector2f;
+  
+  fn sub(self, other: Vector2f) -> Vector2f {
+    Vector2f {x: self.x - other.x, y: self.y - other.y}
+  }
+}
+
+impl SubAssign for Vector2f {
+  fn sub_assign(&mut self, other: Vector2f) {
+    self.x -= other.x;
+    self.y -= other.y;
+  }
+}
+
 impl Vector3f {
   fn new() -> Self { Vector3f {x: 0.0_f32, y: 0.0_f32, z: 0.0_f32} }
   fn toSlice(&self) -> [f32; 3] { [self.x, self.y, self.z] }
+  fn cross(&mut self, other: Self) {
+    self.x = self.y * other.z - self.z * other.y;
+    self.y = other.x * self.z - other.z * self.x;
+    self.z = self.x * other.y - self.y * other.x;
+  }
+  fn crossTo(&self, other: &Self, dest: &mut Self) {
+    (*dest).x = self.y * other.z - self.z * other.y;
+    (*dest).y = other.x * self.z - other.z * self.x;
+    (*dest).z = self.x * other.y - self.y * other.x;
+  }
+  fn crossToNew(&self, other: &Self) -> Self {
+    let mut out = Vector3f::new();
+    self.crossTo(other, &mut out);
+    out
+  }
   fn scaleTo(&self, dest: &mut Self, scale: f32) {
     (*dest).x = self.x * scale;
     (*dest).y = self.y * scale;
@@ -123,6 +153,22 @@ impl AddAssign for Vector3f {
     self.x += other.x;
     self.y += other.y;
     self.z += other.z;
+  }
+}
+
+impl Sub for Vector3f {
+  type Output = Vector3f;
+  
+  fn sub(self, other: Vector3f) -> Vector3f {
+    Vector3f {x: self.x - other.x, y: self.y - other.y, z: self.z - other.z}
+  }
+}
+
+impl SubAssign for Vector3f {
+  fn sub_assign(&mut self, other: Vector3f) {
+    self.x -= other.x;
+    self.y -= other.y;
+    self.z -= other.z;
   }
 }
 
@@ -173,5 +219,22 @@ impl AddAssign for Vector4f {
     self.y += other.y;
     self.z += other.z;
     self.w += other.w;
+  }
+}
+
+impl Sub for Vector4f {
+  type Output = Vector4f;
+  
+  fn sub(self, other: Vector4f) -> Vector4f {
+    Vector4f {x: self.x - other.x, y: self.y - other.y, z: self.z - other.z, w: self.w - other.w}
+  }
+}
+
+impl SubAssign for Vector4f {
+  fn sub_assign(&mut self, other: Vector4f) {
+    self.x -= other.x;
+    self.y -= other.y;
+    self.z -= other.z;
+    self.w -= other.w;
   }
 }

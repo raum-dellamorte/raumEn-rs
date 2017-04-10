@@ -1,8 +1,16 @@
 #![allow(non_snake_case)]
 #![allow(dead_code)]
 
+#[macro_use]
+extern crate nom;
+
 pub mod util;
 use util::rvector::Vector3f;
+
+pub mod model;
+use model::import::loadObj;
+use model::import::test_nom;
+use model::mesh::{Mesh, MeshBuffers};
 
 #[macro_use]
 extern crate glium;
@@ -18,17 +26,15 @@ fn main() {
   use glium::{DisplayBuild, Surface};
   let display = glium::glutin::WindowBuilder::new().build_glium().unwrap();
   
+  test_nom();
+  
   let vertex_shader_src = r#"
     #version 140
-    
-    in vec2 position;
-    
-    uniform float t;
-    
+    in vec3 position;
+    in vec3 normal;
+    uniform mat4 matrix;
     void main() {
-      vec2 pos = position;
-      pos.x += t;
-      gl_Position = vec4(pos, 0.0, 1.0);
+      gl_Position = matrix * vec4(position, 1.0);
     }
   "#;
   let fragment_shader_src = r#"
@@ -46,25 +52,29 @@ fn main() {
   let vertex3 = Vertex { position: [ 0.5, -0.25] };
   let shape = vec![vertex1, vertex2, vertex3];
   
+  let test_mesh = loadObj("lamp").unwrap().create_buffers(&display);
+  
   let vertex_buffer = glium::VertexBuffer::new(&display, &shape).unwrap();
   let indices = glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList);
   
   let program = glium::Program::from_source(&display, vertex_shader_src, fragment_shader_src, None).unwrap();
   
-  let mut t = -0.5_f32;
-  
   loop {
-    t += 0.0002;
-    if t > 0.5 { t = -0.5; }
+    let matrix = [
+      [0.05, 0.0, 0.0, 0.0],
+      [0.0, 0.05, 0.0, 0.0],
+      [0.0, 0.0, 0.05, 0.0],
+      [0.0, 0.0, 0.0, 1.0f32]
+    ];
     
     let mut target = display.draw();
     target.clear_color(0.0, 0.0, 1.0, 1.0);
     
     // Draw stuff!
-    target.draw(&vertex_buffer,
-                &indices,
+    target.draw(&test_mesh.verts,
+                &test_mesh.indcs,
                 &program,
-                &uniform! { t: t },
+                &uniform! { matrix: matrix },
                 &Default::default()).unwrap();
     
     target.finish().unwrap();

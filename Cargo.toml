@@ -6,3 +6,4 @@ authors = ["Raum Dellamorte <elementalsin@gmail.com>"]
 [dependencies]
 glium = "*"
 glutin = "0.7"
+nom = "^2.2"
