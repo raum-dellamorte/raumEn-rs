@@ -1,7 +1,7 @@
 RaumEn
 ======
 
-An openGL engine written in Rust.
+An OpenGL engine written in Rust.
 
 Status
 ------
