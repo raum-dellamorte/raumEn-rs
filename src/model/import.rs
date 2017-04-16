@@ -10,7 +10,7 @@ use model::mesh::Mesh;
 
 use nom::{space, float_s, digit}; // IResult, alpha, alphanumeric,
 
-named!(u16_digit<&str, u16 >,
+named!(usize_digit<&str, usize >,
     map_res!(
         digit,
         std::str::FromStr::from_str
@@ -54,15 +54,15 @@ named!(get_vn<&str, (f32, f32, f32) >,
   )
 );
 
-named!(get_f<&str, (u16, u16, u16, u16, u16, u16, u16, u16, u16) >,
+named!(get_f<&str, ( usize,  usize,  usize, usize, usize, usize, usize, usize, usize) >,
   do_parse!(
     tag!("f") >>
     space >>
-    idx1: u16_digit >> tag!("/") >> idx2: u16_digit >> tag!("/") >> idx3: u16_digit >>
+    idx1: usize_digit >> tag!("/") >> idx4: usize_digit >> tag!("/") >> idx5: usize_digit >>
     space >>
-    idx4: u16_digit >> tag!("/") >> idx5: u16_digit >> tag!("/") >> idx6: u16_digit >>
+    idx2: usize_digit >> tag!("/") >> idx6: usize_digit >> tag!("/") >> idx7: usize_digit >>
     space >>
-    idx7: u16_digit >> tag!("/") >> idx8: u16_digit >> tag!("/") >> idx9: u16_digit >>
+    idx3: usize_digit >> tag!("/") >> idx8: usize_digit >> tag!("/") >> idx9: usize_digit >>
     (idx1, idx2, idx3, idx4, idx5, idx6, idx7, idx8, idx9)
   )
 );
@@ -83,7 +83,7 @@ pub fn test_nom() {
   println!("indices: {} {} {} {} {} {} {} {} {}", idx1, idx2, idx3, idx4, idx5, idx6, idx7, idx8, idx9);
 }
 
-pub fn loadObj(objname: &str) -> Result<Mesh, &str> {
+pub fn load_obj(objname: &str) -> Result<Mesh, &str> {
   let filename = format!("./res/obj/{}.obj", objname);
   let path = Path::new(&filename);
   let display = path.display();
@@ -94,39 +94,54 @@ pub fn loadObj(objname: &str) -> Result<Mesh, &str> {
   let reader = BufReader::new(file);
   
   let mut verts: Vec<Vertex> = Vec::new();
-  let mut txtrs: Vec<TextureMap> = Vec::new();
-  let mut norms: Vec<Normal> = Vec::new();
+  let mut txtrs: Vec<(f32, f32)> = Vec::new();
+  let mut norms: Vec<(f32, f32, f32)> = Vec::new();
   let mut indcs: Vec<u16> = Vec::new();
-  
   for line in reader.lines() {
     match &(line.unwrap()) {
       l if &l[..2] == "v " => {
-        let (_, position) = get_v(&l).unwrap();
-        verts.push(Vertex {position: position});
+        let vert = &mut Vertex::new();
+        vert.position = get_v(&l).unwrap().1;
+        verts.push(*vert);
       }
-      l if &l[..3] == "vt " => {
-        let (_, txtrmp) = get_vt(&l).unwrap();
-        txtrs.push(TextureMap {txtrmp: txtrmp});
-      }
-      l if &l[..3] == "vn " => {
-        let (_, normal) = get_vn(&l).unwrap();
-        norms.push(Normal {normal: normal});
-      }
+      l if &l[..3] == "vt " => { txtrs.push(get_vt(&l).unwrap().1); }
+      l if &l[..3] == "vn " => { norms.push(get_vn(&l).unwrap().1); }
       l if &l[..2] == "f " => {
-        let (_, indices) = get_f(&l).unwrap();
-        indcs.push(indices.0);
-        indcs.push(indices.1);
-        indcs.push(indices.2);
-        indcs.push(indices.3);
-        indcs.push(indices.4);
-        indcs.push(indices.5);
-        indcs.push(indices.6);
-        indcs.push(indices.7);
-        indcs.push(indices.8);
+        let indices = get_f(&l).unwrap().1;
+        let index1 = indices.0 - 1;
+        let index2 = indices.1 - 1;
+        let index3 = indices.2 - 1;
+        indcs.push(index1 as u16);
+        indcs.push(index2 as u16);
+        indcs.push(index3 as u16);
+        {
+          let v1 = &mut verts[index1];
+          if !v1.is_set {
+            v1.tex_coords = txtrs[indices.3 - 1];
+            v1.normal = norms[indices.4 - 1];
+            v1.is_set = true;
+          }
+        }
+        {
+          let v2 = &mut verts[index2];
+          if !v2.is_set {
+            v2.tex_coords = txtrs[indices.5 - 1];
+            v2.normal = norms[indices.6 - 1];
+            v2.is_set = true;
+          }
+        }
+        {
+          let v3 = &mut verts[index3];
+          if !v3.is_set {
+            v3.tex_coords = txtrs[indices.7 - 1];
+            v3.normal = norms[indices.8 - 1];
+            v3.is_set = true;
+          }
+        }
       }
       _ => {}
     }
   }
   
-  Ok( Mesh { verts: verts, txtrs: txtrs, norms: norms, indcs: indcs, far_point: 0_u16} )
+  Ok( Mesh { verts: verts, indcs: indcs, far_point: 0_u16} )
 }
