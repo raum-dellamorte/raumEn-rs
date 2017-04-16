@@ -4,6 +4,6 @@ version = "0.1.0"
 authors = ["Raum Dellamorte <elementalsin@gmail.com>"]
 
 [dependencies]
-glium = "*"
+glium = "^0.16"
 glutin = "0.7"
 nom = "^2.2"
