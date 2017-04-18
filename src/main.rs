@@ -9,7 +9,6 @@ pub mod util;
 
 pub mod model;
 use model::import::load_obj;
-//use model::import::test_nom;
 //use model::mesh::{Mesh, MeshBuffers};
 
 #[macro_use]
@@ -18,15 +17,14 @@ extern crate glium;
 fn main() {
   use std::default::Default;
   use glium::{DisplayBuild, Program};
-  let display = glium::glutin::WindowBuilder::new().build_glium().unwrap();
-    //.with_dimensions(1024, 760)
-    //.with_title(format!("RaumEn Test"))
-    //.with_depth_buffer(32)
-    //.build_glium()
-    //.unwrap();
-  //.build_glium().unwrap();
+  let display = glium::glutin::WindowBuilder::new()
+    .with_title(format!("RaumEn Test"))
+    .with_dimensions(1024, 760)
+    .with_depth_buffer(24)
+    .build_glium().unwrap();
   
-  //test_nom();
+  use model::import::test_nom;
+  test_nom();
   
   let vertex_shader_src = r#"
     #version 140
@@ -54,31 +52,42 @@ fn main() {
     }
   "#;
   
-  let test_mesh = load_obj("dragon").unwrap().create_buffers(&display);
-  let vb = test_mesh.verts;
-  let ib = test_mesh.indcs;
+  let mesh = load_obj("dragon").unwrap().create_buffers(&display);
+  let vb = mesh.verts;
+  let ib = mesh.indcs;
   
   let program = Program::from_source(&display, vertex_shader_src, fragment_shader_src, None).unwrap();
   
   loop {
     use glium::Surface;
     let matrix = [
-      [0.05, 0.0, 0.0, 0.0],
-      [0.0, 0.05, 0.0, 0.0],
-      [0.0, 0.0, 0.05, 0.0],
+      [0.08, 0.0, 0.0, 0.0],
+      [0.0, 0.08, 0.0, 0.0],
+      [0.0, 0.0, 0.08, 0.0],
       [0.0, 0.0, 0.0, 1.0f32]
     ];
     let light = [-1.0, 0.4, 0.9f32];
     
     let mut target = display.draw();
-    target.clear_color(0.0, 0.0, 1.0, 1.0);
+    target.clear_color_and_depth((0.0, 0.0, 1.0, 1.0), 1.0);
+    
+    let params = glium::DrawParameters {
+      depth: glium::Depth {
+        test: glium::DepthTest::IfLess,
+        write: true,
+        .. Default::default()
+      },
+      backface_culling: glium::draw_parameters::BackfaceCullingMode::CullClockwise,
+      .. Default::default()
+    };
+
     
     // Draw stuff!
     target.draw(&vb,
                 &ib,
                 &program,
                 &uniform! { matrix: matrix, u_light: light },
-                &Default::default()).unwrap();
+                &params).unwrap();
     
     target.finish().unwrap();
     // listing the events produced by the window and waiting to be received
