@@ -26,6 +26,10 @@ pub struct Vector4f {
   pub w: f32,
 }
 
+pub const XVEC: Vector3f = Vector3f {x: 1.0_f32, y: 0.0_f32, z: 0.0_f32};
+pub const YVEC: Vector3f = Vector3f {x: 0.0_f32, y: 1.0_f32, z: 0.0_f32};
+pub const ZVEC: Vector3f = Vector3f {x: 0.0_f32, y: 0.0_f32, z: 1.0_f32};
+
 pub trait RVec {
   fn lenSqr(&self) -> f32;
   fn len(&self) -> f32 { ((self.lenSqr() as f64).sqrt() as f32) }
@@ -42,13 +46,13 @@ pub trait RVec {
 }
 
 impl Vector2f {
-  fn new() -> Self { Vector2f {x: 0.0_f32, y: 0.0_f32} }
-  fn toSlice(&self) -> [f32; 2] { [self.x, self.y] }
-  fn scaleTo(&self, dest: &mut Self, scale: f32) {
+  pub fn new() -> Self { Vector2f {x: 0.0_f32, y: 0.0_f32} }
+  pub fn toSlice(&self) -> [f32; 2] { [self.x, self.y] }
+  pub fn scaleTo(&self, dest: &mut Self, scale: f32) {
     (*dest).x = self.x * scale;
     (*dest).y = self.y * scale;
   }
-  fn negateTo(&self, dest: &mut Self) {
+  pub fn negateTo(&self, dest: &mut Self) {
     (*dest).x = -self.x;
     (*dest).y = -self.y;
   }
@@ -97,29 +101,45 @@ impl SubAssign for Vector2f {
 }
 
 impl Vector3f {
-  fn new() -> Self { Vector3f {x: 0.0_f32, y: 0.0_f32, z: 0.0_f32} }
-  fn toSlice(&self) -> [f32; 3] { [self.x, self.y, self.z] }
-  fn cross(&mut self, other: Self) {
+  //#[derive_keyword_argument_macro("new", x=0.0, y=0.0, z=0.0)]
+  pub fn new(x: f32, y: f32, z: f32) -> Self { Vector3f {x: x, y: y, z: z} }
+  pub fn new_usize(x: usize, y: usize, z: usize) -> Self { Vector3f {x: x as f32, y: y as f32, z: z as f32} }
+  pub fn blank() -> Self { Vector3f::new_usize(0,0,0) }
+  pub fn from_v3f(&mut self, other: &Vector3f) {
+    self.x = other.x;
+    self.y = other.y;
+    self.z = other.z;
+  }
+  pub fn toSlice(&self) -> [f32; 3] { [self.x, self.y, self.z] }
+  pub fn subTo(&self, other: &Self, dest: &mut Self) {
+    (*dest).x = self.x - other.x;
+    (*dest).y = self.y - other.y;
+    (*dest).z = self.z - other.z;
+  }
+  pub fn dot(&self, other: &Self) -> f32 {
+    self.x * other.x + self.y * other.y + self.z * other.z
+  }
+  pub fn cross(&mut self, other: Self) {
     self.x = self.y * other.z - self.z * other.y;
     self.y = other.x * self.z - other.z * self.x;
     self.z = self.x * other.y - self.y * other.x;
   }
-  fn crossTo(&self, other: &Self, dest: &mut Self) {
+  pub fn crossTo(&self, other: &Self, dest: &mut Self) {
     (*dest).x = self.y * other.z - self.z * other.y;
     (*dest).y = other.x * self.z - other.z * self.x;
     (*dest).z = self.x * other.y - self.y * other.x;
   }
-  fn crossToNew(&self, other: &Self) -> Self {
-    let mut out = Vector3f::new();
+  pub fn crossToNew(&self, other: &Self) -> Self {
+    let mut out = Vector3f::blank();
     self.crossTo(other, &mut out);
     out
   }
-  fn scaleTo(&self, dest: &mut Self, scale: f32) {
+  pub fn scaleTo(&self, dest: &mut Self, scale: f32) {
     (*dest).x = self.x * scale;
     (*dest).y = self.y * scale;
     (*dest).z = self.z * scale;
   }
-  fn negateTo(&self, dest: &mut Self) {
+  pub fn negateTo(&self, dest: &mut Self) {
     (*dest).x = -self.x;
     (*dest).y = -self.y;
     (*dest).z = -self.z;
