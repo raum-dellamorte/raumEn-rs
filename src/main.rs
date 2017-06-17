@@ -9,17 +9,23 @@ extern crate nom;
 
 #[macro_use]
 extern crate glium;
+extern crate glutin;
 //extern crate image;
+
+//use glutin::Event;
 
 pub mod camera;
 pub mod entities;
+pub mod input;
 pub mod model;
 pub mod util;
 
 fn main() {
   use camera::Camera;
+  use input::Handler;
   use model::import::load_obj;
   use entities::entity::PosMarker;
+  use entities::mobs::Mob;
   //use util::rmatrix::Matrix4f;
   //use util::rvector::Vector3f;
   //use model::mesh::{Mesh, MeshBuffers};
@@ -89,14 +95,15 @@ void main() {
 }
 "#;
   
-  let mut cam = Camera::create();
-  let mut focus = PosMarker::new();
-  let mut pmrkr = PosMarker::new();
   let mesh = load_obj("dragon").unwrap().create_buffers(&display);
   let vb = mesh.verts;
   let ib = mesh.indcs;
-  
   let program = Program::from_source(&display, vertex_shader_src, fragment_shader_src, None).unwrap();
+  
+  let mut cam = Camera::create();
+  let mut focus = Mob::new();
+  let mut pmrkr = PosMarker::new();
+  let mut handler = Handler::new();
   
   loop {
     use glium::Surface;
@@ -116,10 +123,11 @@ void main() {
     
     // Calc Movement
     pmrkr.inc_yrot(0.01_f32);
+    focus.move_mob(&mut handler);
     
     // Uniforms
     let transform = pmrkr.transformation();
-    let view = { cam.calc_pos(&focus); cam.view_matrix() }; //view_matrix(&[2.0, -1.0, 1.0], &[-2.0, 1.0, 1.0], &[0.0, 1.0, 0.0]);
+    let view = { cam.calc_pos(&focus.marker); cam.view_matrix() }; //view_matrix(&[2.0, -1.0, 1.0], &[-2.0, 1.0, 1.0], &[0.0, 1.0, 0.0]);
     let projection = gen_projection(&target);
     let light = [0.0, 1000.0, -7000.0_f32];
     
@@ -132,10 +140,10 @@ void main() {
     
     target.finish().unwrap();
     // listing the events produced by the window and waiting to be received
-    for ev in display.poll_events() {
-      match ev {
+    for event in display.poll_events() {
+      match event {
         glium::glutin::Event::Closed => return,   // the window has been closed by the user
-        _ => ()
+        ev => handler.event(&ev)
       }
     }
   }
