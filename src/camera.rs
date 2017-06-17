@@ -26,13 +26,13 @@ impl Camera {
     Camera {
       pos: Vector3f {x: 0_f32, y: 5_f32, z: 0_f32},
       posBak: Vector3f {x: 0_f32, y: 5_f32, z: 0_f32},
-      pitch: 0_f32,
-      pitchBak: 20_f32,
+      pitch: 25_f32,
+      pitchBak: 25_f32,
       yaw: 0_f32,
       yawBak: 0_f32,
       roll: 0_f32,
       rollBak: 0_f32,
-      distFromFocusPos: 30_f32,
+      distFromFocusPos: 40_f32,
       angleAroundFocusPos: 0_f32,
       toPos: Vector3f {x: 0_f32, y: 0_f32, z: 0_f32},
       toFocusPos: Vector3f {x: 0_f32, y: 0_f32, z: 0_f32},
@@ -81,16 +81,16 @@ impl Camera {
     let hDist: f32 = self.calcHDistance();
     let vDist: f32 = self.calcVDistance() + 10_f32;
     let theta = follow.ry + self.angleAroundFocusPos;
-    let xOffset = hDist * theta.sin();
-    let zOffset = hDist * theta.cos();
+    let xOffset = hDist * theta.to_radians().sin();
+    let zOffset = hDist * theta.to_radians().cos();
     self.pos.x = follow.pos.x - xOffset;
     self.pos.z = follow.pos.z - zOffset;
     self.pos.y = follow.pos.y + vDist;
     self.yaw = 180_f32 - (follow.ry + self.angleAroundFocusPos);
   }
 
-  fn calcHDistance(&self) -> f32 {self.distFromFocusPos * self.pitch.cos()}
-  fn calcVDistance(&self) -> f32 {self.distFromFocusPos * self.pitch.sin()}
+  fn calcHDistance(&self) -> f32 {self.distFromFocusPos * self.pitch.to_radians().cos()}
+  fn calcVDistance(&self) -> f32 {self.distFromFocusPos * self.pitch.to_radians().sin()}
 
   pub fn reflection(&mut self, height: f32) {
     self.store();
