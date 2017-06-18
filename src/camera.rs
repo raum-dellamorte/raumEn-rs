@@ -1,5 +1,6 @@
 
-use entities::entity::{PosMarker, Entity};
+use entities::entity::Entity;
+use entities::position::PosMarker;
 use util::rmatrix::Matrix4f;
 use util::rvector::{RVec, Vector3f, XVEC, YVEC}; // , ZVEC
 

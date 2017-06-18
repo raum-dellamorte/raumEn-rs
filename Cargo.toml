@@ -7,3 +7,4 @@ authors = ["Raum Dellamorte <elementalsin@gmail.com>"]
 glium = "^0.16"
 glutin = "0.7"
 nom = "^2.2"
+time = "^0.1.37"

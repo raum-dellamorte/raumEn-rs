@@ -11,6 +11,7 @@ extern crate nom;
 extern crate glium;
 extern crate glutin;
 //extern crate image;
+extern crate time;
 
 //use glutin::Event;
 
@@ -18,16 +19,18 @@ pub mod camera;
 pub mod entities;
 pub mod input;
 pub mod model;
+pub mod timer;
 pub mod util;
 
 fn main() {
   use camera::Camera;
   use input::Handler;
   use model::import::load_obj;
-  use entities::entity::PosMarker;
+  use entities::position::PosMarker;
   use entities::mobs::Mob;
   //use util::rmatrix::Matrix4f;
   //use util::rvector::Vector3f;
+  use timer::Timer;
   //use model::mesh::{Mesh, MeshBuffers};
   
   use std::default::Default;
@@ -41,6 +44,8 @@ fn main() {
   
   use model::import::test_nom;
   test_nom();
+  
+  let mut timer = Timer::new();
   
   let vertex_shader_src = r#"
 #version 400
@@ -108,6 +113,8 @@ void main() {
   loop {
     use glium::Surface;
     
+    timer.tick();
+    
     let mut target = display.draw();
     target.clear_color_and_depth((0.1, 0.1, 0.1, 1.0), 1.0);
     
@@ -123,11 +130,11 @@ void main() {
     
     // Calc Movement
     pmrkr.inc_yrot(0.01_f32);
-    focus.move_mob(&mut handler);
+    focus.move_mob(&mut handler, timer.delta);
     
     // Uniforms
     let transform = pmrkr.transformation();
-    let view = { cam.calc_pos(&focus.marker); cam.view_matrix() }; //view_matrix(&[2.0, -1.0, 1.0], &[-2.0, 1.0, 1.0], &[0.0, 1.0, 0.0]);
+    let view = { cam.calc_pos(&focus.entity.marker); cam.view_matrix() }; //view_matrix(&[2.0, -1.0, 1.0], &[-2.0, 1.0, 1.0], &[0.0, 1.0, 0.0]);
     let projection = gen_projection(&target);
     let light = [0.0, 1000.0, -7000.0_f32];
     
