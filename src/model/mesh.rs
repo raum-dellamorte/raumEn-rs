@@ -9,6 +9,7 @@ pub struct Mesh {
   pub verts: Vec<Vertex>,
   pub indcs: Vec<u16>,
   pub far_point: u16,
+  pub buffers: Option<MeshBuffers>,
 }
 
 pub struct MeshBuffers {
@@ -17,9 +18,9 @@ pub struct MeshBuffers {
 }
 
 impl Mesh {
-  pub fn create_buffers(&self, display: &Facade) -> MeshBuffers {
+  pub fn create_buffers(&mut self, display: &Facade) {
     let v = VertexBuffer::new(display, &(self.verts)).unwrap();
     let i = IndexBuffer::new(display, TrianglesList, &(self.indcs)).unwrap();
-    MeshBuffers {verts: v, indcs: i}
+    self.buffers = Some(MeshBuffers {verts: v, indcs: i});
   }
 }

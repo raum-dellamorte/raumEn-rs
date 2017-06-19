@@ -168,7 +168,7 @@ pub fn load_obj(objname: &str) -> Result<Mesh, &str> {
     }
   }
   
-  Ok( Mesh { verts: verts, indcs: indcs, far_point: 0_u16} )
+  Ok( Mesh { verts: verts, indcs: indcs, far_point: 0_u16, buffers: None} )
 }
 
 //fn processVertex(verts: &mut Vec<Vertex>, index)

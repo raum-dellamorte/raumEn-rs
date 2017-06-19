@@ -24,26 +24,29 @@ pub mod util;
 
 fn main() {
   use camera::Camera;
-  use input::Handler;
-  use model::import::load_obj;
-  use entities::position::PosMarker;
+  use entities::entity::Entity;
   use entities::mobs::Mob;
+  use input::Handler;
+  //use model::import::load_obj;
+  //use model::mesh::{Mesh, MeshBuffers};
   //use util::rmatrix::Matrix4f;
   //use util::rvector::Vector3f;
   use timer::Timer;
-  //use model::mesh::{Mesh, MeshBuffers};
   
   use std::default::Default;
   use glium::{DisplayBuild, Program};
   
-  let display = glium::glutin::WindowBuilder::new()
-    .with_title(format!("RaumEn Test"))
-    .with_dimensions(1024, 760)
-    .with_depth_buffer(24)
-    .build_glium().unwrap();
+  let mut camera = Camera::create(
+    glium::glutin::WindowBuilder::new()
+      .with_title(format!("RaumEn Test"))
+      .with_dimensions(1024, 760)
+      .with_depth_buffer(24)
+      .build_glium().unwrap()
+  );
+  let mut cam = &mut camera;
   
-  use model::import::test_nom;
-  test_nom();
+  //use model::import::test_nom;
+  //test_nom();
   
   let mut timer = Timer::new();
   
@@ -100,14 +103,12 @@ void main() {
 }
 "#;
   
-  let mesh = load_obj("dragon").unwrap().create_buffers(&display);
-  let vb = mesh.verts;
-  let ib = mesh.indcs;
-  let program = Program::from_source(&display, vertex_shader_src, fragment_shader_src, None).unwrap();
+  let mut entity = Entity::new();
+  entity.load_mesh("dragon");
+  entity.mesh.as_mut().unwrap().create_buffers(&cam.display);
+  let program = Program::from_source(&cam.display, vertex_shader_src, fragment_shader_src, None).unwrap();
   
-  let mut cam = Camera::create();
   let mut focus = Mob::new();
-  let mut pmrkr = PosMarker::new();
   let mut handler = Handler::new();
   
   loop {
@@ -115,8 +116,8 @@ void main() {
     
     timer.tick();
     
-    let mut target = display.draw();
-    target.clear_color_and_depth((0.1, 0.1, 0.1, 1.0), 1.0);
+    cam.update();
+    {cam.target.as_mut().unwrap().clear_color_and_depth((0.1, 0.1, 0.1, 1.0), 1.0);}
     
     let params = glium::DrawParameters {
       depth: glium::Depth {
@@ -129,50 +130,22 @@ void main() {
     };
     
     // Calc Movement
-    pmrkr.inc_yrot(0.01_f32);
+    entity.marker.inc_yrot(0.01_f32);
     focus.move_mob(&mut handler, timer.delta);
+    cam.calc_pos(&focus.entity.marker);
     
-    // Uniforms
-    let transform = pmrkr.transformation();
-    let view = { cam.calc_pos(&focus.entity.marker); cam.view_matrix() }; //view_matrix(&[2.0, -1.0, 1.0], &[-2.0, 1.0, 1.0], &[0.0, 1.0, 0.0]);
-    let projection = gen_projection(&target);
-    let light = [0.0, 1000.0, -7000.0_f32];
+    // Draw!
+    cam.draw_entity(&mut entity, &program, &params);
     
-    // Draw stuff!
-    target.draw(&vb,
-                &ib,
-                &program,
-                &uniform! { transform: transform, view: view, projection: projection, u_light: light },
-                &params).unwrap();
+    // Finish!
+    cam.finish();
     
-    target.finish().unwrap();
     // listing the events produced by the window and waiting to be received
-    for event in display.poll_events() {
+    for event in cam.display.poll_events() {
       match event {
         glium::glutin::Event::Closed => return,   // the window has been closed by the user
         ev => handler.event(&ev)
       }
     }
   }
-}
-
-fn gen_projection(target: &glium::Frame) -> [[f32; 4]; 4] {
-  use glium::Surface;
-  use util::rmatrix::Matrix4f;
-  let (width, height) = target.get_dimensions();
-  let aspect_ratio = height as f32 / width as f32;
-  
-  let fov: f32 = 3.141592 / 3.0;
-  let zfar = 1024.0;
-  let znear = 0.1;
-  let mut pMatrix = Matrix4f::new();
-  let yScale = 1_f32 / (fov / 2_f32).tan();
-  let frustumLength = zfar - znear;
-  pMatrix.m00 = yScale / aspect_ratio;
-  pMatrix.m11 = yScale;
-  pMatrix.m22 = -((zfar + znear) / frustumLength);
-  pMatrix.m23 = -1_f32;
-  pMatrix.m32 = -(2_f32 * znear * zfar) / frustumLength;
-  pMatrix.m33 = 0_f32;
-  pMatrix.as_slice()
 }
