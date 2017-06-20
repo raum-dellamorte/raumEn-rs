@@ -1,10 +1,12 @@
 
-use glium::{Display, DrawParameters, Frame, Program, Surface};
+use glium::{Display, DrawParameters, Frame, IndexBuffer, Program, Surface, VertexBuffer};
+use glium::texture::CompressedSrgbTexture2d;
 
 use entities::entity::Entity;
 use entities::position::PosMarker;
 use util::rmatrix::Matrix4f;
 use util::rvector::{RVec, Vector3f, XVEC, YVEC}; // , ZVEC
+use util::rvertex::Vertex;
 
 pub struct Camera {
   pub display: Display,
@@ -57,17 +59,43 @@ impl Camera {
     self.target.take().unwrap().finish().unwrap();
   }
   
-  pub fn draw_entity(&mut self, ent: &mut Entity, program: &Program, params: &DrawParameters) {
+  pub fn draw_entity(&mut self, ent: &mut Entity, params: &DrawParameters) {
     let light = [0.0, 1000.0, -7000.0_f32];
-    let model = ent.mesh.as_ref().unwrap().buffers.as_ref().unwrap();
+    let mesh = ent.model.mesh.as_ref().unwrap().buffers.as_ref().unwrap();
+    let trans = ent.marker.transformation();
     let view = self.view_matrix();
     let proj = self.projection();
+    match ent.model.texture.as_ref() {
+      Some(texture) => self.draw_with_texture(texture, params, &mesh.verts, &mesh.indcs, trans, view, proj, light),
+      None => self.draw_with_color(params, &mesh.verts, &mesh.indcs, trans, view, proj, light),
+    };
+    
+  }
+  
+  fn draw_with_texture(&mut self, texture: &CompressedSrgbTexture2d, params: &DrawParameters,
+      verts: &VertexBuffer<Vertex>, indcs: &IndexBuffer<u16>,
+      trans: [[f32; 4]; 4], view: [[f32; 4]; 4], proj: [[f32; 4]; 4], light: [f32; 3]) {
+    let program = Program::from_source(&self.display, vertex_with_texture, fragment_with_texture, None).unwrap();
     self.target.as_mut().unwrap().draw(
-      &model.verts,
-      &model.indcs,
-      program,
+      verts, indcs, &program,
       &uniform! {
-        transform: ent.marker.transformation(),
+        transform: trans,
+        view: view,
+        projection: proj,
+        u_light: light,
+        tex: texture,
+      },
+      params
+    ).unwrap();
+  }
+  
+  fn draw_with_color(&mut self, params: &DrawParameters, verts: &VertexBuffer<Vertex>, indcs: &IndexBuffer<u16>,
+      trans: [[f32; 4]; 4], view: [[f32; 4]; 4], proj: [[f32; 4]; 4], light: [f32; 3]) {
+    let program = Program::from_source(&self.display, vertex_no_texture, fragment_no_texture, None).unwrap();
+    self.target.as_mut().unwrap().draw(
+      verts, indcs, &program,
+      &uniform! {
+        transform: trans,
         view: view,
         projection: proj,
         u_light: light },
@@ -179,3 +207,120 @@ impl Camera {
     self.viewMat.translate_v3f(&negCam);
   }
 }
+
+const vertex_no_texture: &str = r#"
+#version 400
+in vec3 position;
+in vec3 normal;
+
+out vec3 surface_normal;
+out vec3 v_position;
+out vec3 toLightVector;
+out vec3 toCameraVector;
+
+uniform mat4 transform;
+uniform mat4 view;
+uniform mat4 projection;
+uniform vec3 u_light;
+
+void main() {
+  v_position = gl_Position.xyz / gl_Position.w;
+  vec4 worldPos = transform * vec4(position, 1.0);
+  vec4 posRelToCam = view * worldPos;
+  gl_Position = projection * posRelToCam;
+  
+  surface_normal = (transform * vec4(normal, 0.0)).xyz;
+  
+  toLightVector = u_light - worldPos.xyz;
+  toCameraVector = (inverse(view) * vec4(0.0,0.0,0.0,1.0)).xyz - worldPos.xyz;
+}
+"#;
+const fragment_no_texture: &str = r#"
+#version 400
+in vec3 surface_normal;
+in vec3 v_position;
+in vec3 toLightVector;
+in vec3 toCameraVector;
+
+out vec4 color;
+
+const vec3 ambient_color = vec3(0.2, 0.0, 0.0);
+const vec3 diffuse_color = vec3(0.6, 0.0, 0.0);
+const vec3 specular_color = vec3(1.0, 1.0, 1.0);
+
+void main() {
+vec3 lightColour = vec3(1.0);
+vec3 unitNormal = normalize(surface_normal);
+vec3 unitCameraVector = normalize(toCameraVector);
+vec3 unitLightVector = normalize(toLightVector);
+
+float diffuse = max(dot(unitNormal, unitLightVector), 0.0);
+float specular = max(dot(reflect(unitLightVector, unitNormal), unitCameraVector), 0.0);
+
+color = vec4(ambient_color + diffuse * diffuse_color + specular * specular_color, 1.0);
+}
+"#;
+
+const vertex_with_texture: &str = r#"
+#version 400
+in vec3 position;
+in vec3 normal;
+in vec2 tex_coords;
+
+out vec3 v_position;
+out vec3 surface_normal;
+out vec2 pass_tex_coords;
+out vec3 toLightVector;
+out vec3 toCameraVector;
+
+uniform mat4 transform;
+uniform mat4 view;
+uniform mat4 projection;
+uniform vec3 u_light;
+
+void main() {
+  v_position = gl_Position.xyz / gl_Position.w;
+  vec4 worldPos = transform * vec4(position, 1.0);
+  vec4 posRelToCam = view * worldPos;
+  gl_Position = projection * posRelToCam;
+  
+  surface_normal = (transform * vec4(normal, 0.0)).xyz;
+  
+  pass_tex_coords = tex_coords;
+  toLightVector = u_light - worldPos.xyz;
+  toCameraVector = (inverse(view) * vec4(0.0,0.0,0.0,1.0)).xyz - worldPos.xyz;
+}
+"#;
+const fragment_with_texture: &str = r#"
+#version 400
+in vec3 v_position;
+in vec3 surface_normal;
+in vec2 pass_tex_coords;
+in vec3 toLightVector;
+in vec3 toCameraVector;
+
+out vec4 color;
+
+uniform sampler2D tex;
+
+const vec3 ambient_color = vec3(0.2, 0.0, 0.0);
+const vec3 diffuse_color = vec3(0.6, 0.0, 0.0);
+const vec3 specular_color = vec3(1.0, 1.0, 1.0);
+
+void main() {
+  vec3 lightColour = vec3(1.0);
+  vec3 unitNormal = normalize(surface_normal);
+  vec3 unitCameraVector = normalize(toCameraVector);
+  vec3 unitLightVector = normalize(toLightVector);
+  
+  float diffuse = max(dot(unitNormal, unitLightVector), 0.0);
+  float specular = max(dot(reflect(unitLightVector, unitNormal), unitCameraVector), 0.0);
+  
+  vec4 texture_colour = texture(tex, pass_tex_coords);
+  if(texture_colour.a < 0.5){
+    discard;
+  }
+  
+  color = texture_colour + vec4(specular * specular_color, 1.0);
+}
+"#;

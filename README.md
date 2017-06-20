@@ -6,12 +6,21 @@ An OpenGL engine written in Rust.
 Status
 ------
 
-Still learning.  Opens a window ~~and draws a triangle that moves.
-Working on an implementation of Vector and Matrix classes from LWJGL with my own modifications.~~
+The "engine" is currently able to:
+- load an obj file as a mesh
+- optionally use a texture
+- draw the mesh with or without a texture
+- accept keyboard and mouse input
+- move a Mob object with WASD keys
 
-..and draws a shape from a .obj file!  ~~Next, shading!~~  Camera and specular lighting working!
+Near future ToDo:
+- load glsl from files instead of being hard coded
+- Terrain!
+- improve Mob movement
+- implement rudimentary animation
 
-Mob support started.
+Future Plans:
+RaumEn should be able to use config files and binary libraries to create the game experience.  It should be modular enough for FPS, RPG, and adventure type games, but who knows?  I have vague plans for a space shooter with side to side movement in which you're constantly moving forward, based on an old TI-99/4A game I used to play but can't remember the name of, as my first working game.
 
 Experience writing it in Rust
 -----------------------------

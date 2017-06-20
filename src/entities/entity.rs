@@ -1,32 +1,25 @@
 
 use entities::position::PosMarker;
-use model::import::load_obj;
-use model::mesh::Mesh;
+use glium::Display;
+use model::model::Model;
 
 pub struct Entity {
   pub marker: PosMarker,
-  pub mesh: Option<Mesh>,
-  pub h: f32,
-  pub w: f32,
+  pub model: Model,
   pub distance: f32,
 }
 
 impl Entity {
-  pub fn new() -> Self {
+  pub fn new(name: &str) -> Self {
     Entity {
       marker: PosMarker::new(),
-      mesh: None,
-      h: 0_f32,
-      w: 0_f32,
+      model: Model::new(name),
       distance: 0_f32,
     }
   }
   
-  pub fn load_mesh(&mut self, mesh_name: &str) -> &Self {
-    self.mesh = match load_obj(mesh_name) {
-      Ok(mesh) => Some(mesh),
-      Err(_) => {println!("Mesh {} failed to load.", mesh_name); None },
-    };
+  pub fn load_model_defaults(&mut self, display: &Display) -> &mut Self {
+    self.model.load_default_mesh(display).load_default_texture(display);
     self
   }
 }

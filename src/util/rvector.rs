@@ -103,8 +103,18 @@ impl SubAssign for Vector2f {
 impl Vector3f {
   //#[derive_keyword_argument_macro("new", x=0.0, y=0.0, z=0.0)]
   pub fn new(x: f32, y: f32, z: f32) -> Self { Vector3f {x: x, y: y, z: z} }
-  pub fn new_usize(x: usize, y: usize, z: usize) -> Self { Vector3f {x: x as f32, y: y as f32, z: z as f32} }
-  pub fn blank() -> Self { Vector3f::new_usize(0,0,0) }
+  pub fn new_isize(x: isize, y: isize, z: isize) -> Self { Vector3f {x: x as f32, y: y as f32, z: z as f32} }
+  pub fn blank() -> Self { Vector3f::new_isize(0,0,0) }
+  pub fn from_isize(&mut self, x: isize, y: isize, z: isize) {
+    self.x = x as f32;
+    self.y = y as f32;
+    self.z = z as f32;
+  }
+  pub fn from_f32(&mut self, x: f32, y: f32, z: f32) {
+    self.x = x;
+    self.y = y;
+    self.z = z;
+  }
   pub fn from_v3f(&mut self, other: &Vector3f) {
     self.x = other.x;
     self.y = other.y;

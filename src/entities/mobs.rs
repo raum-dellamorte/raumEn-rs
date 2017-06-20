@@ -11,9 +11,9 @@ pub struct Mob<'a> {
 }
 
 impl<'a> Mob<'a> {
-  pub fn new() -> Self {
+  pub fn new(name: &str) -> Self {
     Mob {
-      entity: Entity::new(),
+      entity: Entity::new(name),
       speed: 20_f32,
       stats: HashMap::new(),
     }

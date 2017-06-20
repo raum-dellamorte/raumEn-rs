@@ -2,7 +2,7 @@ use util::rvertex::Vertex;
 //use util::rvector::Vector2f;
 
 use glium::{VertexBuffer, IndexBuffer};
-use glium::backend::Facade;
+use glium::Display;
 use glium::index::PrimitiveType::TrianglesList;
 
 pub struct Mesh {
@@ -18,7 +18,7 @@ pub struct MeshBuffers {
 }
 
 impl Mesh {
-  pub fn create_buffers(&mut self, display: &Facade) {
+  pub fn create_buffers(&mut self, display: &Display) {
     let v = VertexBuffer::new(display, &(self.verts)).unwrap();
     let i = IndexBuffer::new(display, TrianglesList, &(self.indcs)).unwrap();
     self.buffers = Some(MeshBuffers {verts: v, indcs: i});
