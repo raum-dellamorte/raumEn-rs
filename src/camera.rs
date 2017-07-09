@@ -1,5 +1,6 @@
 
-use glium::{Display, DrawParameters, Frame, IndexBuffer, Program, Surface, VertexBuffer};
+use glium::{Display, Depth, DepthTest, DrawParameters, Frame, IndexBuffer, Program, Surface, VertexBuffer};
+use glium::draw_parameters::BackfaceCullingMode;
 use glium::texture::CompressedSrgbTexture2d;
 
 use entities::entity::Entity;
@@ -11,6 +12,7 @@ use util::rvertex::Vertex;
 pub struct Camera {
   pub display: Display,
   pub target: Option<Frame>,
+  pub target_dimensions: (u32, u32),
   pub pos: Vector3f,
   pub posBak: Vector3f,
   pub pitch: f32,
@@ -34,6 +36,7 @@ impl Camera {
     Camera {
       display: display,
       target: None,
+      target_dimensions: (0, 0),
       pos: Vector3f {x: 0_f32, y: 5_f32, z: 0_f32},
       posBak: Vector3f {x: 0_f32, y: 5_f32, z: 0_f32},
       pitch: 25_f32,
@@ -51,48 +54,69 @@ impl Camera {
     }
   }
   
-  pub fn update(&mut self) {
+  pub fn load_target(&mut self) {
     self.target = Some(self.display.draw());
+    self.target_dimensions = self.target.as_ref().unwrap().get_dimensions()
   }
   
   pub fn finish(&mut self) {
     self.target.take().unwrap().finish().unwrap();
   }
   
-  pub fn draw_entity(&mut self, ent: &mut Entity, params: &DrawParameters) {
+  pub fn draw_entity(&mut self, ent: &mut Entity) {
+    let mut frame: Option<Frame> = self.target.take();
+    self.draw_entity_surface(ent, &mut frame);
+    self.target = frame;
+  }
+  
+  pub fn draw_entity_surface<S>(&mut self, ent: &mut Entity, fbo: &mut Option<S>) where S: Surface {
     let light = [0.0, 1000.0, -7000.0_f32];
     let mesh = ent.model.mesh.as_ref().unwrap().buffers.as_ref().unwrap();
     let trans = ent.marker.transformation();
     let view = self.view_matrix();
     let proj = self.projection();
+    let params = DrawParameters {
+      depth: Depth {
+        test: DepthTest::IfLess,
+        write: true,
+        .. Default::default()
+      },
+      backface_culling: BackfaceCullingMode::CullClockwise,
+      .. Default::default()
+    };
     match ent.model.texture.as_ref() {
-      Some(texture) => self.draw_with_texture(texture, params, &mesh.verts, &mesh.indcs, trans, view, proj, light),
-      None => self.draw_with_color(params, &mesh.verts, &mesh.indcs, trans, view, proj, light),
+      Some(texture) => self.draw_with_texture(texture, &params, &mesh.verts, &mesh.indcs, trans, view, proj, light, fbo),
+      None => self.draw_with_color(&params, &mesh.verts, &mesh.indcs, trans, view, proj, light, fbo),
     };
     
   }
   
-  fn draw_with_texture(&mut self, texture: &CompressedSrgbTexture2d, params: &DrawParameters,
+  fn draw_with_texture<S>(&mut self, texture: &CompressedSrgbTexture2d, params: &DrawParameters,
       verts: &VertexBuffer<Vertex>, indcs: &IndexBuffer<u16>,
-      trans: [[f32; 4]; 4], view: [[f32; 4]; 4], proj: [[f32; 4]; 4], light: [f32; 3]) {
+      trans: [[f32; 4]; 4], view: [[f32; 4]; 4], proj: [[f32; 4]; 4], light: [f32; 3],
+      fbo: &mut Option<S>) where S: Surface {
     let program = Program::from_source(&self.display, vertex_with_texture, fragment_with_texture, None).unwrap();
-    self.target.as_mut().unwrap().draw(
-      verts, indcs, &program,
-      &uniform! {
-        transform: trans,
-        view: view,
-        projection: proj,
-        u_light: light,
-        tex: texture,
-      },
-      params
-    ).unwrap();
+    match fbo.as_mut() {
+      Some(target) => target.draw(
+                        verts, indcs, &program,
+                        &uniform! {
+                          transform: trans,
+                          view: view,
+                          projection: proj,
+                          u_light: light,
+                          tex: texture,
+                        },
+                        params
+                      ).unwrap(),
+      None => (),
+    };
   }
   
-  fn draw_with_color(&mut self, params: &DrawParameters, verts: &VertexBuffer<Vertex>, indcs: &IndexBuffer<u16>,
-      trans: [[f32; 4]; 4], view: [[f32; 4]; 4], proj: [[f32; 4]; 4], light: [f32; 3]) {
+  fn draw_with_color<S>(&mut self, params: &DrawParameters, verts: &VertexBuffer<Vertex>, indcs: &IndexBuffer<u16>,
+      trans: [[f32; 4]; 4], view: [[f32; 4]; 4], proj: [[f32; 4]; 4], light: [f32; 3],
+      fbo: &mut Option<S>) where S: Surface {
     let program = Program::from_source(&self.display, vertex_no_texture, fragment_no_texture, None).unwrap();
-    self.target.as_mut().unwrap().draw(
+    fbo.as_mut().unwrap().draw(
       verts, indcs, &program,
       &uniform! {
         transform: trans,
@@ -104,9 +128,16 @@ impl Camera {
   }
   
   pub fn view_matrix(&mut self) -> [[f32; 4]; 4] { self.createViewMatrix(); self.viewMat.as_slice() }
-
+  
+  pub fn get_dimensions(&self) -> (u32, u32) {
+    match self.target.as_ref() {
+      Some(target) => target.get_dimensions(),
+      None => (0, 0),
+    }
+  }
+  
   pub fn projection(&mut self) -> [[f32; 4]; 4] {
-    let (width, height) = self.target.as_ref().unwrap().get_dimensions();
+    let (width, height) = self.target_dimensions;
     let aspect_ratio = height as f32 / width as f32;
     let fov: f32 = 3.141592 / 3.0;
     let zfar = 1024.0;

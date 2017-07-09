@@ -1,5 +1,6 @@
 #![allow(non_snake_case)]
 #![allow(dead_code)]
+#![allow(non_upper_case_globals)]
 #![feature(attr_literals)]
 #![feature(custom_derive)]
 #![feature(use_extern_macros)]
@@ -17,33 +18,34 @@ extern crate time;
 
 pub mod camera;
 pub mod entities;
+pub mod fbo;
 pub mod input;
 pub mod model;
+//pub mod shaders;
 pub mod timer;
 pub mod util;
 
+use camera::Camera;
+use entities::entity::Entity;
+use entities::mobs::Mob;
+use fbo::FboWithDepth;
+use input::Handler;
+//use model::import::load_obj;
+//use model::mesh::{Mesh, MeshBuffers};
+//use util::rmatrix::Matrix4f;
+//use util::rvector::Vector3f;
+use timer::Timer;
+
+use glium::DisplayBuild;
+
 fn main() {
-  use camera::Camera;
-  use entities::entity::Entity;
-  use entities::mobs::Mob;
-  use input::Handler;
-  //use model::import::load_obj;
-  //use model::mesh::{Mesh, MeshBuffers};
-  //use util::rmatrix::Matrix4f;
-  //use util::rvector::Vector3f;
-  use timer::Timer;
-  
-  use std::default::Default;
-  use glium::DisplayBuild;
-  
-  let mut camera = Camera::create(
+  let mut cam = Camera::create(
     glium::glutin::WindowBuilder::new()
       .with_title(format!("RaumEn Test"))
       .with_dimensions(1024, 760)
       .with_depth_buffer(24)
       .build_glium().unwrap()
   );
-  let mut cam = &mut camera;
   
   //use model::import::test_nom;
   //test_nom();
@@ -56,23 +58,13 @@ fn main() {
   focus.entity.load_model_defaults(&cam.display).marker.pos.from_isize(0, 0, -20);
   let mut handler = Handler::new();
   
+  let fbuffer = FboWithDepth::new_default(&cam);
+  
   loop {
     use glium::Surface;
     
     timer.tick();
-    
-    cam.update();
-    {cam.target.as_mut().unwrap().clear_color_and_depth((0.1, 0.1, 0.1, 1.0), 1.0);}
-    
-    let params = glium::DrawParameters {
-      depth: glium::Depth {
-        test: glium::DepthTest::IfLess,
-        write: true,
-        .. Default::default()
-      },
-      backface_culling: glium::draw_parameters::BackfaceCullingMode::CullClockwise,
-      .. Default::default()
-    };
+    cam.load_target();
     
     // Calc Movement
     entity.marker.inc_yrot(0.01_f32);
@@ -81,8 +73,13 @@ fn main() {
     cam.calc_pos(&focus.entity.marker);
     
     // Draw!
-    cam.draw_entity(&mut entity, &params);
-    cam.draw_entity(&mut focus.entity, &params);
+    let mut fbo = fbuffer.fb(&cam);
+    cam.draw_entity_surface(&mut entity, &mut fbo);
+    cam.draw_entity_surface(&mut focus.entity, &mut fbo);
+    {cam.target.as_mut().unwrap().clear_color_and_depth((0.1, 0.1, 0.1, 1.0), 1.0);}
+    cam.draw_entity(&mut entity);
+    cam.draw_entity(&mut focus.entity);
+    
     
     // Finish!
     cam.finish();
