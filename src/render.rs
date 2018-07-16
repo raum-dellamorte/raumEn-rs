@@ -13,11 +13,14 @@ pub mod ModelRender {
   use util::rvertex::{RVertex, RVertex2D};
   
   pub fn prepare() { unsafe {
+    Clear(COLOR_BUFFER_BIT);
     ClearColor(0.0, 1.0, 0.0, 1.0);
   }}
   pub fn render(model: RawModel) { unsafe {
     BindVertexArray(model.vao_id);
     EnableVertexAttribArray(0);
-    
+    DrawArrays(TRIANGLES, 0, model.vertex_count);
+    DisableVertexAttribArray(0);
+    BindVertexArray(0);
   }}
 }

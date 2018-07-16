@@ -48,11 +48,11 @@ fn main() {
       _ => ()
     }
     });
-
-    unsafe {
-      gl::Clear(gl::COLOR_BUFFER_BIT);
-    }
-
+    render::ModelRender::prepare(); // Clear color
+    
+    
+    
     gl_window.swap_buffers().unwrap();
   }
+  loader.clean_up();
 }
