@@ -64,14 +64,14 @@ impl Loader {
     let vao_id = self.create_vao();
     self.data_to_attribs_2d(0, verts);
     self.unbind_vao();
-    RawModel::new(vao_id, verts.len())
+    RawModel::new(vao_id, verts.len() as i32)
   }}
-  pub fn load_to_vao(&mut self, verts: &[RVertex]) -> RawModel { unsafe {
+  pub fn load_to_vao(&mut self, verts: &[RVertex]) -> RawModel {
     let vao_id = self.create_vao();
     self.data_to_attribs(0, verts);
     self.unbind_vao();
-    RawModel::new(vao_id, verts.len())
-  }}
+    RawModel::new(vao_id, verts.len() as i32)
+  }
   pub fn clean_up(&mut self) { unsafe {
     for vao in &self.vaos {
       DeleteVertexArrays(1_i32, vao);
