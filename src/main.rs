@@ -1,23 +1,13 @@
-#![allow(non_snake_case)]
-#![allow(dead_code)]
-#![allow(non_upper_case_globals)]
-#![feature(attr_literals)]
-#![feature(custom_derive)]
-#![feature(use_extern_macros)]
 
-#[macro_use]
-extern crate nom;
-
-extern crate glium;
+extern crate gl;
 extern crate glutin;
+#[macro_use] extern crate nom;
 extern crate image;
-extern crate time;
 
-//use glutin::Event;
+use glutin::dpi::*;
+use glutin::GlContext;
 
-pub mod camera;
-pub mod fbo;
-pub mod input;
+// in project stuff
 pub mod model;
 pub mod util;
 pub mod render;
