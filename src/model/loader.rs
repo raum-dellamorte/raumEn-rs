@@ -84,7 +84,7 @@ impl Loader {
     self.bind_indices(&mesh.indcs);
     self.bind_vertices(0, &mesh.verts);
     self.unbind_vao();
-    RawModel::new(vao_id, mesh.verts.len() as i32)
+    RawModel::new(vao_id, mesh.indcs.len() as i32)
   }
   pub fn clean_up(&mut self) { unsafe {
     for vao in &self.vaos {
