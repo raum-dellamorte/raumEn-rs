@@ -80,10 +80,10 @@ impl Model {
   //   };
   //   self
   // }
-  pub fn mesh_verts(&self) -> Vec<RVertex> {
+  pub fn mesh_verts(&self) -> &[RVertex] {
     match self.mesh {
-      Some(mesh) => { mesh.verts }
-      _ => { Vec::new() }
+      Some(ref mesh) => { &mesh.verts }
+      _ => { &[] }
     }
   }
 }
