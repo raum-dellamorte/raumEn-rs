@@ -7,6 +7,7 @@
 use image;
 use model::import::load_obj;
 use model::mesh::Mesh;
+use util::rvertex::RVertex;
 use std::path::Path;
 
 pub struct Model {
@@ -23,20 +24,20 @@ impl Model {
       //texture: Err("Texture not loaded."),
     }
   }
-  // pub fn load_defaults(&mut self) -> &mut Self {
-  //   self.load_default_mesh().load_default_texture(display)
-  // }
-  // pub fn load_default_mesh(&mut self) -> &mut Self {
-  //   self.mesh = match load_obj(&self.name) {
-  //     Ok(mesh) => Some(mesh),
-  //     Err(_) => {println!("Mesh {} failed to load.", self.name); None },
-  //   };
-  //   // match self.mesh.as_mut() {
-  //   //   Some(mesh) => mesh.create_buffers(display),
-  //   //   None => (),
-  //   // };
-  //   self
-  // }
+  pub fn load_defaults(&mut self) -> &mut Self {
+    self.load_default_mesh() //.load_default_texture(display)
+  }
+  pub fn load_default_mesh(&mut self) -> &mut Self {
+    self.mesh = match load_obj(&self.name) {
+      Ok(mesh) => Some(mesh),
+      Err(_) => {println!("Mesh {} failed to load.", self.name); None },
+    };
+    // match self.mesh.as_mut() {
+    //   Some(mesh) => mesh.create_buffers(display),
+    //   None => (),
+    // };
+    self
+  }
   // pub fn load_default_texture<R, F>(&mut self, factory: &mut F) -> &mut Self {
   //       where R: gfx::Resources, F: gfx::Factory<R> {
   //   use image;
@@ -79,12 +80,12 @@ impl Model {
   //   };
   //   self
   // }
-  // pub fn mesh_verts(&self) -> Vec<Vertex> {
-  //   match self.mesh {
-  //     Some(mesh) => { mesh.verts }
-  //     _ => { Vec::new::<Vertex>() }
-  //   }
-  // }
+  pub fn mesh_verts(&self) -> Vec<RVertex> {
+    match self.mesh {
+      Some(mesh) => { mesh.verts }
+      _ => { Vec::new() }
+    }
+  }
 }
 
 #[derive(Debug)]
