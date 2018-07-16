@@ -90,11 +90,11 @@ impl Model {
 #[derive(Debug)]
 pub struct RawModel {
     pub vao_id: u32,
-    pub vertex_count: usize,
+    pub vertex_count: i32,
 }
 
 impl RawModel {
-  pub fn new(id: u32, count: usize) -> Self {
+  pub fn new(id: u32, count: i32) -> Self {
     RawModel { vao_id: id, vertex_count: count }
   }
 }
