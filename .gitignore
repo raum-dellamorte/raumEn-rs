@@ -1,4 +1,5 @@
 target
 
 .idea/
+*.lock
 raumEn-rs.iml

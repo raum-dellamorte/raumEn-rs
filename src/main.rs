@@ -8,7 +8,6 @@
 #[macro_use]
 extern crate nom;
 
-#[macro_use]
 extern crate glium;
 extern crate glutin;
 extern crate image;
@@ -17,79 +16,53 @@ extern crate time;
 //use glutin::Event;
 
 pub mod camera;
-pub mod entities;
 pub mod fbo;
 pub mod input;
 pub mod model;
-//pub mod shaders;
-pub mod timer;
 pub mod util;
-
-use camera::Camera;
-use entities::entity::Entity;
-use entities::mobs::Mob;
-use fbo::FboWithDepth;
-use input::Handler;
-//use model::import::load_obj;
-//use model::mesh::{Mesh, MeshBuffers};
-//use util::rmatrix::Matrix4f;
-//use util::rvector::Vector3f;
-use timer::Timer;
-
-use glium::DisplayBuild;
+pub mod render;
 
 fn main() {
-  let mut cam = Camera::create(
-    glium::glutin::WindowBuilder::new()
-      .with_title(format!("RaumEn Test"))
-      .with_dimensions(1024, 760)
-      .with_depth_buffer(24)
-      .build_glium().unwrap()
-  );
+  let mut events_loop = glutin::EventsLoop::new();
+  let window = glutin::WindowBuilder::new()
+    .with_title("RaumEn")
+    .with_dimensions(LogicalSize::new(1024.0, 768.0));
+  let context = glutin::ContextBuilder::new()
+    .with_vsync(true);
+  let gl_window = glutin::GlWindow::new(window, context, &events_loop).unwrap();
+
+  unsafe {
+    gl_window.make_current().unwrap();
+  }
+
+  unsafe {
+    gl::load_with(|symbol| gl_window.get_proc_address(symbol) as *const _);
+    gl::ClearColor(0.0, 1.0, 0.0, 1.0);
+  }
   
-  //use model::import::test_nom;
-  //test_nom();
+  use model::loader::Loader;
+  let mut loader = Loader::new();
   
-  let mut timer = Timer::new();
-  
-  let mut entity = Entity::new("spaceship");
-  entity.load_model_defaults(&cam.display);
-  let mut focus = Mob::new("spaceship");
-  focus.entity.load_model_defaults(&cam.display).marker.pos.from_isize(0, 0, -20);
-  let mut handler = Handler::new();
-  
-  let fbuffer = FboWithDepth::new_default(&cam);
-  
-  loop {
-    use glium::Surface;
-    
-    timer.tick();
-    cam.load_target();
-    
-    // Calc Movement
-    entity.marker.inc_yrot(0.01_f32);
-    //focus.entity.marker.inc_yrot(-0.01_f32);
-    focus.move_mob(&mut handler, timer.delta);
-    cam.calc_pos(&focus.entity.marker);
-    
-    // Draw!
-    let mut fbo = fbuffer.fb(&cam);
-    cam.draw_entity_surface(&mut entity, &mut fbo);
-    cam.draw_entity_surface(&mut focus.entity, &mut fbo);
-    {cam.target.as_mut().unwrap().clear_color_and_depth((0.1, 0.1, 0.1, 1.0), 1.0);}
-    cam.draw_entity(&mut entity);
-    cam.draw_entity(&mut focus.entity);
-    
-    
-    // Finish!
-    cam.finish();
-    
-    // listing the events produced by the window and waiting to be received
-    for event in cam.display.poll_events() {
-      match event {
-        glium::glutin::Event::Closed => return,   // the window has been closed by the user
-        ev => handler.event(&ev)
-      }
+  let mut running = true;
+  while running {
+    events_loop.poll_events(|event| {
+    match event {
+      glutin::Event::WindowEvent{ event, .. } => match event {
+        glutin::WindowEvent::CloseRequested => running = false,
+        glutin::WindowEvent::Resized(logical_size) => {
+          let dpi_factor = gl_window.get_hidpi_factor();
+          gl_window.resize(logical_size.to_physical(dpi_factor));
+        },
+        _ => ()
+      },
+      _ => ()
     }
+    });
+
+    unsafe {
+      gl::Clear(gl::COLOR_BUFFER_BIT);
+    }
+
+    gl_window.swap_buffers().unwrap();
   }
 }

@@ -1,4 +1,3 @@
-#![allow(non_snake_case)]
 #![allow(dead_code)]
 
 // need sub, cross, dot, angle, and length between 2 vectors
@@ -31,8 +30,8 @@ pub const YVEC: Vector3f = Vector3f {x: 0.0_f32, y: 1.0_f32, z: 0.0_f32};
 pub const ZVEC: Vector3f = Vector3f {x: 0.0_f32, y: 0.0_f32, z: 1.0_f32};
 
 pub trait RVec {
-  fn lenSqr(&self) -> f32;
-  fn len(&self) -> f32 { ((self.lenSqr() as f64).sqrt() as f32) }
+  fn len_sqr(&self) -> f32;
+  fn len(&self) -> f32 { ((self.len_sqr() as f64).sqrt() as f32) }
   fn scale(&mut self, scale: f32);
   fn negate(&mut self);
   fn normalize(&mut self) {
@@ -47,19 +46,19 @@ pub trait RVec {
 
 impl Vector2f {
   pub fn new() -> Self { Vector2f {x: 0.0_f32, y: 0.0_f32} }
-  pub fn toSlice(&self) -> [f32; 2] { [self.x, self.y] }
-  pub fn scaleTo(&self, dest: &mut Self, scale: f32) {
+  pub fn to_slice(&self) -> [f32; 2] { [self.x, self.y] }
+  pub fn scale_to(&self, dest: &mut Self, scale: f32) {
     (*dest).x = self.x * scale;
     (*dest).y = self.y * scale;
   }
-  pub fn negateTo(&self, dest: &mut Self) {
+  pub fn negate_to(&self, dest: &mut Self) {
     (*dest).x = -self.x;
     (*dest).y = -self.y;
   }
 }
 
 impl RVec for Vector2f {
-  fn lenSqr(&self) -> f32 { (self.x * self.x) + (self.y * self.y) }
+  fn len_sqr(&self) -> f32 { (self.x * self.x) + (self.y * self.y) }
   fn scale(&mut self, scale: f32) {
     self.x *= scale;
     self.y *= scale;
@@ -120,8 +119,8 @@ impl Vector3f {
     self.y = other.y;
     self.z = other.z;
   }
-  pub fn toSlice(&self) -> [f32; 3] { [self.x, self.y, self.z] }
-  pub fn subTo(&self, other: &Self, dest: &mut Self) {
+  pub fn to_slice(&self) -> [f32; 3] { [self.x, self.y, self.z] }
+  pub fn sub_to(&self, other: &Self, dest: &mut Self) {
     (*dest).x = self.x - other.x;
     (*dest).y = self.y - other.y;
     (*dest).z = self.z - other.z;
@@ -134,22 +133,22 @@ impl Vector3f {
     self.y = other.x * self.z - other.z * self.x;
     self.z = self.x * other.y - self.y * other.x;
   }
-  pub fn crossTo(&self, other: &Self, dest: &mut Self) {
+  pub fn cross_to(&self, other: &Self, dest: &mut Self) {
     (*dest).x = self.y * other.z - self.z * other.y;
     (*dest).y = other.x * self.z - other.z * self.x;
     (*dest).z = self.x * other.y - self.y * other.x;
   }
-  pub fn crossToNew(&self, other: &Self) -> Self {
+  pub fn cross_to_new(&self, other: &Self) -> Self {
     let mut out = Vector3f::blank();
-    self.crossTo(other, &mut out);
+    self.cross_to(other, &mut out);
     out
   }
-  pub fn scaleTo(&self, dest: &mut Self, scale: f32) {
+  pub fn scale_to(&self, dest: &mut Self, scale: f32) {
     (*dest).x = self.x * scale;
     (*dest).y = self.y * scale;
     (*dest).z = self.z * scale;
   }
-  pub fn negateTo(&self, dest: &mut Self) {
+  pub fn negate_to(&self, dest: &mut Self) {
     (*dest).x = -self.x;
     (*dest).y = -self.y;
     (*dest).z = -self.z;
@@ -157,7 +156,7 @@ impl Vector3f {
 }
 
 impl RVec for Vector3f {
-  fn lenSqr(&self) -> f32 { (self.x * self.x) + (self.y * self.y) +  (self.z * self.z) }
+  fn len_sqr(&self) -> f32 { (self.x * self.x) + (self.y * self.y) +  (self.z * self.z) }
   fn scale(&mut self, scale: f32) {
     self.x *= scale;
     self.y *= scale;
@@ -204,14 +203,14 @@ impl SubAssign for Vector3f {
 
 impl Vector4f {
   fn new() -> Self { Vector4f {x: 0.0_f32, y: 0.0_f32, z: 0.0_f32, w: 0.0_f32} }
-  fn toSlice(&self) -> [f32; 4] { [self.x, self.y, self.z, self.w] }
-  fn scaleTo(&self, dest: &mut Self, scale: f32) {
+  fn to_slice(&self) -> [f32; 4] { [self.x, self.y, self.z, self.w] }
+  fn scale_to(&self, dest: &mut Self, scale: f32) {
     (*dest).x = self.x * scale;
     (*dest).y = self.y * scale;
     (*dest).z = self.z * scale;
     (*dest).w = self.w * scale;
   }
-  fn negateTo(&self, dest: &mut Self) {
+  fn negate_to(&self, dest: &mut Self) {
     (*dest).x = -self.x;
     (*dest).y = -self.y;
     (*dest).z = -self.z;
@@ -220,7 +219,7 @@ impl Vector4f {
 }
 
 impl RVec for Vector4f {
-  fn lenSqr(&self) -> f32 { (self.x * self.x) + (self.y * self.y) +  (self.z * self.z) + (self.w * self.w)}
+  fn len_sqr(&self) -> f32 { (self.x * self.x) + (self.y * self.y) +  (self.z * self.z) + (self.w * self.w)}
   fn scale(&mut self, scale: f32) {
     self.x *= scale;
     self.y *= scale;

@@ -109,7 +109,7 @@ pub fn test_nom() {
 }
 
 pub fn load_obj(objname: &str) -> Result<Mesh, &str> {
-  let filename = format!("./res/obj/{}.obj", objname);
+  let filename = format!("src/res/obj/{}.obj", objname);
   let path = Path::new(&filename);
   let display = path.display();
   let file = match File::open(&path) {
@@ -118,19 +118,19 @@ pub fn load_obj(objname: &str) -> Result<Mesh, &str> {
   };
   let reader = BufReader::new(file);
   
-  let mut verts: Vec<Vertex> = Vec::new();
-  let mut txtrs: Vec<(f32, f32)> = Vec::new();
-  let mut norms: Vec<(f32, f32, f32)> = Vec::new();
+  let mut verts: Vec<RVertex> = Vec::new();
+  let mut txtrs: Vec<[f32; 2]> = Vec::new();
+  let mut norms: Vec<[f32; 3]> = Vec::new();
   let mut indcs: Vec<u16> = Vec::new();
   for line in reader.lines() {
     match &(line.unwrap()) {
       l if &l[..2] == "v " => {
-        let vert = &mut Vertex::new();
-        vert.position = get_v(&l).unwrap().1;
+        let vert = &mut RVertex::new();
+        vert.position = t3f_array(get_v(&l).unwrap().1);
         verts.push(*vert);
       }
-      l if &l[..3] == "vt " => { txtrs.push(get_vt(&l).unwrap().1); }
-      l if &l[..3] == "vn " => { norms.push(get_vn(&l).unwrap().1); }
+      l if &l[..3] == "vt " => { txtrs.push(t2f_array(get_vt(&l).unwrap().1)); }
+      l if &l[..3] == "vn " => { norms.push(t3f_array(get_vn(&l).unwrap().1)); }
       l if &l[..2] == "f " => {
         let (v1, v2, v3) = get_f(&l).unwrap().1;
         let index1 = v1.0 - 1;
@@ -171,4 +171,19 @@ pub fn load_obj(objname: &str) -> Result<Mesh, &str> {
   Ok( Mesh { verts: verts, indcs: indcs, far_point: 0_u16, buffers: None} )
 }
 
-//fn processVertex(verts: &mut Vec<Vertex>, index)
+fn t3f_array(tpl: (f32, f32, f32)) -> [f32; 3] {
+  let mut out = [0_f32; 3];
+  out[0] = tpl.0;
+  out[1] = tpl.1;
+  out[2] = tpl.2;
+  out
+}
+
+fn t2f_array(tpl: (f32, f32)) -> [f32; 2] {
+  let mut out = [0_f32; 2];
+  out[0] = tpl.0;
+  out[1] = tpl.1;
+  out
+}
+
+//fn processVertex(verts: &mut Vec<RVertex>, index)

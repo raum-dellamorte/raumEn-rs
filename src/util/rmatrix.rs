@@ -52,7 +52,7 @@ impl Matrix4f {
     ]
   }
   
-  pub fn setIdentity(&mut self) {
+  pub fn set_identity(&mut self) {
     self.m00 = 1.0_f32;
     self.m01 = 0.0_f32;
     self.m02 = 0.0_f32;
@@ -71,7 +71,7 @@ impl Matrix4f {
     self.m33 = 1.0_f32;
   }
   
-  pub fn setZero(&mut self) {
+  pub fn set_zero(&mut self) {
     self.m00 = 0.0_f32;
     self.m01 = 0.0_f32;
     self.m02 = 0.0_f32;
@@ -226,7 +226,7 @@ impl Matrix4f {
     self.from_vec(tmp);
   }
   
-  pub fn scaleTo(&self, vec: &Vector3f, dest: &mut Matrix4f) { dest.from_vec(scale_math(vec, self)) }
+  pub fn scale_to(&self, vec: &Vector3f, dest: &mut Matrix4f) { dest.from_vec(scale_math(vec, self)) }
   
   pub fn translate_v2f(&mut self, vec: &Vector2f) {
     let tmp = translate_math_v2f(vec, self);
@@ -638,7 +638,7 @@ pub fn transpose_math(src: &Matrix4f) -> [Option<f32>; 16] {
 //  self.m33 = buf.get() as f32;
 //}
 //
-//pub fn loadTranspose(buf: FloatBuffer) {
+//pub fn load_transpose(buf: FloatBuffer) {
 //  self.m00 = buf.get() as f32;
 //  self.m10 = buf.get() as f32;
 //  self.m20 = buf.get() as f32;
