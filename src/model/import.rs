@@ -109,7 +109,7 @@ pub fn test_nom() {
 }
 
 pub fn load_obj(objname: &str) -> Result<Mesh, &str> {
-  let filename = format!("src/res/obj/{}.obj", objname);
+  let filename = format!("res/obj/{}.obj", objname);
   let path = Path::new(&filename);
   let display = path.display();
   let file = match File::open(&path) {
