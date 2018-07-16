@@ -12,6 +12,9 @@ pub mod model;
 pub mod util;
 pub mod render;
 
+use std::os::raw::c_void;
+const CVOID: *const c_void = 0 as *const c_void;
+
 fn main() {
   let mut events_loop = glutin::EventsLoop::new();
   let window = glutin::WindowBuilder::new()

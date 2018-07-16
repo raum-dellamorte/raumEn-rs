@@ -9,6 +9,7 @@ pub mod ModelRender {
   use std::ptr;
   use std::str;
   use std::ffi::CString;
+  use CVOID;
   use model::model::RawModel;
   use util::rvertex::{RVertex, RVertex2D};
   
@@ -19,7 +20,7 @@ pub mod ModelRender {
   pub fn render(model: RawModel) { unsafe {
     BindVertexArray(model.vao_id);
     EnableVertexAttribArray(0);
-    DrawArrays(TRIANGLES, 0, model.vertex_count);
+    DrawElements(TRIANGLES, model.vertex_count, UNSIGNED_INT, CVOID);
     DisableVertexAttribArray(0);
     BindVertexArray(0);
   }}
