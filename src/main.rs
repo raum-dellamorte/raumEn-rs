@@ -59,7 +59,7 @@ fn main() {
     });
     render::ModelRender::prepare(); // Clear color
     
-    render::ModelRender::render(spaceship);
+    render::ModelRender::render(&spaceship);
     
     gl_window.swap_buffers().unwrap();
   }
