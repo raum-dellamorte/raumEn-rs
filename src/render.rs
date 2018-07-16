@@ -17,7 +17,7 @@ pub mod ModelRender {
     Clear(COLOR_BUFFER_BIT);
     ClearColor(0.0, 1.0, 0.0, 1.0);
   }}
-  pub fn render(model: RawModel) { unsafe {
+  pub fn render(model: &RawModel) { unsafe {
     BindVertexArray(model.vao_id);
     EnableVertexAttribArray(0);
     DrawElements(TRIANGLES, model.vertex_count, UNSIGNED_INT, CVOID);

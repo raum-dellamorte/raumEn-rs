@@ -36,6 +36,12 @@ fn main() {
   use model::loader::Loader;
   let mut loader = Loader::new();
   
+  use model::model::Model;
+  let mut spaceship_model = Model::new("spaceship".to_string()); // fixme: can't chain this bc lifetimes
+  spaceship_model.load_default_mesh();
+  
+  let spaceship = loader.load_to_vao(&spaceship_model.mesh.unwrap());
+  
   let mut running = true;
   while running {
     events_loop.poll_events(|event| {
@@ -53,7 +59,7 @@ fn main() {
     });
     render::ModelRender::prepare(); // Clear color
     
-    
+    render::ModelRender::render(spaceship);
     
     gl_window.swap_buffers().unwrap();
   }
