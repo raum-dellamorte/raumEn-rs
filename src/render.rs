@@ -18,10 +18,16 @@ pub mod ModelRender {
     ClearColor(0.0, 1.0, 0.0, 1.0);
   }}
   pub fn render(model: &RawModel) { unsafe {
+    println!("BindVertexArray");
     BindVertexArray(model.vao_id);
+    println!("EnableVertexAttribArray");
     EnableVertexAttribArray(0);
+    println!("DrawElements");
     DrawElements(TRIANGLES, model.vertex_count, UNSIGNED_INT, CVOID);
+    println!("DisableVertexAttribArray");
     DisableVertexAttribArray(0);
+    println!("BindVertexArray");
     BindVertexArray(0);
+    println!("Finished Render pass.");
   }}
 }

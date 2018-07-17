@@ -12,6 +12,7 @@ pub mod model;
 pub mod util;
 pub mod render;
 
+use gl::*;
 use std::os::raw::c_void;
 const CVOID: *const c_void = 0 as *const c_void;
 
@@ -23,25 +24,26 @@ fn main() {
   let context = glutin::ContextBuilder::new()
     .with_vsync(true);
   let gl_window = glutin::GlWindow::new(window, context, &events_loop).unwrap();
-
+  
   unsafe {
     gl_window.make_current().unwrap();
   }
-
-  unsafe {
-    gl::load_with(|symbol| gl_window.get_proc_address(symbol) as *const _);
-    gl::ClearColor(0.0, 1.0, 0.0, 1.0);
-  }
   
+  unsafe {
+    load_with(|symbol| gl_window.get_proc_address(symbol) as *const _);
+    ClearColor(0.0, 1.0, 0.0, 1.0);
+  }
+  println!("Creating loader");
   use model::loader::Loader;
   let mut loader = Loader::new();
-  
+  println!("loader ready. getting model.");
   use model::model::Model;
   let mut spaceship_model = Model::new("spaceship".to_string()); // fixme: can't chain this bc lifetimes
+  println!("loading the mesh for the model.");
   spaceship_model.load_default_mesh();
-  
+  println!("loading mesh to opengl with loader.");
   let spaceship = loader.load_to_vao(&spaceship_model.mesh.unwrap());
-  
+  println!("loaded mesh. starting loop.");
   let mut running = true;
   while running {
     events_loop.poll_events(|event| {
@@ -57,8 +59,9 @@ fn main() {
       _ => ()
     }
     });
+    println!("Clearing.");
     render::ModelRender::prepare(); // Clear color
-    
+    println!("Rendering model");
     render::ModelRender::render(&spaceship);
     
     gl_window.swap_buffers().unwrap();
