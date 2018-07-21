@@ -17,7 +17,7 @@ pub struct Model {
 }
 
 impl Model {
-  pub fn new(model_name: String) -> Self {
+  pub fn new(model_name: &str) -> Self {
     Model {
       name: format!("{}", model_name),
       mesh: None,

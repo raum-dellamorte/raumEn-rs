@@ -43,7 +43,7 @@ fn main() {
   let mut loader = Loader::new();
   println!("loader ready. getting model.");
   use model::model::Model;
-  let mut spaceship_model = Model::new("spaceship".to_string()); // fixme: can't chain this bc lifetimes
+  let mut spaceship_model = Model::new("spaceship"); // fixme: can't chain this bc lifetimes
   println!("loading the mesh for the model.");
   spaceship_model.load_default_mesh();
   println!("loading mesh to opengl with loader.");
