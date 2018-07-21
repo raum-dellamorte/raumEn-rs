@@ -4,13 +4,15 @@ extern crate gl;
 extern crate glutin;
 #[macro_use] extern crate nom;
 extern crate image;
-extern crate nalgebra;
+extern crate cgmath;
 
-use glutin::dpi::*;
-use glutin::GlContext;
 
 use gl::*;
 use std::os::raw::c_void;
+use glutin::dpi::*;
+use glutin::GlContext;
+use cgmath::{Deg, Matrix4, Point3, Vector3};
+
 const CVOID: *const c_void = 0 as *const c_void;
 
 // in project stuff
@@ -65,15 +67,20 @@ fn main() {
       _ => ()
     }
     });
-    // println!("Clearing.");
     render::ModelRender::prepare(); // Clear color
-    // println!("Rendering model");
-    shader.start();
-    render::ModelRender::render(&spaceship);
-    shader.stop();
+    
+    render::ModelRender::render(&shader, &spaceship);
     
     gl_window.swap_buffers().unwrap();
   }
   shader.clean_up();
   loader.clean_up();
+}
+
+fn default_view() -> Matrix4<f32> {
+  Matrix4::look_at(
+    Point3::new(1.5f32, -5.0, 3.0),
+    Point3::new(0f32, 0.0, 0.0),
+    Vector3::unit_z(),
+  )
 }

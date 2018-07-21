@@ -11,13 +11,15 @@ pub mod ModelRender {
   use std::ffi::CString;
   use CVOID;
   use model::model::RawModel;
+  use shader::Shader;
   use util::rvertex::{RVertex, RVertex2D};
   
   pub fn prepare() { unsafe {
     Clear(COLOR_BUFFER_BIT);
     ClearColor(0.0, 1.0, 0.0, 1.0);
   }}
-  pub fn render(model: &RawModel) { unsafe {
+  pub fn render(shader: &Shader, model: &RawModel) { unsafe {
+    shader.start();
     //println!("BindVertexArray");
     BindVertexArray(model.vao_id);
     //println!("EnableVertexAttribArray");
@@ -29,5 +31,6 @@ pub mod ModelRender {
     //println!("BindVertexArray");
     BindVertexArray(0);
     //println!("Finished Render pass.");
+    shader.stop()
   }}
 }
