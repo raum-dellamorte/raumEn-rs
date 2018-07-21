@@ -12,6 +12,7 @@ use util::rvertex::{RVertex, RVertex2D};
 pub struct Loader {
   vaos: Vec<GLuint>,
   vbos: Vec<GLuint>,
+  textures: Vec<GLuint>,
 }
 
 impl Loader {
@@ -19,6 +20,7 @@ impl Loader {
     Loader {
       vaos: Vec::new(),
       vbos: Vec::new(),
+      textures: Vec::new(),
     }
   }
   pub fn create_vao(&mut self) -> GLuint { unsafe {
@@ -72,8 +74,33 @@ impl Loader {
   pub fn unbind_vao(&self) { unsafe {
     BindVertexArray(0_u32);
   }}
-  pub fn load_texture(&mut self, tex_name: &str) -> () {
-    
+  pub fn load_texture(&mut self, tex_name: &str) -> GLuint {
+    use image;
+    use std::path::Path;
+    let path: &str = &format!("res/img/{}.png", tex_name);
+    let img = match image::open(&Path::new(path)) {
+      Ok(image) => {
+        println!("Image loaded");
+        image.to_rgba()
+      },
+      _ => panic!("Failed to load image")
+    };
+    let (width, height) = img.dimensions();
+    let img_raw = img.into_raw();
+    let mut tex_id: GLuint = 0;
+    unsafe {
+      GenTextures(1, &mut tex_id);
+      BindTexture(TEXTURE_2D, tex_id);
+      TexImage2D(
+        TEXTURE_2D, 0, RGBA as i32, width as i32, height as i32, 0, RGBA, UNSIGNED_BYTE, 
+        mem::transmute(&img_raw[0])
+      );
+      TexParameteri(TEXTURE_2D, TEXTURE_MIN_FILTER, NEAREST as i32);
+      TexParameteri(TEXTURE_2D, TEXTURE_MAG_FILTER, NEAREST as i32);
+      BindTexture(TEXTURE_2D, 0);
+    }
+    self.textures.push(tex_id);
+    tex_id
   }
   pub fn load_to_vao_2d(&mut self, verts: &[RVertex2D]) -> RawModel {
     let vao_id = self.create_vao();
@@ -94,6 +121,9 @@ impl Loader {
     }
     for vbo in &self.vbos {
       DeleteVertexArrays(1_i32, vbo);
+    }
+    for tex in &self.textures {
+      DeleteTextures(1_i32, tex);
     }
   }}
 }
