@@ -1,20 +1,25 @@
+#[allow(unused_imports)]
 
 extern crate gl;
 extern crate glutin;
 #[macro_use] extern crate nom;
 extern crate image;
+extern crate nalgebra;
 
 use glutin::dpi::*;
 use glutin::GlContext;
 
-// in project stuff
-pub mod model;
-pub mod util;
-pub mod render;
-
 use gl::*;
 use std::os::raw::c_void;
 const CVOID: *const c_void = 0 as *const c_void;
+
+// in project stuff
+pub mod model;
+pub mod render;
+pub mod shader;
+pub mod util;
+
+pub use shader::Shader;
 
 fn main() {
   let mut events_loop = glutin::EventsLoop::new();
@@ -43,7 +48,9 @@ fn main() {
   spaceship_model.load_default_mesh();
   println!("loading mesh to opengl with loader.");
   let spaceship = loader.load_to_vao(&spaceship_model.mesh.unwrap());
-  println!("loaded mesh. starting loop.");
+  println!("loading shader program.");
+  let mut shader = shader::model::gen_model_shader();
+  shader.load_defaults();
   let mut running = true;
   while running {
     events_loop.poll_events(|event| {
@@ -59,12 +66,15 @@ fn main() {
       _ => ()
     }
     });
-    println!("Clearing.");
+    // println!("Clearing.");
     render::ModelRender::prepare(); // Clear color
-    println!("Rendering model");
+    // println!("Rendering model");
+    shader.start();
     render::ModelRender::render(&spaceship);
+    shader.stop();
     
     gl_window.swap_buffers().unwrap();
   }
+  shader.clean_up();
   loader.clean_up();
 }

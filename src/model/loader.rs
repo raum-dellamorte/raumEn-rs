@@ -2,11 +2,9 @@
 #[allow(unused_imports)]
 
 use gl::*;
-use gl::types::{GLfloat, GLenum, GLuint, GLint, GLchar, GLsizeiptr, GLboolean};
+use gl::types::{GLfloat, GLuint, GLsizeiptr, }; // GLenum, GLint, GLchar, GLboolean, 
 use std::mem;
 use std::ptr;
-use std::str;
-use std::ffi::CString;
 use model::model::RawModel;
 use model::mesh::Mesh;
 use util::rvertex::{RVertex, RVertex2D};
@@ -24,8 +22,9 @@ impl Loader {
     }
   }
   pub fn create_vao(&mut self) -> GLuint { unsafe {
-    let mut vao_id = 0 as GLuint;
+    let mut vao_id: GLuint = 0;
     GenVertexArrays(1, &mut vao_id);
+    assert!(vao_id != 0);
     self.vaos.push(vao_id);
     BindVertexArray(vao_id);
     vao_id
@@ -44,8 +43,9 @@ impl Loader {
     BindBuffer(ARRAY_BUFFER, 0_u32);
   }}
   pub fn bind_vertices(&mut self, attrib: u32, verts: &[RVertex]) { unsafe {
-    let mut vbo_id = 0_u32;
+    let mut vbo_id: GLuint = 0;
     GenBuffers(1, &mut vbo_id);
+    assert!(vbo_id != 0);
     self.vbos.push(vbo_id);
     BindBuffer(ARRAY_BUFFER, vbo_id);
     use std::mem;
@@ -68,11 +68,13 @@ impl Loader {
       (_idxs.len() * mem::size_of::<GLuint>()) as GLsizeiptr,
       mem::transmute(&_idxs[0]),
       STATIC_DRAW);
-    BindBuffer(ELEMENT_ARRAY_BUFFER, 0_u32);
   }}
   pub fn unbind_vao(&self) { unsafe {
     BindVertexArray(0_u32);
   }}
+  pub fn load_texture(&mut self, tex_name: &str) -> () {
+    
+  }
   pub fn load_to_vao_2d(&mut self, verts: &[RVertex2D]) -> RawModel {
     let vao_id = self.create_vao();
     self.bind_vertices_2d(0, verts);
@@ -145,49 +147,3 @@ pub fn indices_to_gluints(idxs: &[u16]) -> Vec<GLuint> {
   }
   out
 }
-
-pub fn compile_shader(src: &str, ty: GLenum) -> GLuint {
-  let shader;
-  unsafe {
-    shader = CreateShader(ty);
-    // Attempt to compile the shader
-    let c_str = CString::new(src).unwrap();
-    ShaderSource(shader, 1, &c_str.as_ptr(), ptr::null());
-    CompileShader(shader);
-    
-    // Get the compile status
-    let mut status = FALSE as GLint;
-    GetShaderiv(shader, COMPILE_STATUS, &mut status);
-    
-    // Fail on error
-    if status != (TRUE as GLint) {
-      let mut len = 0;
-      GetShaderiv(shader, INFO_LOG_LENGTH, &mut len);
-      let mut buf = Vec::new();
-      buf.set_len((len as usize) - 1); // subtract 1 to skip the trailing null character
-      GetShaderInfoLog(shader, len, ptr::null_mut(), buf.as_mut_ptr() as *mut GLchar);
-      panic!("{}", str::from_utf8(buf.as_slice()).ok().expect("ShaderInfoLog not valid utf8"));
-    }
-  }
-  shader
-}
-pub fn link_program(vs: GLuint, fs: GLuint) -> GLuint { unsafe {
-  let program = CreateProgram();
-  AttachShader(program, vs);
-  AttachShader(program, fs);
-  LinkProgram(program);
-  // Get the link status
-  let mut status = FALSE as GLint;
-  GetProgramiv(program, LINK_STATUS, &mut status);
-  
-  // Fail on error
-  if status != (TRUE as GLint) {
-    let mut len: GLint = 0;
-    GetProgramiv(program, INFO_LOG_LENGTH, &mut len);
-    let mut buf = Vec::new();
-    buf.set_len((len as usize) - 1); // subtract 1 to skip the trailing null character
-    GetProgramInfoLog(program, len, ptr::null_mut(), buf.as_mut_ptr() as *mut GLchar);
-    panic!("{}", str::from_utf8(buf.as_slice()).ok().expect("ProgramInfoLog not valid utf8"));
-  }
-  program
-}}

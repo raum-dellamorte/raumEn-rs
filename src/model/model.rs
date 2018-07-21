@@ -8,7 +8,7 @@ use image;
 use model::import::load_obj;
 use model::mesh::Mesh;
 use util::rvertex::RVertex;
-use std::path::Path;
+//use std::path::Path;
 
 pub struct Model {
   pub name: String,
@@ -44,7 +44,7 @@ impl Model {
   //   use std::path::Path;
   //   use gfx::format::Rgba8;
   //   use gfx::texture as t;
-  //   let path: &str = &format!("src/res/img/{}.png", self.name);
+  //   let path: &str = &format!("res/img/{}.png", self.name);
   //   let img = match image::open(&Path::new(path)) {
   //     Ok(image) => {
   //       println!("Image loaded");
