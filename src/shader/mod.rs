@@ -10,7 +10,7 @@ use std::str::from_utf8;
 use std::ffi::CStr;
 use std::ffi::CString;
 use std::mem::transmute;
-use nalgebra::Matrix4;
+use cgmath::{Matrix, Matrix4, };
 
 use std::fs::File;
 use std::io::BufReader;
@@ -57,12 +57,19 @@ impl ShaderSrc {
   pub fn new(kind: GLenum, id: GLuint, src: CString) -> Self {
     ShaderSrc { kind: kind, id: id, src: src }
   }
+  pub fn kind(&self) -> &str {
+    match self.kind {
+      VERTEX_SHADER => { "Vertex" }
+      FRAGMENT_SHADER => { "Fragment" }
+      _ => { "Unknown" }
+    }
+  }
 }
 
 pub struct Shader {
   pub name: String,
   pub program: GLuint,
-  using: bool,
+  pub done: bool,
   pub shaders: Vec<ShaderSrc>,
   pub vars: Vec<ShaderVar>,
   pub unis: Vec<ShaderUni>,
@@ -71,7 +78,7 @@ pub struct Shader {
 impl Shader {
   pub fn new(name: &str) -> Self {
     Shader { 
-      name: format!("{}", name), program: 0, using: false,
+      name: format!("{}", name), program: 0, done: false,
       shaders: Vec::new(), vars: Vec::new(), unis: Vec::new() 
     }
   }
@@ -148,7 +155,7 @@ impl Shader {
     Uniform1f(self.get_uniform_id(name), if value { 1.0 as GLfloat } else { 0.0 as GLfloat })
   }}
   pub fn load_matrix(&self, name: &str, matrix: &Matrix4<f32>) { unsafe {
-    UniformMatrix4fv(self.get_uniform_id(name), 1, 0, transmute(matrix.as_ref()));
+    UniformMatrix4fv(self.get_uniform_id(name), 1, 0, (*matrix).as_ptr() );
   }}
   pub fn load_vert_shader(&mut self) -> &mut Self {
     self.add_shader(VERTEX_SHADER)
@@ -156,46 +163,11 @@ impl Shader {
   pub fn load_frag_shader(&mut self) -> &mut Self {
     self.add_shader(FRAGMENT_SHADER)
   }
-  pub fn link(&mut self) -> &mut Self { unsafe {
-    let program = CreateProgram();
-    self.program = program;
-    for shader in &self.shaders {
-      AttachShader(program, shader.id);
-    }
-    //self.start();
-    BindFragDataLocation(self.program, 0, str_ptr("out_Color") );
-    self.bind_attributes();
-    LinkProgram(program);
-    //ValidateProgram(program); // Maybe not needed?
-    println!("Program linked.");
-    // Get the link status
-    let mut status = FALSE as GLint;
-    GetProgramiv(program, LINK_STATUS, &mut status);
-    // Fail on error
-    if status != (TRUE as GLint) {
-      println!("Program link failed. Program: {}", program);
-      let mut buffer = [0u8; 512];
-      let mut length: i32 = 0;
-      GetProgramInfoLog(program, buffer.len() as i32, &mut length,
-        buffer.as_mut_ptr() as *mut i8);
-      println!("Linker log (length: {}):\n{}", length,
-        from_utf8(CStr::from_ptr(transmute(&buffer)).to_bytes()).unwrap());
-    } else {
-      println!("Model shader linked. Program: {}", program);
-    }
-    self
-  }}
   pub fn start(&mut self) { unsafe {
-    if !self.using {
-      UseProgram(self.program);
-      self.using = true;
-    }
+    UseProgram(self.program);
   }}
   pub fn stop(&mut self) { unsafe {
-    if self.using {
-      UseProgram(0);
-      self.using = false;
-    }
+    UseProgram(0);
   }}
   pub fn clean_up(&mut self) { unsafe {
     self.stop();
@@ -206,25 +178,18 @@ impl Shader {
     DeleteProgram(self.program);
   }}
   pub fn add_shader(&mut self, shader_type: GLenum) -> &mut Self {
+    if self.done { return self }
     let shader_id;
     unsafe {
       shader_id = CreateShader(shader_type);
     }
     assert!(shader_id != 0);
-    println!("Vertex shader loaded.");
-    let ext: &str = match shader_type {
-      VERTEX_SHADER => { "glslv" }
-      FRAGMENT_SHADER => { "glslf" }
-      _ => panic!("No support for given shader type.")
-    };
-    let path: &str = &format!("res/glsl/{}.{}", self.name, ext);
+    let path: &str = &format!("res/glsl/{}.{}", self.name, &get_ext(shader_type));
     let src = match File::open(&Path::new(path)) {
       Ok(file) => {
-        println!("Read shader file: {}", path);
         let mut buf = BufReader::new(file);
         let mut _src = String::new();
         let _ = buf.read_to_string(&mut _src); // Lazily not checking for error
-        println!("Shader to string.");
         _src
       },
       _ => panic!("Failed to read shader file: {}", path)
@@ -233,14 +198,12 @@ impl Shader {
     self
   }
   pub fn compile_shaders(&mut self) -> &mut Self { unsafe {
+    if self.done { return self }
     for shader in &self.shaders {
-      println!("{:?}", &shader.src);
+      // println!("{:?}", &shader.src);
       // Attempt to compile the shader
-      // let c_str = CString::new(src.as_bytes()).unwrap();
-      ShaderSource(shader.id, 1, &shader.src.as_ptr(), ptr::null()); // &c_str.as_ptr()
-      println!("Compiling shader.");
+      ShaderSource(shader.id, 1, &shader.src.as_ptr(), ptr::null());
       CompileShader(shader.id);
-      println!("Shader compiled.");
       // Get the compile status
       let mut status = FALSE as GLint;
       GetShaderiv(shader.id, COMPILE_STATUS, &mut status);
@@ -256,6 +219,37 @@ impl Shader {
       }
     }
   } self }
+  pub fn link(&mut self) -> &mut Self { unsafe {
+    if self.done { return self }
+    let program = CreateProgram();
+    self.program = program;
+    for shader in &self.shaders {
+      println!("Attach Shader: {} {}", shader.kind(), shader.id);
+      AttachShader(program, shader.id);
+    }
+    //self.start();
+    //BindFragDataLocation(self.program, 0, str_ptr("out_Color") );
+    self.bind_attributes();
+    LinkProgram(program);
+    //ValidateProgram(program); // Maybe not needed?
+    // Get the link status
+    let mut status = FALSE as GLint;
+    GetProgramiv(program, LINK_STATUS, &mut status);
+    // Fail on error
+    if status != (TRUE as GLint) {
+      println!("Program link failed. Program: {}", program);
+      let mut buffer = [0u8; 512];
+      let mut length: i32 = 0;
+      GetProgramInfoLog(program, buffer.len() as i32, &mut length,
+        buffer.as_mut_ptr() as *mut i8);
+      println!("Linker log (length: {}):\n{}", length,
+        from_utf8(CStr::from_ptr(transmute(&buffer)).to_bytes()).unwrap());
+    } else {
+      println!("Model shader linked. Program: {}", program);
+    }
+    self.done = true;
+    self
+  }}
 }
 
 pub fn get_attrib_location(program: GLuint, name: &str) -> GLint {
@@ -267,6 +261,13 @@ pub fn get_uniform_location(program: GLuint, name: &str) -> GLint {
   let location = unsafe { GetUniformLocation(program, str_ptr(name)) };
   assert!(location != -1);
   location
+}
+pub fn get_ext(kind: GLenum) -> String {
+  match kind {
+    VERTEX_SHADER => { "glslv".to_string() }
+    FRAGMENT_SHADER => { "glslf".to_string() }
+    _ => panic!("Unknown Shader Type for file extension.")
+  }
 }
 pub fn str_ptr(conv_str: &str) -> *const i8 {
   match CString::new(conv_str.as_bytes()) {
