@@ -1,7 +1,7 @@
 #version 150
 
 in vec3 v_Color;
-//in vec2 v_TexCoord;
+in vec2 v_TexCoord;
 out vec4 out_Color;
 //uniform sampler2D t_Texture;
 

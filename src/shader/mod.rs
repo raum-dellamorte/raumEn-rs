@@ -112,8 +112,10 @@ impl Shader {
   }
   pub fn bind_attributes(&mut self) -> &mut Self { unsafe {
     let mut count = 0 as GLint;
+    let mut cname;
     for attrib in &mut self.vars {
-      BindAttribLocation(self.program, count as GLuint, str_ptr(&attrib.var_name));
+      cname = CString::new(attrib.var_name.as_bytes()).unwrap();
+      BindAttribLocation(self.program, count as GLuint, cname.as_ptr());
       attrib.var_id = count;
       count += 1;
     }
@@ -227,8 +229,9 @@ impl Shader {
       println!("Attach Shader: {} {}", shader.kind(), shader.id);
       AttachShader(program, shader.id);
     }
-    //self.start();
-    //BindFragDataLocation(self.program, 0, str_ptr("out_Color") );
+    // self.start();
+    // let cname = CString::new(b"out_Color").unwrap();
+    // BindFragDataLocation(self.program, 0, cname.as_ptr() );
     self.bind_attributes();
     LinkProgram(program);
     //ValidateProgram(program); // Maybe not needed?
@@ -253,12 +256,14 @@ impl Shader {
 }
 
 pub fn get_attrib_location(program: GLuint, name: &str) -> GLint {
-  let location = unsafe { GetAttribLocation(program, str_ptr(name)) };
+  let cname = CString::new(name.as_bytes()).unwrap();
+  let location = unsafe { GetAttribLocation(program, cname.as_ptr()) };
   assert!(location != -1);
   location
 }
 pub fn get_uniform_location(program: GLuint, name: &str) -> GLint {
-  let location = unsafe { GetUniformLocation(program, str_ptr(name)) };
+  let cname = CString::new(name.as_bytes()).unwrap();
+  let location = unsafe { GetUniformLocation(program, cname.as_ptr()) };
   assert!(location != -1);
   location
 }
@@ -267,11 +272,5 @@ pub fn get_ext(kind: GLenum) -> String {
     VERTEX_SHADER => { "glslv".to_string() }
     FRAGMENT_SHADER => { "glslf".to_string() }
     _ => panic!("Unknown Shader Type for file extension.")
-  }
-}
-pub fn str_ptr(conv_str: &str) -> *const i8 {
-  match CString::new(conv_str.as_bytes()) {
-    Ok(out) => { out.as_ptr() }
-    _ => panic!("Could not convert &str to CString.")
   }
 }

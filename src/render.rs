@@ -20,17 +20,18 @@ pub mod ModelRender {
   }}
   pub fn render(shader: &Shader, model: &RawModel) { unsafe {
     shader.start();
-    //println!("BindVertexArray");
     BindVertexArray(model.vao_id);
-    //println!("EnableVertexAttribArray");
-    EnableVertexAttribArray(0);
-    //println!("DrawElements");
+    let mut count: GLuint = 0;
+    while count < shader.vars.len() as GLuint {
+      EnableVertexAttribArray(count);
+      count += 1 as GLuint;
+    }
     DrawElements(TRIANGLES, model.vertex_count, UNSIGNED_INT, CVOID);
-    //println!("DisableVertexAttribArray");
-    DisableVertexAttribArray(0);
-    //println!("BindVertexArray");
+    while count > 0 as GLuint {
+      count -= 1 as GLuint;
+      DisableVertexAttribArray(count);
+    }
     BindVertexArray(0);
-    //println!("Finished Render pass.");
     shader.stop()
   }}
 }

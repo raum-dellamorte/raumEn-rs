@@ -71,6 +71,21 @@ impl Loader {
       mem::transmute(&_idxs[0]),
       STATIC_DRAW);
   }}
+  pub fn bind_tex_coords(&mut self, attrib: u32, verts: &[RVertex]) { unsafe {
+    let mut vbo_id: GLuint = 0;
+    GenBuffers(1, &mut vbo_id);
+    assert!(vbo_id != 0);
+    self.vbos.push(vbo_id);
+    BindBuffer(ARRAY_BUFFER, vbo_id);
+    use std::mem;
+    let _verts = verts_tex_coords_to_glfloats(verts);
+    BufferData(ARRAY_BUFFER,
+      (_verts.len() * mem::size_of::<GLfloat>()) as GLsizeiptr,
+      mem::transmute(&_verts[0]),
+      STATIC_DRAW);
+    VertexAttribPointer(attrib, 2, FLOAT, FALSE, 0, ptr::null());
+    BindBuffer(ARRAY_BUFFER, 0_u32);
+  }}
   pub fn unbind_vao(&self) { unsafe {
     BindVertexArray(0_u32);
   }}
@@ -112,6 +127,7 @@ impl Loader {
     let vao_id = self.create_vao();
     self.bind_indices(&mesh.indcs);
     self.bind_vertices(0, &mesh.verts);
+    self.bind_tex_coords(1, &mesh.verts);
     self.unbind_vao();
     RawModel::new(vao_id, mesh.indcs.len() as i32)
   }

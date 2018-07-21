@@ -11,7 +11,7 @@ use gl::*;
 use std::os::raw::c_void;
 use glutin::dpi::*;
 use glutin::GlContext;
-use cgmath::{Deg, Matrix4, Point3, Vector3};
+use cgmath::{Matrix4, Point3, Vector3}; // Deg, 
 
 const CVOID: *const c_void = 0 as *const c_void;
 
@@ -22,6 +22,7 @@ pub mod shader;
 pub mod util;
 
 pub use shader::Shader;
+pub use render::ModelRender;
 
 fn main() {
   let mut events_loop = glutin::EventsLoop::new();
@@ -53,6 +54,7 @@ fn main() {
   println!("loading shader program.");
   let mut shader = shader::model::gen_model_shader();
   let mut running = true;
+  let mut tmp_mat;
   while running {
     events_loop.poll_events(|event| {
     match event {
@@ -67,9 +69,10 @@ fn main() {
       _ => ()
     }
     });
-    render::ModelRender::prepare(); // Clear color
-    
-    render::ModelRender::render(&shader, &spaceship);
+    ModelRender::prepare(); // Clear color
+    tmp_mat = default_view();
+    shader.load_matrix("u_Transform", &tmp_mat);
+    ModelRender::render(&shader, &spaceship);
     
     gl_window.swap_buffers().unwrap();
   }
@@ -79,7 +82,7 @@ fn main() {
 
 fn default_view() -> Matrix4<f32> {
   Matrix4::look_at(
-    Point3::new(1.5f32, -5.0, 3.0),
+    Point3::new(0.0f32, -5.0, 1.0),
     Point3::new(0f32, 0.0, 0.0),
     Vector3::unit_z(),
   )
