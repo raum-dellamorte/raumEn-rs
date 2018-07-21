@@ -15,7 +15,7 @@ out vec3 v_Color;
 
 void main() {
     // v_TexCoord = a_TexCoord;
-    v_Color = vec3(0.5,0.5,0.5); // a_Pos.x + 0.5, a_Pos.y + 0.5, a_Pos.z + 0.5
+    v_Color = vec3(a_Pos.x + 0.5, a_Pos.y + 0.5, a_Pos.z + 0.5); // 
     gl_Position = vec4(a_Pos, 1.0); // u_Transform * 
     //gl_ClipDistance[0] = 1.0;
 }
