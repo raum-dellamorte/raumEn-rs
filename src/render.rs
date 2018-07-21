@@ -18,7 +18,7 @@ pub mod ModelRender {
     Clear(COLOR_BUFFER_BIT);
     ClearColor(0.0, 1.0, 0.0, 1.0);
   }}
-  pub fn render(shader: &mut Shader, model: &RawModel) { unsafe {
+  pub fn render(shader: &Shader, model: &RawModel) { unsafe {
     shader.start();
     //println!("BindVertexArray");
     BindVertexArray(model.vao_id);

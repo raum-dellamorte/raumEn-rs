@@ -163,10 +163,10 @@ impl Shader {
   pub fn load_frag_shader(&mut self) -> &mut Self {
     self.add_shader(FRAGMENT_SHADER)
   }
-  pub fn start(&self) { unsafe {
+  pub fn start(&mut self) { unsafe {
     UseProgram(self.program);
   }}
-  pub fn stop(&self) { unsafe {
+  pub fn stop(&mut self) { unsafe {
     UseProgram(0);
   }}
   pub fn clean_up(&mut self) { unsafe {
