@@ -50,7 +50,6 @@ fn main() {
   let spaceship = loader.load_to_vao(&spaceship_model.mesh.unwrap());
   println!("loading shader program.");
   let mut shader = shader::model::gen_model_shader();
-  shader.load_defaults();
   let mut running = true;
   while running {
     events_loop.poll_events(|event| {
