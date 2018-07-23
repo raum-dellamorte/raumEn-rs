@@ -20,17 +20,24 @@ impl Handler {
   }
   pub fn window_event(&mut self, event: &WEvent) {
     match event {
-        WEvent::CursorMoved { position: pos, ..} => {
-          self.cursor_pos = Some((pos.x,pos.y));
-        }
-        WEvent::MouseInput { state: Pressed, button: bttn, ..} => {
-          self.mouse.insert(*bttn, true);
-        }
-        WEvent::MouseInput { state: Released, button: bttn, ..} => {
-          self.mouse.insert(*bttn, false);
-        }
-        e => println!("Window Event:\n{:?}", e)
+      WEvent::CursorMoved { position: pos, ..} => {
+        self.cursor_pos = Some((pos.x,pos.y));
       }
+      WEvent::MouseInput { state: Pressed, button: bttn, ..} => {
+        self.mouse.insert(*bttn, true);
+      }
+      WEvent::MouseInput { state: Released, button: bttn, ..} => {
+        self.mouse.insert(*bttn, false);
+      }
+      WEvent::KeyboardInput { input: KB { virtual_keycode: Some(bttn), state: Pressed, modifiers: modkey, ..}, ..} => {
+        print!("{:?}-{}-{}-{}-{}", bttn, modkey.shift, modkey.ctrl, modkey.alt, modkey.logo);
+        self.kb.insert(key_code(&bttn, &modkey), true);
+      }
+      WEvent::KeyboardInput { input: KB { virtual_keycode: Some(bttn), state: Released, modifiers: modkey, ..}, ..} => {
+        self.kb.insert(key_code(&bttn, &modkey), false);
+      }
+      e => println!("Window Event:\n{:?}", e)
+    }
   }
   pub fn device_event(&mut self, event: &DEvent) {
     match event.clone() {
@@ -42,13 +49,6 @@ impl Handler {
       }
       DEvent::Button { button: bttn, state: Released } => {
         println!("Button released: {}", bttn);
-      }
-      DEvent::Key(KB { virtual_keycode: Some(bttn), state: Pressed, modifiers: modkey, ..}) => {
-        let code: String = format!("{:?}-{}-{}-{}-{}", bttn, modkey.shift, modkey.ctrl, modkey.alt, modkey.logo);
-        self.kb.insert(code, true);
-      }
-      DEvent::Key(KB { virtual_keycode: Some(bttn), state: Released, modifiers: modkey, ..}) => {
-        self.kb.insert(key_code(&bttn, &modkey), false);
       }
       DEvent::Motion {..} => {}
       // e => println!("Device Event:\n{:?}", e)
