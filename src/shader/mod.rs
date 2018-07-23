@@ -10,7 +10,7 @@ use std::str::from_utf8;
 use std::ffi::CStr;
 use std::ffi::CString;
 use std::mem::transmute;
-use cgmath::{Matrix, Matrix4, };
+// use cgmath::{Matrix, Matrix4, };
 
 use std::fs::File;
 use std::io::BufReader;
@@ -156,8 +156,8 @@ impl Shader {
   pub fn load_bool(&self, name: &str, value: bool) { unsafe {
     Uniform1f(self.get_uniform_id(name), if value { 1.0 as GLfloat } else { 0.0 as GLfloat })
   }}
-  pub fn load_matrix(&self, name: &str, matrix: &Matrix4<f32>) { unsafe {
-    UniformMatrix4fv(self.get_uniform_id(name), 1, 0, (*matrix).as_ptr() );
+  pub fn load_matrix(&self, name: &str, matrix: &[f32; 16]) { unsafe {
+    UniformMatrix4fv(self.get_uniform_id(name), 1, 0, transmute(&matrix[0]) );
   }}
   pub fn load_vert_shader(&mut self) -> &mut Self {
     self.add_shader(VERTEX_SHADER)

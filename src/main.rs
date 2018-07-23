@@ -11,16 +11,23 @@ use gl::*;
 use std::os::raw::c_void;
 use glutin::dpi::*;
 use glutin::GlContext;
-use cgmath::{Matrix4, Point3, Vector3}; // Deg, 
+// use cgmath::{Matrix4, Point3, Vector3}; // Deg, 
 
 const CVOID: *const c_void = 0 as *const c_void;
 
 // in project stuff
+pub mod entities;
+pub mod input;
 pub mod model;
 pub mod render;
 pub mod shader;
 pub mod util;
 
+pub use entities::Entity;
+pub use entities::mobs::Mob;
+pub use input::Handler;
+pub use model::loader::Loader;
+pub use model::Model;
 pub use shader::Shader;
 pub use render::ModelRender;
 
@@ -41,18 +48,15 @@ fn main() {
     load_with(|symbol| gl_window.get_proc_address(symbol) as *const _);
     ClearColor(0.0, 1.0, 0.0, 1.0);
   }
+  let mut handler = Handler::new();
   println!("Creating loader");
-  use model::loader::Loader;
   let mut loader = Loader::new();
   println!("loader ready. getting model.");
-  use model::model::Model;
-  let mut spaceship = Model::new("spaceship"); // fixme: can't chain this bc lifetimes
-  println!("loading the mesh for the model.");
-  spaceship.load_defaults(&mut loader);
+  let mut spaceship = Mob::new("spaceship");
+  spaceship.init(&mut loader);
   println!("loading shader program.");
   let mut shader = shader::model::gen_model_shader();
   let mut running = true;
-  let mut tmp_mat;
   while running {
     events_loop.poll_events(|event| {
     match event {
@@ -62,15 +66,15 @@ fn main() {
           let dpi_factor = gl_window.get_hidpi_factor();
           gl_window.resize(logical_size.to_physical(dpi_factor));
         },
-        _ => ()
+        _ => { handler.window_event(&event) }
       },
-      _ => ()
+      glutin::Event::DeviceEvent{ event, ..} => { handler.device_event(&event); }
+      e => println!("Other Event:\n{:?}", e)
     }
     });
     ModelRender::prepare(); // Clear color
-    tmp_mat = default_view();
-    shader.load_matrix("u_Transform", &tmp_mat);
-    ModelRender::render(&shader, &spaceship);
+    spaceship.move_mob(&mut handler, 0.01);
+    ModelRender::render(&shader, &mut spaceship.entity);
     
     gl_window.swap_buffers().unwrap();
   }
@@ -78,10 +82,10 @@ fn main() {
   loader.clean_up();
 }
 
-fn default_view() -> Matrix4<f32> {
-  Matrix4::look_at(
-    Point3::new(0.0f32, -5.0, 1.0),
-    Point3::new(0f32, 0.0, 0.0),
-    Vector3::unit_z(),
-  )
-}
+// fn default_view() -> Matrix4<f32> {
+//   Matrix4::look_at(
+//     Point3::new(0f32, 0.0, 0.0),
+//     Point3::new(0.0f32, -5.0, 1.0),
+//     Vector3::unit_z(),
+//   )
+// }

@@ -43,12 +43,12 @@ impl Matrix4f {
     }
   }
   
-  pub fn as_slice(&self) -> [[f32; 4]; 4] {
+  pub fn as_slice(&self) -> [f32; 16] {
     [
-      [self.m00, self.m01, self.m02, self.m03],
-      [self.m10, self.m11, self.m12, self.m13],
-      [self.m20, self.m21, self.m22, self.m23],
-      [self.m30, self.m31, self.m32, self.m33]
+      self.m00, self.m01, self.m02, self.m03,
+      self.m10, self.m11, self.m12, self.m13,
+      self.m20, self.m21, self.m22, self.m23,
+      self.m30, self.m31, self.m32, self.m33
     ]
   }
   

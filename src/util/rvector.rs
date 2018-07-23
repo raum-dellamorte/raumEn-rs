@@ -31,7 +31,7 @@ pub const ZVEC: Vector3f = Vector3f {x: 0.0_f32, y: 0.0_f32, z: 1.0_f32};
 
 pub trait RVec {
   fn len_sqr(&self) -> f32;
-  fn len(&self) -> f32 { ((self.len_sqr() as f64).sqrt() as f32) }
+  fn len(&self) -> f32 { ((self.len_sqr() as f32).sqrt() as f32) }
   fn scale(&mut self, scale: f32);
   fn negate(&mut self);
   fn normalize(&mut self) {

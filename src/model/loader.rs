@@ -3,15 +3,19 @@
 
 use gl::*;
 use gl::types::{GLfloat, GLuint, GLsizeiptr, }; // GLenum, GLint, GLchar, GLboolean, 
+use std::collections::HashMap;
 use std::mem;
 use std::ptr;
-use model::model::RawModel;
+
+use model::import::load_obj;
+use model::RawModel;
 use model::mesh::Mesh;
 use util::rvertex::{RVertex, RVertex2D};
 
 pub struct Loader {
   vaos: Vec<GLuint>,
   vbos: Vec<GLuint>,
+  meshes: HashMap<String, Mesh>,
   textures: Vec<GLuint>,
 }
 
@@ -20,8 +24,31 @@ impl Loader {
     Loader {
       vaos: Vec::new(),
       vbos: Vec::new(),
+      meshes: HashMap::new(),
       textures: Vec::new(),
     }
+  }
+  pub fn load_to_vao(&mut self, mesh_name: &str) -> RawModel {
+    let (indcs, verts) = match self.load_mesh(mesh_name) {
+      Some(mesh) => { (mesh.indcs.clone(), mesh.verts.clone()) }
+      _ => panic!("Can't load Mesh: {}", mesh_name)
+    };
+    let vao_id = self.create_vao();
+    self.bind_indices(&indcs);
+    self.bind_vertices(0, &verts);
+    self.bind_tex_coords(1, &verts);
+    self.unbind_vao();
+    RawModel::new(vao_id, indcs.len() as i32)
+  }
+  pub fn load_mesh(&mut self, name: &str) -> Option<&Mesh> {
+    if self.meshes.get(name).is_none() {
+      let mesh = match load_obj(name) {
+        Ok(mesh) => { mesh }
+        _ => panic!("Mesh {} failed to load.", name)
+      };
+      self.meshes.insert(name.to_string(), mesh);
+    }
+    self.meshes.get(name)
   }
   pub fn create_vao(&mut self) -> GLuint { unsafe {
     let mut vao_id: GLuint = 0;
@@ -36,10 +63,10 @@ impl Loader {
     GenBuffers(1, &mut vbo_id);
     self.vbos.push(vbo_id);
     BindBuffer(ARRAY_BUFFER, vbo_id);
-    let _verts = verts_pos_to_glfloats_2d(verts);
+    let data = verts_pos_to_glfloats_2d(verts);
     BufferData(ARRAY_BUFFER,
-      (_verts.len() * mem::size_of::<GLfloat>()) as GLsizeiptr,
-      mem::transmute(&_verts[0]),
+      (data.len() * mem::size_of::<GLfloat>()) as GLsizeiptr,
+      mem::transmute(&data[0]),
       STATIC_DRAW);
     VertexAttribPointer(attrib, 2, FLOAT, FALSE, 0, ptr::null());
     BindBuffer(ARRAY_BUFFER, 0_u32);
@@ -51,10 +78,10 @@ impl Loader {
     self.vbos.push(vbo_id);
     BindBuffer(ARRAY_BUFFER, vbo_id);
     use std::mem;
-    let _verts = verts_pos_to_glfloats(verts);
+    let data = verts_pos_to_glfloats(verts);
     BufferData(ARRAY_BUFFER,
-      (_verts.len() * mem::size_of::<GLfloat>()) as GLsizeiptr,
-      mem::transmute(&_verts[0]),
+      (data.len() * mem::size_of::<GLfloat>()) as GLsizeiptr,
+      mem::transmute(&data[0]),
       STATIC_DRAW);
     VertexAttribPointer(attrib, 3, FLOAT, FALSE, 0, ptr::null());
     BindBuffer(ARRAY_BUFFER, 0_u32);
@@ -78,10 +105,10 @@ impl Loader {
     self.vbos.push(vbo_id);
     BindBuffer(ARRAY_BUFFER, vbo_id);
     use std::mem;
-    let _verts = verts_tex_coords_to_glfloats(verts);
+    let data = verts_tex_coords_to_glfloats(verts);
     BufferData(ARRAY_BUFFER,
-      (_verts.len() * mem::size_of::<GLfloat>()) as GLsizeiptr,
-      mem::transmute(&_verts[0]),
+      (data.len() * mem::size_of::<GLfloat>()) as GLsizeiptr,
+      mem::transmute(&data[0]),
       STATIC_DRAW);
     VertexAttribPointer(attrib, 2, FLOAT, FALSE, 0, ptr::null());
     BindBuffer(ARRAY_BUFFER, 0_u32);
@@ -122,14 +149,6 @@ impl Loader {
     self.bind_vertices_2d(0, verts);
     self.unbind_vao();
     RawModel::new(vao_id, verts.len() as i32)
-  }
-  pub fn load_to_vao(&mut self, mesh: &Mesh) -> RawModel {
-    let vao_id = self.create_vao();
-    self.bind_indices(&mesh.indcs);
-    self.bind_vertices(0, &mesh.verts);
-    self.bind_tex_coords(1, &mesh.verts);
-    self.unbind_vao();
-    RawModel::new(vao_id, mesh.indcs.len() as i32)
   }
   pub fn clean_up(&mut self) { unsafe {
     for vao in &self.vaos {
