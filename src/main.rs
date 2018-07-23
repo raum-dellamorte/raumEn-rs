@@ -16,6 +16,7 @@ use glutin::GlContext;
 const CVOID: *const c_void = 0 as *const c_void;
 
 // in project stuff
+pub mod camera;
 pub mod entities;
 pub mod input;
 pub mod model;
@@ -23,6 +24,7 @@ pub mod render;
 pub mod shader;
 pub mod util;
 
+pub use camera::Camera;
 pub use entities::Entity;
 pub use entities::mobs::Mob;
 pub use input::Handler;
@@ -48,6 +50,7 @@ fn main() {
     load_with(|symbol| gl_window.get_proc_address(symbol) as *const _);
     ClearColor(0.0, 1.0, 0.0, 1.0);
   }
+  let mut camera = Camera::new();
   let mut handler = Handler::new();
   println!("Creating loader");
   let mut loader = Loader::new();
@@ -57,6 +60,7 @@ fn main() {
   println!("loading shader program.");
   let mut shader = shader::model::gen_model_shader();
   let mut running = true;
+  let mut proj_mat = [0_f32; 16];
   while running {
     events_loop.poll_events(|event| {
     match event {
@@ -64,7 +68,13 @@ fn main() {
         glutin::WindowEvent::CloseRequested => running = false,
         glutin::WindowEvent::Resized(logical_size) => {
           let dpi_factor = gl_window.get_hidpi_factor();
-          gl_window.resize(logical_size.to_physical(dpi_factor));
+          let size = logical_size.to_physical(dpi_factor);
+          gl_window.resize(size);
+          camera.update_size(size.into());
+          proj_mat = camera.projection();
+          shader.start();
+          shader.load_matrix("u_Projection", &proj_mat); // Maybe move this to Shader
+          shader.stop();
         },
         _ => { handler.window_event(&event) }
       },
@@ -74,7 +84,7 @@ fn main() {
     });
     ModelRender::prepare(); // Clear color
     spaceship.move_mob(&mut handler, 0.01);
-    ModelRender::render(&shader, &mut spaceship.entity);
+    ModelRender::render(&shader, &mut camera, &mut spaceship.entity);
     
     gl_window.swap_buffers().unwrap();
   }
