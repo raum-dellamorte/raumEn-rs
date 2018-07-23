@@ -43,12 +43,12 @@ impl Handler {
       DEvent::Button { button: bttn, state: Released } => {
         println!("Button released: {}", bttn);
       }
-      DEvent::Key(KB { scancode: bttn, state: Pressed, modifiers: modkey, ..}) => {
-        let code: String = format!("{}-{}-{}-{}-{}", bttn, modkey.shift, modkey.ctrl, modkey.alt, modkey.logo);
+      DEvent::Key(KB { virtual_keycode: Some(bttn), state: Pressed, modifiers: modkey, ..}) => {
+        let code: String = format!("{:?}-{}-{}-{}-{}", bttn, modkey.shift, modkey.ctrl, modkey.alt, modkey.logo);
         self.kb.insert(code, true);
       }
-      DEvent::Key(KB { scancode: bttn, state: Released, modifiers: modkey, ..}) => {
-        self.kb.insert(key_code_u32(bttn, &modkey), false);
+      DEvent::Key(KB { virtual_keycode: Some(bttn), state: Released, modifiers: modkey, ..}) => {
+        self.kb.insert(key_code(&bttn, &modkey), false);
       }
       DEvent::Motion {..} => {}
       // e => println!("Device Event:\n{:?}", e)
@@ -56,13 +56,13 @@ impl Handler {
     }
   }
   pub fn read_kb_single(&mut self, kc: KeyCode) -> bool {
-    match self.kb.insert(key_code_u32(kc.key, &kc.modkey), false) {
+    match self.kb.insert(key_code(&kc.key, &kc.modkey), false) {
       Some(tf) => { return tf; },
       None     => { return false; },
     }
   }
   pub fn read_kb_multi(&self, kc: KeyCode) -> bool {
-    match self.kb.get(&key_code_u32(kc.key, &kc.modkey)) {
+    match self.kb.get(&key_code(&kc.key, &kc.modkey)) {
       Some(&tf) => { return tf; },
       None      => { return false; },
     }
@@ -93,21 +93,18 @@ impl Handler {
   }
 }
 pub struct KeyCode {
-  pub key: u32,
+  pub key: VKC,
   pub modkey: MKS,
 }
 impl KeyCode {
   pub fn new(key: VKC) -> Self {
-    KeyCode::new_u32(key_u32(&key))
-  }
-  pub fn new_u32(key: u32) -> Self {
     KeyCode {
       key: key,
       modkey: MKS {shift: false, ctrl: false, alt: false, logo: false},
     }
   }
   pub fn to_str(&self) -> String {
-    key_code_u32(self.key, &self.modkey)
+    key_code(&self.key, &self.modkey)
   }
   pub fn shift(&mut self) -> &mut Self {
     self.modkey.shift = true;
@@ -140,7 +137,7 @@ impl KeyCodes {
   pub fn to_str_vec(&self) -> Vec<String> {
     let mut out = Vec::new();
     for key in &self.keys {
-      out.push(key_code_u32(key.key, &key.modkey));
+      out.push(key_code(&key.key, &key.modkey));
     }
     out
   }
@@ -193,69 +190,6 @@ impl KeyCodes {
     self
   }
 }
-pub fn key_code_u32(bttn: u32, modkey: &MKS) -> String {
-  format!("{}-{}-{}-{}-{}", bttn, modkey.shift, modkey.ctrl, modkey.alt, modkey.logo)
-}
 pub fn key_code(bttn: &VKC, modkey: &MKS) -> String {
-  key_code_u32(key_u32(bttn), modkey)
+  format!("{:?}-{}-{}-{}-{}", bttn, modkey.shift, modkey.ctrl, modkey.alt, modkey.logo)
 }
-pub fn key_u32(key: &VKC) -> u32 {
-  match *key {
-    VKC::Q => { 16_u32 }
-    VKC::W => { 17_u32 }
-    VKC::E => { 18_u32 }
-    VKC::R => { 19_u32 }
-    VKC::T => { 20_u32 }
-    VKC::Y => { 21_u32 }
-    VKC::U => { 22_u32 }
-    VKC::I => { 23_u32 }
-    VKC::O => { 24_u32 }
-    VKC::P => { 25_u32 }
-    
-    VKC::A => { 30_u32 }
-    VKC::S => { 31_u32 }
-    VKC::D => { 32_u32 }
-    VKC::F => { 33_u32 }
-    VKC::G => { 34_u32 }
-    VKC::H => { 35_u32 }
-    VKC::J => { 36_u32 }
-    
-    VKC::K => { 37_u32 }
-    VKC::L => { 38_u32 }
-    VKC::Z => { 44_u32 }
-    VKC::X => { 45_u32 }
-    VKC::C => { 46_u32 }
-    VKC::V => { 47_u32 }
-    VKC::B => { 48_u32 }
-    VKC::N => { 49_u32 }
-    VKC::M => { 50_u32 }
-    
-    VKC::Space => { 57_u32 }
-    
-    VKC::Up => { 72_u32 }
-    VKC::Left => { 75_u32 }
-    VKC::Down => { 80_u32 }
-    VKC::Right => { 77_u32 }
-    
-    _ => { 0_u32 }
-  }
-}
-
-// pub enum ModKey {
-//   SHIFT, 
-//   CTRL, 
-//   ALT, 
-//   LOGO,
-// }
-// pub fn mk_modkey(modkeys: &[ModKey]) -> MKS {
-//   let mut out = MKS {shift: false, ctrl: false, alt: false, logo: false};
-//   for mk in modkeys {
-//     match mk {
-//       ModKey::SHIFT => { out.shift = true }
-//       ModKey::CTRL  => { out.ctrl = true }
-//       ModKey::ALT   => { out.alt = true }
-//       ModKey::LOGO  => { out.logo = true }
-//     }
-//   }
-//   out
-// }
