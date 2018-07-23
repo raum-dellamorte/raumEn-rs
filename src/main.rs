@@ -60,7 +60,16 @@ fn main() {
   println!("loading shader program.");
   let mut shader = shader::model::gen_model_shader();
   let mut running = true;
-  let mut proj_mat = [0_f32; 16];
+  let mut proj_mat;
+  {
+    let dpi = gl_window.get_hidpi_factor();
+    let size = gl_window.get_inner_size().unwrap().to_physical(dpi);
+    camera.update_size(size.into());
+    proj_mat = camera.projection();
+    shader.start();
+    shader.load_matrix("u_Projection", &proj_mat); // Maybe move this to Shader
+    shader.stop();
+  }
   while running {
     events_loop.poll_events(|event| {
     match event {
