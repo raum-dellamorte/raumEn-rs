@@ -8,6 +8,7 @@ pub mod loader;
 // use gl::*;
 use gl::types::{GLuint, }; // GLfloat, GLenum, GLint, GLchar, GLboolean, GLsizeiptr, 
 use model::loader::Loader;
+use shader::lighting::Lighting;
 // use model::mesh::Mesh;
 // use util::rvertex::RVertex;
 // use std::path::Path;
@@ -15,6 +16,7 @@ use model::loader::Loader;
 pub struct Model {
   pub name: String,
   pub raw: Option<RawModel>,
+  pub lighting: Option<Lighting>,
   pub texture: GLuint,
   pub use_tex: bool,
 }
@@ -24,6 +26,7 @@ impl Model {
     Model {
       name: format!("{}", model_name),
       raw: None,
+      lighting: None,
       texture: 0,
       use_tex: false
     }

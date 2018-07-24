@@ -21,7 +21,6 @@ uniform mat4 u_View;
 
 uniform mat4 playerLoc;
 uniform vec3 lightPosition[4];
-
 uniform float useFakeLighting;
 
 uniform float numOfRows;
@@ -49,11 +48,11 @@ void main(void) {
     actualNormal = vec3(0.0,1.0,0.0);
   }
   
-  v_SurfaceNorm = (transformationMatrix * vec4(actualNormal, 0.0)).xyz;
+  v_SurfaceNorm = (u_Transform * vec4(actualNormal, 0.0)).xyz;
   for(int i = 0; i < 4; i++){
     v_toLight[i] = lightPosition[i] - worldPos.xyz;
   }
-  v_toCam = (inverse(viewMatrix) * vec4(0.0,0.0,0.0,1.0)).xyz - worldPos.xyz;
+  v_toCam = (inverse(u_View) * vec4(0.0,0.0,0.0,1.0)).xyz - worldPos.xyz;
   
   vec4 posRelToPlayer = playerLoc * worldPos; // for fog from player perspective
   float dist = length(posRelToPlayer.xyz);

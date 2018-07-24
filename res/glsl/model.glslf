@@ -38,7 +38,7 @@ void main(void) {
   }
   totalDiffuse = max(totalDiffuse, 0.2);
   
-  vec4 textureColour = texture(modelTexture, v_TexCoord);
+  vec4 textureColour = texture(t_Texture, v_TexCoord);
   if(textureColour.a < 0.5){
     discard;
   }
@@ -46,11 +46,4 @@ void main(void) {
   out_Color = vec4(totalDiffuse, 1.0) * textureColour + vec4(totalSpecular, 1.0);
   out_Color = mix(vec4(skyColour,1.0),out_Color,v_vis);
   
-}
-
-
-void main() {
-  vec4 tex = texture(t_Texture, v_TexCoord);
-  // float blend = dot(v_TexCoord-vec2(0.5,0.5), v_TexCoord-vec2(0.5,0.5));
-  out_Color = tex;
 }
