@@ -1,9 +1,8 @@
 
+use shader::Shader;
+use util::rvector::Vector3f;
 
 pub struct Lighting {
-  pub light_pos: [[f32; 3]; 4],
-  pub light_color: [[f32; 3]; 4],
-  pub attenuation: [[f32; 3]; 4],
   pub shine_damper: f32,
   pub reflectivity: f32,
   pub use_fake_lighting: bool,
@@ -12,25 +11,16 @@ pub struct Lighting {
 impl Lighting {
   pub fn new() -> Self {
     Lighting {
-      light_pos: [[0_f32; 3]; 4],
-      light_color: [[0_f32; 3]; 4],
-      attenuation: [[0_f32; 3]; 4],
-      shine_damper: 0_f32,
+      shine_damper: 1_f32,
       reflectivity: 0_f32,
       use_fake_lighting: false,
     }
   }
-  pub fn light_pos(&mut self, light_pos: [[f32; 3]; 4]) -> &mut Self {
-    self.light_pos = light_pos;
-    self
-  }
-  pub fn light_color(&mut self, light_color: [[f32; 3]; 4]) -> &mut Self {
-    self.light_color = light_color;
-    self
-  }
-  pub fn attenuation(&mut self, attenuation: [[f32; 3]; 4]) -> &mut Self {
-    self.attenuation = attenuation;
-    self
+  pub fn load_to_shader(&self, shader: &Shader) {
+    // Assumes shader is active
+    shader.load_float("shine_damper", self.shine_damper);
+    shader.load_float("reflectivity", self.reflectivity);
+    shader.load_bool("use_fake_lighting", self.use_fake_lighting);
   }
   pub fn shine_damper(&mut self, shine_damper: f32) -> &mut Self {
     self.shine_damper = shine_damper;
@@ -43,5 +33,53 @@ impl Lighting {
   pub fn use_fake_lighting(&mut self) -> &mut Self {
     self.use_fake_lighting = !self.use_fake_lighting;
     self
+  }
+}
+
+pub struct Light {
+  pub pos: Vector3f,
+  pub color: Vector3f,
+  pub atten: Vector3f,
+}
+
+impl Light {
+  pub fn new() -> Self {
+    Light {
+      pos: Vector3f::blank(),
+      color: Vector3f::new_isize(1, 1, 1),
+      atten: Vector3f::blank(),
+    }
+  }
+  pub fn load_to_shader(&self, shader: &Shader) {
+    // Assumes shader is active
+    shader.load_vec_3f("light_pos", self.pos);
+    shader.load_vec_3f("light_color", self.color);
+    shader.load_vec_3f("attenuation", self.atten);
+  }
+  pub fn light_pos(&mut self, light_pos: Vector3f) -> &mut Self {
+    self.pos = light_pos;
+    self
+  }
+  pub fn light_color(&mut self, light_color: Vector3f) -> &mut Self {
+    self.color = light_color;
+    self
+  }
+  pub fn attenuation(&mut self, attenuation: Vector3f) -> &mut Self {
+    self.atten = attenuation;
+    self
+  }
+}
+
+struct Lights {
+  lights: Vec<Light>,
+}
+
+impl Lights {
+  pub fn new() -> Self {
+    Lights { lights: Vec::new() }
+  }
+  pub fn load_to_shader(&self, shader: &Shader) {
+    // Assumes shader is active
+    
   }
 }

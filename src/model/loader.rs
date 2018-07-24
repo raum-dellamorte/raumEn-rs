@@ -36,7 +36,8 @@ impl Loader {
     let vao_id = self.create_vao();
     self.bind_indices(&indcs);
     self.bind_vertices(0, &verts);
-    self.bind_tex_coords(1, &verts);
+    self.bind_norms(1, &verts);
+    self.bind_tex_coords(2, &verts);
     self.unbind_vao();
     RawModel::new(vao_id, indcs.len() as i32)
   }
@@ -86,17 +87,20 @@ impl Loader {
     VertexAttribPointer(attrib, 3, FLOAT, FALSE, 0, ptr::null());
     BindBuffer(ARRAY_BUFFER, 0_u32);
   }}
-  pub fn bind_indices(&mut self, idxs: &[u16]) { unsafe {
-    let mut vbo_id = 0_u32;
+  pub fn bind_norms(&mut self, attrib: u32, verts: &[RVertex]) { unsafe {
+    let mut vbo_id: GLuint = 0;
     GenBuffers(1, &mut vbo_id);
+    assert!(vbo_id != 0);
     self.vbos.push(vbo_id);
-    BindBuffer(ELEMENT_ARRAY_BUFFER, vbo_id);
+    BindBuffer(ARRAY_BUFFER, vbo_id);
     use std::mem;
-    let _idxs = indices_to_gluints(idxs);
-    BufferData(ELEMENT_ARRAY_BUFFER,
-      (_idxs.len() * mem::size_of::<GLuint>()) as GLsizeiptr,
-      mem::transmute(&_idxs[0]),
+    let data = verts_norms_to_glfloats(verts);
+    BufferData(ARRAY_BUFFER,
+      (data.len() * mem::size_of::<GLfloat>()) as GLsizeiptr,
+      mem::transmute(&data[0]),
       STATIC_DRAW);
+    VertexAttribPointer(attrib, 3, FLOAT, FALSE, 0, ptr::null());
+    BindBuffer(ARRAY_BUFFER, 0_u32);
   }}
   pub fn bind_tex_coords(&mut self, attrib: u32, verts: &[RVertex]) { unsafe {
     let mut vbo_id: GLuint = 0;
@@ -112,6 +116,18 @@ impl Loader {
       STATIC_DRAW);
     VertexAttribPointer(attrib, 2, FLOAT, FALSE, 0, ptr::null());
     BindBuffer(ARRAY_BUFFER, 0_u32);
+  }}
+  pub fn bind_indices(&mut self, idxs: &[u16]) { unsafe {
+    let mut vbo_id = 0_u32;
+    GenBuffers(1, &mut vbo_id);
+    self.vbos.push(vbo_id);
+    BindBuffer(ELEMENT_ARRAY_BUFFER, vbo_id);
+    use std::mem;
+    let _idxs = indices_to_gluints(idxs);
+    BufferData(ELEMENT_ARRAY_BUFFER,
+      (_idxs.len() * mem::size_of::<GLuint>()) as GLsizeiptr,
+      mem::transmute(&_idxs[0]),
+      STATIC_DRAW);
   }}
   pub fn unbind_vao(&self) { unsafe {
     BindVertexArray(0_u32);

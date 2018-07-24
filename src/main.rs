@@ -30,6 +30,7 @@ pub use entities::mobs::Mob;
 pub use input::Handler;
 pub use model::loader::Loader;
 pub use model::Model;
+pub use shader::lighting::Light;
 pub use shader::Shader;
 pub use render::ModelRender;
 
@@ -59,6 +60,8 @@ fn main() {
   spaceship.init(&mut loader);
   println!("loading shader program.");
   let mut shader = shader::model::gen_model_shader();
+  let mut light = Light::new();
+  light.pos.from_isize(-50,1000,50);
   let mut running = true;
   let mut proj_mat;
   {
@@ -93,7 +96,7 @@ fn main() {
     });
     ModelRender::prepare(); // Clear color
     spaceship.move_mob(&mut handler, 0.01);
-    ModelRender::render(&shader, &mut camera, &mut spaceship.entity);
+    ModelRender::render(&shader, &mut camera, &light, &mut spaceship.entity);
     
     gl_window.swap_buffers().unwrap();
   }

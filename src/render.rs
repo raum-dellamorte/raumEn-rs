@@ -12,6 +12,7 @@ pub mod ModelRender {
   use CVOID;
   use camera::Camera;
   use entities::Entity;
+  use shader::lighting::Light;
   use shader::Shader;
   use util::rvertex::{RVertex, RVertex2D};
   
@@ -20,7 +21,7 @@ pub mod ModelRender {
     Clear(COLOR_BUFFER_BIT|DEPTH_BUFFER_BIT);
     ClearColor(0.0, 1.0, 0.0, 1.0);
   }}
-  pub fn render(shader: &Shader, camera: &mut Camera, entity: &mut Entity) { unsafe {
+  pub fn render(shader: &Shader, camera: &mut Camera, light: &Light, entity: &mut Entity) { unsafe {
     camera.create_view_matrix();
     let view_mat = camera.view_mat.as_slice();
     shader.start();
@@ -35,6 +36,8 @@ pub mod ModelRender {
     let trans_mat = entity.marker.transformation();
     shader.load_matrix("u_Transform", &trans_mat);
     shader.load_matrix("u_View", &view_mat);
+    light.load_to_shader(shader);
+    entity.model.lighting.as_ref().unwrap().load_to_shader(shader);
     DrawElements(TRIANGLES, entity.model.raw().vertex_count, UNSIGNED_INT, CVOID);
     while count > 0 as GLuint {
       count -= 1 as GLuint;

@@ -34,6 +34,7 @@ impl Model {
   pub fn init_with_texture(&mut self, loader: &mut Loader) -> &mut Self {
     self.init(loader)
     .load_default_texture(loader)
+    .with_lighting()
   }
   pub fn init(&mut self, loader: &mut Loader) -> &mut Self {
     self.raw = Some(loader.load_to_vao(&self.name));
@@ -41,6 +42,10 @@ impl Model {
   }
   pub fn load_default_texture(&mut self, loader: &mut Loader) -> &mut Self {
     self.texture = loader.load_texture(&self.name);
+    self
+  }
+  pub fn with_lighting(&mut self) -> &mut Self {
+    self.lighting = Some(Lighting::new());
     self
   }
   pub fn raw(&self) -> &RawModel {
