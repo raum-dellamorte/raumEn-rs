@@ -5,12 +5,11 @@ pub fn gen_model_shader() -> Shader {
   let mut out = Shader::new("model");
   out.add_attributes(vec!("a_Pos", "a_Norm", "a_TexCoord")) // , "a_Norm"
   .add_uniforms(vec!(
-    "u_Transform", "u_Projection", "u_View",
-    "playerLoc", "lightPosition", "useFakeLighting",
-    "useFakeLighting", "offset", "plane", "useClipPlane",
-    "t_Texture", "lightColour", "attenuation",
-    "shineDamper", "reflectivity", "skyColour"
+    "u_Transform", "u_Projection", "u_View", "t_Texture", 
+    "playerLoc", "useFakeLighting", "numOfRows", "offset", 
+    "plane", "useClipPlane", "shineDamper", "reflectivity", "skyColour"
   ))
+  .add_uniforms_array(vec!("light_pos", "lightColour", "attenuation"), 4)
   .load_defaults();
   println!("Created model shader.");
   out
@@ -23,7 +22,7 @@ uniform mat4 u_Projection;
 uniform mat4 u_View;
 
 uniform mat4 playerLoc;
-uniform vec3 lightPosition[4];
+uniform vec3 light_pos[4];
 
 uniform float useFakeLighting;
 

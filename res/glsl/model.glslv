@@ -20,7 +20,7 @@ uniform mat4 u_Projection;
 uniform mat4 u_View;
 
 uniform mat4 playerLoc;
-uniform vec3 lightPosition[4];
+uniform vec3 light_pos[4];
 uniform float useFakeLighting;
 
 uniform float numOfRows;
@@ -50,7 +50,7 @@ void main(void) {
   
   v_SurfaceNorm = (u_Transform * vec4(actualNormal, 0.0)).xyz;
   for(int i = 0; i < 4; i++){
-    v_toLight[i] = lightPosition[i] - worldPos.xyz;
+    v_toLight[i] = light_pos[i] - worldPos.xyz;
   }
   v_toCam = (inverse(u_View) * vec4(0.0,0.0,0.0,1.0)).xyz - worldPos.xyz;
   

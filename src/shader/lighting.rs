@@ -52,9 +52,9 @@ impl Light {
   }
   pub fn load_to_shader(&self, shader: &Shader) {
     // Assumes shader is active
-    shader.load_vec_3f("light_pos", self.pos);
-    shader.load_vec_3f("light_color", self.color);
-    shader.load_vec_3f("attenuation", self.atten);
+    shader.load_vec_3f("light_pos", &self.pos);
+    shader.load_vec_3f("light_color", &self.color);
+    shader.load_vec_3f("attenuation", &self.atten);
   }
   pub fn light_pos(&mut self, light_pos: Vector3f) -> &mut Self {
     self.pos = light_pos;

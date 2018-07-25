@@ -107,6 +107,15 @@ impl Shader {
     }
     self
   }
+  pub fn add_uniforms_array(&mut self, names: Vec<&str>, count: usize) -> &mut Self {
+    for name in names {
+      let i = 0;
+      while i < count {
+        self.add_uniform(&format!("{}[{}]", name, i));
+      }
+    }
+    self
+  }
   pub fn add_uniform(&mut self, name: &str) -> &mut Self {
     self.unis.push(ShaderUni::new(name));
     self
@@ -145,13 +154,13 @@ impl Shader {
   pub fn load_float(&self, name: &str, value: GLfloat) { unsafe {
     Uniform1f(self.get_uniform_id(name), value);
   }}
-  pub fn load_vec_4f(&self, name: &str, vector: Vector4f) { unsafe {
+  pub fn load_vec_4f(&self, name: &str, vector: &Vector4f) { unsafe {
     Uniform4f(self.get_uniform_id(name), vector.x, vector.y, vector.z, vector.w);
   }}
-  pub fn load_vec_3f(&self, name: &str, vector: Vector3f) { unsafe {
+  pub fn load_vec_3f(&self, name: &str, vector: &Vector3f) { unsafe {
     Uniform3f(self.get_uniform_id(name), vector.x, vector.y, vector.z);
   }}
-  pub fn load_vec_2f(&self, name: &str, vector: Vector2f) { unsafe {
+  pub fn load_vec_2f(&self, name: &str, vector: &Vector2f) { unsafe {
     Uniform2f(self.get_uniform_id(name), vector.x, vector.y);
   }}
   pub fn load_bool(&self, name: &str, value: bool) { unsafe {

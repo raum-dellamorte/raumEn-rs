@@ -48,6 +48,12 @@ impl Model {
     self.lighting = Some(Lighting::new());
     self
   }
+  pub fn lighting(&self) -> &Lighting {
+    self.lighting.as_ref().unwrap()
+  }
+  pub fn lighting_mut(&mut self) -> &mut Lighting {
+    self.lighting.as_mut().unwrap()
+  }
   pub fn raw(&self) -> &RawModel {
     match &self.raw {
       Some(model) => { model }

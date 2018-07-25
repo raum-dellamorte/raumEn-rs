@@ -9,7 +9,7 @@ in float v_vis;
 out vec4 out_Color;
 
 uniform sampler2D t_Texture;
-uniform vec3 lightColour[4];
+uniform vec3 light_color[4];
 uniform vec3 attenuation[4];
 uniform float shineDamper;
 uniform float reflectivity;
@@ -33,8 +33,8 @@ void main(void) {
     float specularFactor = dot(reflectedLightDirection, unitCameraVector);
     specularFactor = max(specularFactor, 0.0);
     float dampedFactor = pow(specularFactor, shineDamper);
-    totalDiffuse = totalDiffuse + (brightness * lightColour[i]) / attFactor;
-    totalSpecular = totalSpecular + (dampedFactor * reflectivity * lightColour[i]) / attFactor;
+    totalDiffuse = totalDiffuse + (brightness * light_color[i]) / attFactor;
+    totalSpecular = totalSpecular + (dampedFactor * reflectivity * light_color[i]) / attFactor;
   }
   totalDiffuse = max(totalDiffuse, 0.2);
   
