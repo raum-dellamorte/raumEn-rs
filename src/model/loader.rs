@@ -59,19 +59,6 @@ impl Loader {
     BindVertexArray(vao_id);
     vao_id
   }}
-  pub fn bind_vertices_2d(&mut self, attrib: u32, verts: &[RVertex2D]) { unsafe {
-    let mut vbo_id = 0 as GLuint;
-    GenBuffers(1, &mut vbo_id);
-    self.vbos.push(vbo_id);
-    BindBuffer(ARRAY_BUFFER, vbo_id);
-    let data = verts_pos_to_glfloats_2d(verts);
-    BufferData(ARRAY_BUFFER,
-      (data.len() * mem::size_of::<GLfloat>()) as GLsizeiptr,
-      mem::transmute(&data[0]),
-      STATIC_DRAW);
-    VertexAttribPointer(attrib, 2, FLOAT, FALSE, 0, ptr::null());
-    BindBuffer(ARRAY_BUFFER, 0_u32);
-  }}
   pub fn bind_attrib(&mut self, attrib: u32, step: GLint, data: &[GLfloat]) { unsafe {
     let mut vbo_id: GLuint = 0;
     GenBuffers(1, &mut vbo_id);
@@ -84,36 +71,6 @@ impl Loader {
       mem::transmute(&data[0]),
       STATIC_DRAW);
     VertexAttribPointer(attrib, step, FLOAT, FALSE, 0, ptr::null());
-    BindBuffer(ARRAY_BUFFER, 0_u32);
-  }}
-  pub fn bind_norms(&mut self, attrib: u32, verts: &[RVertex]) { unsafe {
-    let mut vbo_id: GLuint = 0;
-    GenBuffers(1, &mut vbo_id);
-    assert!(vbo_id != 0);
-    self.vbos.push(vbo_id);
-    BindBuffer(ARRAY_BUFFER, vbo_id);
-    use std::mem;
-    let data = verts_norms_to_glfloats(verts);
-    BufferData(ARRAY_BUFFER,
-      (data.len() * mem::size_of::<GLfloat>()) as GLsizeiptr,
-      mem::transmute(&data[0]),
-      STATIC_DRAW);
-    VertexAttribPointer(attrib, 3, FLOAT, FALSE, 0, ptr::null());
-    BindBuffer(ARRAY_BUFFER, 0_u32);
-  }}
-  pub fn bind_tex_coords(&mut self, attrib: u32, verts: &[RVertex]) { unsafe {
-    let mut vbo_id: GLuint = 0;
-    GenBuffers(1, &mut vbo_id);
-    assert!(vbo_id != 0);
-    self.vbos.push(vbo_id);
-    BindBuffer(ARRAY_BUFFER, vbo_id);
-    use std::mem;
-    let data = verts_tex_coords_to_glfloats(verts);
-    BufferData(ARRAY_BUFFER,
-      (data.len() * mem::size_of::<GLfloat>()) as GLsizeiptr,
-      mem::transmute(&data[0]),
-      STATIC_DRAW);
-    VertexAttribPointer(attrib, 2, FLOAT, FALSE, 0, ptr::null());
     BindBuffer(ARRAY_BUFFER, 0_u32);
   }}
   pub fn bind_indices(&mut self, idxs: &[u16]) { unsafe {
@@ -161,7 +118,7 @@ impl Loader {
   }
   pub fn load_to_vao_2d(&mut self, verts: &[RVertex2D]) -> RawModel {
     let vao_id = self.create_vao();
-    self.bind_vertices_2d(0, verts);
+    let vdata = verts_pos_to_glfloats_2d(&verts); self.bind_attrib(0, 2, &vdata);
     self.unbind_vao();
     RawModel::new(vao_id, verts.len() as i32)
   }
