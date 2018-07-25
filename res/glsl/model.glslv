@@ -19,15 +19,15 @@ uniform mat4 u_Transform;
 uniform mat4 u_Projection;
 uniform mat4 u_View;
 
-uniform mat4 playerLoc;
+uniform mat4 player_loc;
 uniform vec3 light_pos[4];
-uniform float useFakeLighting;
+uniform float use_fake_lighting;
 
-uniform float numOfRows;
+uniform float row_count;
 uniform vec2 offset;
 
 uniform vec4 plane;
-uniform float useClipPlane;
+uniform float use_clip_plane;
 
 const float density = 0.007;
 const float gradient = 1.5;
@@ -35,16 +35,16 @@ const float gradient = 1.5;
 void main(void) {
   vec4 worldPos = u_Transform * vec4(a_Pos, 1.0);
   
-  if(useClipPlane > 0.5) {
+  if(use_clip_plane > 0.5) {
     gl_ClipDistance[0] = dot(worldPos, plane);
   }
   
   vec4 posRelToCam = u_View * worldPos; // for fog from cam perspective
   gl_Position = u_Projection * posRelToCam;
-  v_TexCoord = (a_TexCoord / numOfRows) + offset;
+  v_TexCoord = (a_TexCoord / row_count) + offset;
   
   vec3 actualNormal = a_Norm;
-  if(useFakeLighting > 0.5){
+  if(use_fake_lighting > 0.5){
     actualNormal = vec3(0.0,1.0,0.0);
   }
   
@@ -54,7 +54,7 @@ void main(void) {
   }
   v_toCam = (inverse(u_View) * vec4(0.0,0.0,0.0,1.0)).xyz - worldPos.xyz;
   
-  vec4 posRelToPlayer = playerLoc * worldPos; // for fog from player perspective
+  vec4 posRelToPlayer = player_loc * worldPos; // for fog from player perspective
   float dist = length(posRelToPlayer.xyz);
   v_vis = exp(-pow((dist * density), gradient));
   v_vis = clamp(v_vis,0.0,1.0);

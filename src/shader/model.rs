@@ -6,10 +6,10 @@ pub fn gen_model_shader() -> Shader {
   out.add_attributes(vec!("a_Pos", "a_Norm", "a_TexCoord")) // , "a_Norm"
   .add_uniforms(vec!(
     "u_Transform", "u_Projection", "u_View", "t_Texture", 
-    "playerLoc", "useFakeLighting", "numOfRows", "offset", 
-    "plane", "useClipPlane", "shineDamper", "reflectivity", "skyColour"
+    "player_loc", "use_fake_lighting", "row_count", "offset", 
+    "plane", "use_clip_plane", "shine_damper", "reflectivity", "sky_color"
   ))
-  .add_uniforms_array(vec!("light_pos", "lightColour", "attenuation"), 4)
+  .add_uniforms_array(vec!("light_pos", "light_color", "attenuation"), 4)
   .load_defaults();
   println!("Created model shader.");
   out
@@ -21,22 +21,22 @@ uniform mat4 u_Transform;
 uniform mat4 u_Projection;
 uniform mat4 u_View;
 
-uniform mat4 playerLoc;
+uniform mat4 player_loc;
 uniform vec3 light_pos[4];
 
-uniform float useFakeLighting;
+uniform float use_fake_lighting;
 
-uniform float numOfRows;
+uniform float row_count;
 uniform vec2 offset;
 
 uniform vec4 plane;
-uniform float useClipPlane;
+uniform float use_clip_plane;
 
 // Frag
 uniform sampler2D t_Texture;
 uniform vec3 lightColour[4];
 uniform vec3 attenuation[4];
-uniform float shineDamper;
+uniform float shine_damper;
 uniform float reflectivity;
-uniform vec3 skyColour;
+uniform vec3 sky_color;
  */

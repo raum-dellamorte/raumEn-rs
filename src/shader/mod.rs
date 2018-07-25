@@ -109,9 +109,10 @@ impl Shader {
   }
   pub fn add_uniforms_array(&mut self, names: Vec<&str>, count: usize) -> &mut Self {
     for name in names {
-      let i = 0;
+      let mut i = 0;
       while i < count {
         self.add_uniform(&format!("{}[{}]", name, i));
+        i += 1;
       }
     }
     self
@@ -228,7 +229,7 @@ impl Shader {
           buffer.as_mut_ptr() as *mut i8);
         println!("Compiler log (length: {}):\n{}", length,
           from_utf8(CStr::from_ptr(transmute(&buffer)).to_bytes()).unwrap());
-      }
+      } else { println!("Shader compiled"); }
     }
   } self }
   pub fn link(&mut self) -> &mut Self { unsafe {

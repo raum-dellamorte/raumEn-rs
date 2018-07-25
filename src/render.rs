@@ -36,14 +36,15 @@ pub mod ModelRender {
     ActiveTexture(TEXTURE0);
     BindTexture(TEXTURE_2D, entity.model.texture);
     shader.load_matrix("u_Transform", &trans_mat);
-    shader.load_matrix("playerLoc", &trans_mat); // mat4 playerLoc
+    shader.load_matrix("player_loc", &trans_mat); // mat4 player_loc
     shader.load_matrix("u_View", &view_mat);
     lights.load_to_shader(shader);
     entity.model.lighting().load_to_shader(shader);
-    shader.load_float("numOfRows", 1_f32); // float numOfRows
+    shader.load_float("row_count", 1_f32); // float numOfRows
     shader.load_vec_2f("offset", &Vector2f {x: 0_f32, y: 0_f32}); // vec2 offset;
     shader.load_vec_4f("plane", &Vector4f {x: 0_f32, y: 10000_f32, z: 0_f32, w: 1_f32, }); // vec4 plane;
-    shader.load_bool("useClipPlane", false); // float useClipPlane;
+    shader.load_bool("use_clip_plane", false); // float useClipPlane;
+    shader.load_vec_3f("sky_color", &Vector3f::new_isize(1, 1, 1));
     DrawElements(TRIANGLES, entity.model.raw().vertex_count, UNSIGNED_INT, CVOID);
     while count > 0 as GLuint {
       count -= 1 as GLuint;

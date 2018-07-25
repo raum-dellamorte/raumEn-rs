@@ -38,7 +38,7 @@ fn main() {
   let mut events_loop = glutin::EventsLoop::new();
   let window = glutin::WindowBuilder::new()
     .with_title("RaumEn")
-    .with_dimensions(LogicalSize::new(1024.0, 768.0));
+    .with_dimensions(LogicalSize::new(640.0, 480.0));
   let context = glutin::ContextBuilder::new()
     .with_vsync(true);
   let gl_window = glutin::GlWindow::new(window, context, &events_loop).unwrap();
@@ -60,6 +60,7 @@ fn main() {
   spaceship.init(&mut loader);
   println!("loading shader program.");
   let mut shader = shader::model::gen_model_shader();
+  println!("shader created.");
   let mut lights = Lights::new();
   lights.add_light();
   lights.lights[0].pos.from_isize(-50,1000,50);
