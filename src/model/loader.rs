@@ -2,7 +2,7 @@
 #[allow(unused_imports)]
 
 use gl::*;
-use gl::types::{GLfloat, GLuint, GLsizeiptr, }; // GLenum, GLint, GLchar, GLboolean, 
+use gl::types::{GLfloat, GLint, GLuint, GLsizeiptr, }; // GLenum, GLchar, GLboolean, 
 use std::collections::HashMap;
 use std::mem;
 use std::ptr;
@@ -35,9 +35,9 @@ impl Loader {
     };
     let vao_id = self.create_vao();
     self.bind_indices(&indcs);
-    self.bind_vertices(0, &verts);
-    self.bind_norms(1, &verts);
-    self.bind_tex_coords(2, &verts);
+    let vdata = verts_pos_to_glfloats(&verts); self.bind_attrib(0, 3_i32, &vdata);
+    let ndata = verts_norms_to_glfloats(&verts); self.bind_attrib(1, 3_i32, &ndata);
+    let tdata = verts_tex_coords_to_glfloats(&verts) ; self.bind_attrib(2, 2_i32, &tdata);
     self.unbind_vao();
     RawModel::new(vao_id, indcs.len() as i32)
   }
@@ -72,19 +72,18 @@ impl Loader {
     VertexAttribPointer(attrib, 2, FLOAT, FALSE, 0, ptr::null());
     BindBuffer(ARRAY_BUFFER, 0_u32);
   }}
-  pub fn bind_vertices(&mut self, attrib: u32, verts: &[RVertex]) { unsafe {
+  pub fn bind_attrib(&mut self, attrib: u32, step: GLint, data: &[GLfloat]) { unsafe {
     let mut vbo_id: GLuint = 0;
     GenBuffers(1, &mut vbo_id);
     assert!(vbo_id != 0);
     self.vbos.push(vbo_id);
     BindBuffer(ARRAY_BUFFER, vbo_id);
     use std::mem;
-    let data = verts_pos_to_glfloats(verts);
     BufferData(ARRAY_BUFFER,
       (data.len() * mem::size_of::<GLfloat>()) as GLsizeiptr,
       mem::transmute(&data[0]),
       STATIC_DRAW);
-    VertexAttribPointer(attrib, 3, FLOAT, FALSE, 0, ptr::null());
+    VertexAttribPointer(attrib, step, FLOAT, FALSE, 0, ptr::null());
     BindBuffer(ARRAY_BUFFER, 0_u32);
   }}
   pub fn bind_norms(&mut self, attrib: u32, verts: &[RVertex]) { unsafe {

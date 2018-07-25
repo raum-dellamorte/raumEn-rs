@@ -50,36 +50,49 @@ impl Light {
       atten: Vector3f::blank(),
     }
   }
-  pub fn load_to_shader(&self, shader: &Shader) {
+  pub fn load_to_shader_single(&self, shader: &Shader) {
     // Assumes shader is active
     shader.load_vec_3f("light_pos", &self.pos);
     shader.load_vec_3f("light_color", &self.color);
     shader.load_vec_3f("attenuation", &self.atten);
   }
-  pub fn light_pos(&mut self, light_pos: Vector3f) -> &mut Self {
+  pub fn load_to_shader_array(&self, shader: &Shader, id: usize) {
+    // Assumes shader is active
+    shader.load_vec_3f(&format!("light_pos[{}]", id), &self.pos);
+    shader.load_vec_3f(&format!("light_color[{}]", id), &self.color);
+    shader.load_vec_3f(&format!("attenuation[{}]", id), &self.atten);
+  }
+  pub fn set_pos(&mut self, light_pos: Vector3f) -> &mut Self {
     self.pos = light_pos;
     self
   }
-  pub fn light_color(&mut self, light_color: Vector3f) -> &mut Self {
+  pub fn set_color(&mut self, light_color: Vector3f) -> &mut Self {
     self.color = light_color;
     self
   }
-  pub fn attenuation(&mut self, attenuation: Vector3f) -> &mut Self {
+  pub fn set_attenuation(&mut self, attenuation: Vector3f) -> &mut Self {
     self.atten = attenuation;
     self
   }
 }
 
-struct Lights {
-  lights: Vec<Light>,
+pub struct Lights {
+  pub lights: Vec<Light>,
 }
 
 impl Lights {
   pub fn new() -> Self {
     Lights { lights: Vec::new() }
   }
+  pub fn add_light(&mut self) {
+    self.lights.push(Light::new());
+  }
   pub fn load_to_shader(&self, shader: &Shader) {
     // Assumes shader is active
-    
+    let count = 0;
+    for light in &self.lights {
+      if !(count < 4) {break}
+      light.load_to_shader_array(shader, count);
+    }
   }
 }

@@ -12,7 +12,7 @@ pub mod ModelRender {
   use CVOID;
   use camera::Camera;
   use entities::Entity;
-  use shader::lighting::Light;
+  use shader::lighting::Lights;
   use shader::Shader;
   use util::rvector::{Vector2f, Vector3f, Vector4f};
   use util::rvertex::{RVertex, RVertex2D};
@@ -22,7 +22,7 @@ pub mod ModelRender {
     Clear(COLOR_BUFFER_BIT|DEPTH_BUFFER_BIT);
     ClearColor(0.0, 1.0, 0.0, 1.0);
   }}
-  pub fn render(shader: &Shader, camera: &mut Camera, light: &Light, entity: &mut Entity) { unsafe {
+  pub fn render(shader: &Shader, camera: &mut Camera, lights: &Lights, entity: &mut Entity) { unsafe {
     camera.create_view_matrix();
     let view_mat = camera.view_mat.as_slice();
     let trans_mat = entity.marker.transformation();
@@ -38,7 +38,7 @@ pub mod ModelRender {
     shader.load_matrix("u_Transform", &trans_mat);
     shader.load_matrix("playerLoc", &trans_mat); // mat4 playerLoc
     shader.load_matrix("u_View", &view_mat);
-    light.load_to_shader(shader);
+    lights.load_to_shader(shader);
     entity.model.lighting().load_to_shader(shader);
     shader.load_float("numOfRows", 1_f32); // float numOfRows
     shader.load_vec_2f("offset", &Vector2f {x: 0_f32, y: 0_f32}); // vec2 offset;
