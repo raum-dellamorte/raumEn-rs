@@ -18,6 +18,8 @@ pub mod ModelRender {
   use util::rvertex::{RVertex, RVertex2D};
   
   pub fn prepare() { unsafe {
+    Enable(CULL_FACE);
+    CullFace(BACK);
     Enable(DEPTH_TEST);
     Clear(COLOR_BUFFER_BIT|DEPTH_BUFFER_BIT);
     ClearColor(0.0, 1.0, 0.0, 1.0);
@@ -44,7 +46,7 @@ pub mod ModelRender {
     shader.load_vec_2f("offset", &Vector2f {x: 0_f32, y: 0_f32}); // vec2 offset;
     shader.load_vec_4f("plane", &Vector4f {x: 0_f32, y: 10000_f32, z: 0_f32, w: 1_f32, }); // vec4 plane;
     shader.load_bool("use_clip_plane", false); // float useClipPlane;
-    shader.load_vec_3f("sky_color", &Vector3f::new_isize(1, 1, 1));
+    shader.load_vec_3f("sky_color", &Vector3f::new_isize(0, 0, 0));
     DrawElements(TRIANGLES, entity.model.raw().vertex_count, UNSIGNED_INT, CVOID);
     while count > 0 as GLuint {
       count -= 1 as GLuint;
