@@ -40,12 +40,12 @@ void main(void) {
   totalDiffuse = max(totalDiffuse, 0.2);
   
   vec4 textureColour = texture(t_Texture, v_TexCoord);
-  if(textureColour.a < 0.5){
-    discard;
-  }
+  // if(textureColour.a < 0.5){
+  //   discard;
+  // }
   
+  vec4 diffuseAndSpecular = vec4(totalDiffuse, 1.0) * textureColour + vec4(totalSpecular, 1.0);
+  out_Color = mix(vec4(sky_color,1.0),diffuseAndSpecular,v_vis);
   // out_Color = textureColour;
-  out_Color = vec4(totalDiffuse, 1.0) * textureColour + vec4(totalSpecular, 1.0);
-  out_Color = mix(vec4(sky_color,1.0),out_Color,v_vis);
   
 }

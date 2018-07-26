@@ -28,6 +28,7 @@ pub mod ModelRender {
     camera.create_view_matrix();
     let view_mat = camera.view_mat.as_slice();
     let trans_mat = entity.marker.transformation();
+    // let player_loc = trans_mat.clone();
     shader.start();
     BindVertexArray(entity.model.raw().vao_id);
     let mut count: GLuint = 0;
@@ -35,10 +36,8 @@ pub mod ModelRender {
       EnableVertexAttribArray(count);
       count += 1 as GLuint;
     }
-    ActiveTexture(TEXTURE0);
-    BindTexture(TEXTURE_2D, entity.model.texture);
     shader.load_matrix("u_Transform", &trans_mat);
-    shader.load_matrix("player_loc", &trans_mat); // mat4 player_loc
+    // shader.load_matrix("player_loc", &player_loc); // mat4 player_loc
     shader.load_matrix("u_View", &view_mat);
     lights.load_to_shader(shader);
     entity.model.lighting().load_to_shader(shader);
@@ -47,6 +46,8 @@ pub mod ModelRender {
     shader.load_vec_4f("plane", &Vector4f {x: 0_f32, y: 10000_f32, z: 0_f32, w: 1_f32, }); // vec4 plane;
     shader.load_bool("use_clip_plane", false); // float useClipPlane;
     shader.load_vec_3f("sky_color", &Vector3f::new_isize(0, 0, 0));
+    ActiveTexture(TEXTURE0);
+    BindTexture(TEXTURE_2D, entity.model.texture);
     DrawElements(TRIANGLES, entity.model.raw().vertex_count, UNSIGNED_INT, CVOID);
     while count > 0 as GLuint {
       count -= 1 as GLuint;

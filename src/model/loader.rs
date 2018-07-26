@@ -36,8 +36,8 @@ impl Loader {
     let vao_id = self.create_vao();
     self.bind_indices(&indcs);
     let vdata = verts_pos_to_glfloats(&verts); self.bind_attrib(0, 3_i32, &vdata);
-    let ndata = verts_norms_to_glfloats(&verts); self.bind_attrib(1, 3_i32, &ndata);
-    let tdata = verts_tex_coords_to_glfloats(&verts) ; self.bind_attrib(2, 2_i32, &tdata);
+    let tdata = verts_tex_coords_to_glfloats(&verts) ; self.bind_attrib(1, 2_i32, &tdata);
+    let ndata = verts_norms_to_glfloats(&verts); self.bind_attrib(2, 3_i32, &ndata);
     self.unbind_vao();
     RawModel::new(vao_id, indcs.len() as i32)
   }
@@ -162,14 +162,6 @@ pub fn verts_norms_to_glfloats(verts: &[RVertex]) -> Vec<GLfloat> {
   out
 }
 pub fn verts_tex_coords_to_glfloats(verts: &[RVertex]) -> Vec<GLfloat> {
-  let mut out = Vec::new();
-  for vert in verts {
-    out.push(vert.tex_coords[0] as GLfloat);
-    out.push(vert.tex_coords[1] as GLfloat);
-  }
-  out
-}
-pub fn verts_tex_coords_to_glfloats_2d(verts: &[RVertex2D]) -> Vec<GLfloat> {
   let mut out = Vec::new();
   for vert in verts {
     out.push(vert.tex_coords[0] as GLfloat);

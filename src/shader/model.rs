@@ -3,10 +3,10 @@
 use shader::Shader;
 pub fn gen_model_shader() -> Shader {
   let mut out = Shader::new("model");
-  out.add_attributes(vec!("a_Pos", "a_Norm", "a_TexCoord"))
+  out.add_attributes(vec!("a_Pos", "a_TexCoord", "a_Norm"))
   .add_uniforms(vec!(
     "u_Transform", "u_Projection", "u_View", "t_Texture", 
-    "player_loc", "use_fake_lighting", "row_count", "offset", 
+    "use_fake_lighting", "row_count", "offset", // "player_loc", 
     "plane", "use_clip_plane", "sky_color", "shine_damper", "reflectivity"
   ))
   .add_uniforms_array(vec!("light_pos", "light_color", "attenuation"), 4)

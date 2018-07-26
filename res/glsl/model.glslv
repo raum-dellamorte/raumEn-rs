@@ -1,8 +1,8 @@
 #version 400
 
 in vec3 a_Pos;
-in vec3 a_Norm;
 in vec2 a_TexCoord;
+in vec3 a_Norm;
 
 out vec2 v_TexCoord;
 out vec3 v_SurfaceNorm;
@@ -19,7 +19,7 @@ uniform mat4 u_Transform;
 uniform mat4 u_Projection;
 uniform mat4 u_View;
 
-uniform mat4 player_loc;
+// uniform mat4 player_loc;
 uniform vec3 light_pos[4];
 uniform float use_fake_lighting;
 
@@ -54,9 +54,9 @@ void main(void) {
   }
   v_toCam = (inverse(u_View) * vec4(0.0,0.0,0.0,1.0)).xyz - worldPos.xyz;
   
-  vec4 posRelToPlayer = player_loc * worldPos; // for fog from player perspective
-  float dist = length(posRelToPlayer.xyz);
+  // vec4 posRelToPlayer = player_loc * worldPos; // for fog from player perspective
+  float dist = length(posRelToCam.xyz);
   v_vis = exp(-pow((dist * density), gradient));
-  v_vis = clamp(v_vis,0.0,1.0);
+  v_vis = clamp(v_vis,0.5,1.0);
   
 }
