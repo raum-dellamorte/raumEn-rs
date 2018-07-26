@@ -269,13 +269,17 @@ impl Shader {
 pub fn get_attrib_location(program: GLuint, name: &str) -> GLint {
   let cname = CString::new(name.as_bytes()).unwrap();
   let location = unsafe { GetAttribLocation(program, cname.as_ptr()) };
-  assert!(location != -1);
+  if location < 0 {
+    panic!("Failed to get attribute location: {}", name);
+  }
   location
 }
 pub fn get_uniform_location(program: GLuint, name: &str) -> GLint {
   let cname = CString::new(name.as_bytes()).unwrap();
   let location = unsafe { GetUniformLocation(program, cname.as_ptr()) };
-  assert!(location != -1);
+  if location < 0 {
+    panic!("Failed to get uniform location: {}", name);
+  }
   location
 }
 pub fn get_ext(kind: GLenum) -> String {
