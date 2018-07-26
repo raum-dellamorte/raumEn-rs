@@ -3,11 +3,11 @@
 use shader::Shader;
 pub fn gen_model_shader() -> Shader {
   let mut out = Shader::new("model");
-  out.add_attributes(vec!("a_Pos", "a_Norm", "a_TexCoord")) // , "a_Norm"
+  out.add_attributes(vec!("a_Pos", "a_Norm", "a_TexCoord"))
   .add_uniforms(vec!(
     "u_Transform", "u_Projection", "u_View", "t_Texture", 
     "player_loc", "use_fake_lighting", "row_count", "offset", 
-    "plane", "use_clip_plane", "shine_damper", "reflectivity", "sky_color"
+    "plane", "use_clip_plane", "sky_color", "shine_damper", "reflectivity"
   ))
   .add_uniforms_array(vec!("light_pos", "light_color", "attenuation"), 4)
   .load_defaults();
