@@ -63,7 +63,7 @@ fn main() {
   println!("shader created.");
   let mut lights = Lights::new();
   lights.add_light();
-  lights.lights[0].pos.from_isize(-50,1000,50);
+  lights.lights[0].pos.from_isize(-500,1000,500);
   let mut running = true;
   let mut proj_mat;
   {
