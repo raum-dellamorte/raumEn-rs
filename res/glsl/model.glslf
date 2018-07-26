@@ -9,11 +9,12 @@ in float v_vis;
 out vec4 out_Color;
 
 uniform sampler2D t_Texture;
-uniform vec3 light_color[4];
-uniform vec3 attenuation[4];
+uniform vec3 sky_color;
 uniform float shine_damper;
 uniform float reflectivity;
-uniform vec3 sky_color;
+
+uniform vec3 light_color[4];
+uniform vec3 attenuation[4];
 
 void main(void) {
   vec3 unitNormal = normalize(v_SurfaceNorm);
@@ -43,6 +44,7 @@ void main(void) {
     discard;
   }
   
+  // out_Color = textureColour;
   out_Color = vec4(totalDiffuse, 1.0) * textureColour + vec4(totalSpecular, 1.0);
   out_Color = mix(vec4(sky_color,1.0),out_Color,v_vis);
   
