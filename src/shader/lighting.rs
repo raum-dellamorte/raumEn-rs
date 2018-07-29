@@ -2,6 +2,7 @@
 use shader::Shader;
 use util::rvector::Vector3f;
 
+#[derive (Debug, PartialEq)]
 pub struct Lighting {
   pub shine_damper: f32,
   pub reflectivity: f32,

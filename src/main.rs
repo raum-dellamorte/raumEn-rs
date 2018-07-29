@@ -18,6 +18,7 @@ const CVOID: *const c_void = 0 as *const c_void;
 // in project stuff
 pub mod camera;
 pub mod entities;
+pub mod gamemgr;
 pub mod input;
 pub mod model;
 pub mod render;
@@ -32,7 +33,7 @@ pub use model::loader::Loader;
 pub use model::Model;
 pub use shader::lighting::Lights;
 pub use shader::Shader;
-pub use render::ModelRender;
+pub use render::{RenderMgr, };
 
 fn main() {
   let mut events_loop = glutin::EventsLoop::new();
@@ -51,29 +52,13 @@ fn main() {
     load_with(|symbol| gl_window.get_proc_address(symbol) as *const _);
     ClearColor(0.0, 1.0, 0.0, 1.0);
   }
-  let mut camera = Camera::new();
-  let mut handler = Handler::new();
-  println!("Creating loader");
-  let mut loader = Loader::new();
-  println!("loader ready. getting model.");
-  let mut spaceship = Mob::new("spaceship");
-  spaceship.init(&mut loader);
-  println!("loading shader program.");
-  let mut shader = shader::model::gen_model_shader();
-  println!("shader created.");
-  let mut lights = Lights::new();
-  lights.add_light();
-  lights.lights[0].pos.from_isize(-50,500,50);
+  
+  let mut render_mgr = RenderMgr::new();
   let mut running = true;
-  let mut proj_mat;
   {
     let dpi = gl_window.get_hidpi_factor();
     let size = gl_window.get_inner_size().unwrap().to_physical(dpi);
-    camera.update_size(size.into());
-    proj_mat = camera.projection();
-    shader.start();
-    shader.load_matrix("u_Projection", &proj_mat); // Maybe move this to Shader
-    shader.stop();
+    render_mgr.load_proj_mat(size);
   }
   while running {
     events_loop.poll_events(|event| {
@@ -84,26 +69,27 @@ fn main() {
           let dpi_factor = gl_window.get_hidpi_factor();
           let size = logical_size.to_physical(dpi_factor);
           gl_window.resize(size);
-          camera.update_size(size.into());
-          proj_mat = camera.projection();
-          shader.start();
-          shader.load_matrix("u_Projection", &proj_mat); // Maybe move this to Shader
-          shader.stop();
+          render_mgr.load_proj_mat(size);
         },
-        _ => { handler.window_event(&event) }
+        _ => {
+          let mut handler = render_mgr.mgr.handler.lock().unwrap();
+          handler.window_event(&event);
+        }
       },
-      glutin::Event::DeviceEvent{ event, ..} => { handler.device_event(&event); }
+      glutin::Event::DeviceEvent{ event, ..} => {
+        let mut handler = render_mgr.mgr.handler.lock().unwrap();
+        handler.device_event(&event);
+      }
       e => println!("Other Event:\n{:?}", e)
     }
     });
-    ModelRender::prepare(); // Clear color
-    spaceship.move_mob(&mut handler, 0.01);
-    ModelRender::render(&shader, &mut camera, &lights, &mut spaceship.entity);
+    
+    // spaceship.move_mob(&mut handler, 0.01);
+    render_mgr.render();
     
     gl_window.swap_buffers().unwrap();
   }
-  shader.clean_up();
-  loader.clean_up();
+  render_mgr.clean_up();
 }
 
 // fn default_view() -> Matrix4<f32> {

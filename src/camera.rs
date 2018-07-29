@@ -3,7 +3,7 @@
 //use glium::draw_parameters::BackfaceCullingMode;
 //use glium::texture::CompressedSrgbTexture2d;
 
-use entities::Entity;
+use entities::mobs::Mob;
 use entities::position::PosMarker;
 use util::rmatrix::Matrix4f;
 use util::rvector::{RVec, Vector3f, XVEC, YVEC}; // , ZVEC
@@ -219,8 +219,9 @@ impl Camera {
     self.to_pos.len()
   }
 
-  pub fn angle_to_entity(&mut self, focus_pos: &Vector3f, entity: &mut Entity) -> f32 {
-    entity.distance = self.dist_to_pos(&entity.marker.pos);
+  pub fn angle_to_entity(&mut self, focus_pos: &Vector3f, mob: &mut Mob) -> f32 {
+    let mut marker = mob.pos.lock().unwrap();
+    marker.distance = self.dist_to_pos(&marker.pos);
     self.to_pos.normalize();
     focus_pos.sub_to(&self.pos, &mut self.to_focus_pos);
     self.to_focus_pos.normalize();

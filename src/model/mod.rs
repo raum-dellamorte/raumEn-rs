@@ -13,6 +13,7 @@ use shader::lighting::Lighting;
 // use util::rvertex::RVertex;
 // use std::path::Path;
 
+#[derive (Debug, PartialEq)]
 pub struct Model {
   pub name: String,
   pub raw: Option<RawModel>,
@@ -62,7 +63,7 @@ impl Model {
   }
 }
 
-#[derive(Debug)]
+#[derive (Debug, Eq, Hash, PartialEq)]
 pub struct RawModel {
     pub vao_id: u32,
     pub vertex_count: i32,

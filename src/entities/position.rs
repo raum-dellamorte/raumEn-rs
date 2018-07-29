@@ -8,6 +8,7 @@ pub struct PosMarker {
   pub ry: f32,
   pub rz: f32,
   pub scale: f32,
+  pub distance: f32,
   pub trans_mat: Matrix4f,
 }
 
@@ -19,6 +20,7 @@ impl PosMarker {
       ry: 0_f32,
       rz: 0_f32,
       scale: 1_f32,
+      distance: 0_f32,
       trans_mat: Matrix4f::new(),
     }
   }
