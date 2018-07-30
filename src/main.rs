@@ -54,6 +54,27 @@ fn main() {
   }
   
   let mut render_mgr = RenderMgr::new();
+  // let mut game_mgr = render_mgr.mgr.clone();
+  let ents_arc = render_mgr.entities.clone();
+  
+  let mut spaceship = {
+    let mut ents = ents_arc.lock().unwrap();
+    ents.new_model("spaceship").new_entities(&vec!["01", "02", "03"]);
+    println!("entities loaded");
+    {
+      let spaceship_arc02 = ents.get_entity("spaceship", "02");
+      spaceship_arc02.lock().unwrap().set_pos(10.0,0.0,-10.0);
+    }
+    {
+      let spaceship_arc03 = ents.get_entity("spaceship", "03");
+      spaceship_arc03.lock().unwrap().set_pos(-12.0,5.0,-15.0);
+    }
+    let spaceship_arc = ents.get_entity("spaceship", "01");
+    let mut spaceship = spaceship_arc.lock().unwrap();
+    spaceship.create_mob()
+  };
+  
+  println!("Starting game loop.");
   let mut running = true;
   {
     let dpi = gl_window.get_hidpi_factor();
@@ -66,8 +87,8 @@ fn main() {
       glutin::Event::WindowEvent{ event, .. } => match event {
         glutin::WindowEvent::CloseRequested => running = false,
         glutin::WindowEvent::Resized(logical_size) => {
-          let dpi_factor = gl_window.get_hidpi_factor();
-          let size = logical_size.to_physical(dpi_factor);
+          let dpi = gl_window.get_hidpi_factor();
+          let size = logical_size.to_physical(dpi);
           gl_window.resize(size);
           render_mgr.load_proj_mat(size);
         },
@@ -83,8 +104,10 @@ fn main() {
       e => println!("Other Event:\n{:?}", e)
     }
     });
-    
-    // spaceship.move_mob(&mut handler, 0.01);
+    {
+      let mut handler = render_mgr.mgr.handler.lock().unwrap();
+      spaceship.move_mob(&mut handler, 0.01);
+    }
     render_mgr.render();
     
     gl_window.swap_buffers().unwrap();

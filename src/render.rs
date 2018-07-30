@@ -28,7 +28,7 @@ pub fn prepare() { unsafe {
   CullFace(BACK);
   Enable(DEPTH_TEST);
   Clear(COLOR_BUFFER_BIT|DEPTH_BUFFER_BIT);
-  ClearColor(0.0, 1.0, 0.0, 1.0);
+  ClearColor(0.5, 0.8, 0.3, 1.0);
 }}
 
 pub struct RenderTexModel {
@@ -47,7 +47,7 @@ impl RenderTexModel {
       entities.set_key(&key);
       let model_arc = entities.model();
       let model = model_arc.lock().unwrap();
-      self.prep_model(&model);
+      self.bind_tex_model(&model);
       let ents = entities.entities();
       for entity_arc in ents.lock().unwrap().iter() {
         let mut entity = entity_arc.lock().unwrap();
@@ -58,13 +58,11 @@ impl RenderTexModel {
     }
     
   }
-  pub fn prep_model(&mut self, model: &Model) { unsafe {
+  pub fn bind_tex_model(&mut self, model: &Model) { unsafe {
     BindVertexArray(model.raw().vao_id);
-    let mut count: GLuint = 0;
-    while count < self.shader.vars.len() as GLuint {
-      EnableVertexAttribArray(count);
-      count += 1 as GLuint;
-    }
+    EnableVertexAttribArray(0);
+    EnableVertexAttribArray(1);
+    EnableVertexAttribArray(2);
     model.lighting().load_to_shader(&self.shader);
     ActiveTexture(TEXTURE0);
     BindTexture(TEXTURE_2D, model.texture);
@@ -77,11 +75,9 @@ impl RenderTexModel {
     self.shader.load_vec_2f("offset", &Vector2f {x: 0_f32, y: 0_f32}); // vec2 offset;
   }
   pub fn unbind_tex_model(&mut self) { unsafe {
-    let mut count: GLuint = 0;
-    while count < self.shader.vars.len() as GLuint {
-      DisableVertexAttribArray(count);
-      count += 1 as GLuint;
-    }
+    DisableVertexAttribArray(2);
+    DisableVertexAttribArray(1);
+    DisableVertexAttribArray(0);
   }}
   pub fn clean_up(&mut self) {
     self.shader.clean_up();
@@ -106,12 +102,13 @@ impl RenderMgr {
     }
   }
   pub fn render(&mut self) { unsafe {
-    let mut camera = self.mgr.camera.lock().unwrap();
-    let lights = self.mgr.lights.lock().unwrap();
     self.renderer.shader.start();
-    camera.create_view_matrix();
-    let view_mat = camera.view_mat.as_slice();
+    let view_mat = {
+      let mut camera = self.mgr.camera.lock().unwrap();
+      camera.create_view_matrix()
+    };
     self.renderer.shader.load_matrix("u_View", &view_mat);
+    let lights = self.mgr.lights.lock().unwrap();
     lights.load_to_shader(&self.renderer.shader);
     self.renderer.shader.load_vec_4f("plane", &Vector4f {x: 0_f32, y: 10000_f32, z: 0_f32, w: 1_f32, }); // vec4 plane;
     self.renderer.shader.load_bool("use_clip_plane", false); // float useClipPlane;

@@ -228,7 +228,7 @@ impl Camera {
     self.to_focus_pos.dot(&self.to_pos)
   }
   
-  pub fn create_view_matrix(&mut self) {
+  pub fn create_view_matrix(&mut self) -> [f32; 16] {
     self.view_mat.set_identity();
     self.view_mat.rotate(self.pitch.to_radians(), &XVEC);
     self.view_mat.rotate(self.yaw.to_radians(), &YVEC);
@@ -236,5 +236,6 @@ impl Camera {
     let mut neg_cam = Vector3f::blank();
     pos.negate_to(&mut neg_cam);
     self.view_mat.translate_v3f(&neg_cam);
+    self.view_mat.as_slice()
   }
 }

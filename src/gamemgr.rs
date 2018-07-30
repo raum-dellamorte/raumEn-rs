@@ -11,6 +11,7 @@ pub use shader::lighting::Lights;
 pub use shader::Shader;
 pub use render::{RenderMgr, };
 
+#[derive(Clone)]
 pub struct GameMgr {
   pub camera: Arc<Mutex<Camera>>,
   pub handler: Arc<Mutex<Handler>>,

@@ -24,7 +24,13 @@ impl Entity {
     }
   }
   pub fn create_mob(&self) -> Mob {
+    println!("creating mob");
     Mob::new(&self.model_name, &self.name, self.marker.clone())
+  }
+  pub fn set_pos(&self, x: f32, y: f32, z: f32) {
+    let marker = self.marker.clone();
+    let mut marker = marker.lock().unwrap();
+    marker.pos.from_f32(x, y, z);
   }
 }
 
@@ -50,9 +56,7 @@ impl Entities {
     self.names.clone().into_iter().collect::<Vec<String>>()
   }
   pub fn set_key(&mut self, key: &str) -> &mut Self {
-    let key = key.to_string();
-    self.names.insert(key.clone());
-    self.key = key;
+    self.key = key.to_string();
     self
   }
   pub fn has_key(&self, key: &str) -> bool {
@@ -69,9 +73,10 @@ impl Entities {
     let loader = self.loader.clone();
     let mut loader = loader.lock().unwrap();
     model.init_with_texture(&mut loader);
+    self.names.insert(name.to_string());
     self.models.insert(name.to_string(), Arc::new(Mutex::new(model)));
-    self.set_key(name);
-    self
+    self.entities.insert(name.to_string(), Arc::new(Mutex::new(Vec::new())));
+    self.set_key(name)
   }
   pub fn new_entity(&mut self, name: &str) -> &mut Self {
     if !self.models.contains_key(&self.key) {
@@ -89,9 +94,25 @@ impl Entities {
     }
     self
   }
+  pub fn new_entities(&mut self, names: &[&str]) -> &mut Self {
+    for name in names {
+      println!("attempting to add Entity {} {}", self.key, name);
+      self.new_entity(name);
+    }
+    self
+  }
+  pub fn get_entity(&mut self, model_name: &str, name: &str) -> Arc<Mutex<Entity>> {
+    self.set_key(model_name);
+    let ents = self.entities();
+    for ent_arc in ents.lock().unwrap().iter() {
+      let ent = ent_arc.lock().unwrap();
+      if ent.name == *name { return ent_arc.clone() }
+    }
+    panic!("No Entity {} found for Model {}", name, model_name)
+  }
   pub fn entities(&mut self) -> Arc<Mutex<Vec<Arc<Mutex<Entity>>>>> {
     if !self.entities.contains_key(&self.key) {
-      panic!("No Entities have been created for key: {}", &self.key) }
+      panic!("Tried to list Entities for uninitiated Model key: {}", &self.key) }
     (*self.entities.get(&self.key).unwrap()).clone()
   }
   pub fn entity_names(&mut self) -> HashSet<String> {

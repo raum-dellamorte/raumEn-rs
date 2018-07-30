@@ -104,6 +104,7 @@ impl Loader {
     let mut tex_id: GLuint = 0;
     unsafe {
       GenTextures(1, &mut tex_id);
+      println!("texture: image<{}> tex_id<{}>", tex_name, tex_id);
       BindTexture(TEXTURE_2D, tex_id);
       TexImage2D(
         TEXTURE_2D, 0, RGBA as i32, width as i32, height as i32, 0, RGBA, UNSIGNED_BYTE, 
