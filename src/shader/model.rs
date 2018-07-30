@@ -7,9 +7,9 @@ pub fn gen_model_shader() -> Shader {
   .add_uniforms(vec!(
     "u_Transform", "u_Projection", "u_View", "t_Texture", 
     "use_fake_lighting", "row_count", "offset", // "player_loc", 
-    "plane", "use_clip_plane", "sky_color", "shine_damper", "reflectivity"
+    "sky_color", "shine_damper", "reflectivity", // "plane", "use_clip_plane", 
+    "light_pos", "light_color", "attenuation"
   ))
-  .add_uniforms_array(vec!("light_pos", "light_color", "attenuation"), 4)
   .load_defaults();
   println!("Created model shader.");
   out

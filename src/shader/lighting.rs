@@ -90,10 +90,11 @@ impl Lights {
   }
   pub fn load_to_shader(&self, shader: &Shader) {
     // Assumes shader is active
-    let count = 0;
-    for light in &self.lights {
-      if !(count < 4) {break}
-      light.load_to_shader_array(shader, count);
-    }
+    self.lights[0].load_to_shader_single(shader);
+    // let count = 0;
+    // for light in &self.lights {
+    //   if !(count < 4) {break}
+    //   light.load_to_shader_array(shader, count);
+    // }
   }
 }

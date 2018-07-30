@@ -102,6 +102,7 @@ impl RenderMgr {
     }
   }
   pub fn render(&mut self) { unsafe {
+    prepare();
     self.renderer.shader.start();
     let view_mat = {
       let mut camera = self.mgr.camera.lock().unwrap();
@@ -110,8 +111,8 @@ impl RenderMgr {
     self.renderer.shader.load_matrix("u_View", &view_mat);
     let lights = self.mgr.lights.lock().unwrap();
     lights.load_to_shader(&self.renderer.shader);
-    self.renderer.shader.load_vec_4f("plane", &Vector4f {x: 0_f32, y: 10000_f32, z: 0_f32, w: 1_f32, }); // vec4 plane;
-    self.renderer.shader.load_bool("use_clip_plane", false); // float useClipPlane;
+    // self.renderer.shader.load_vec_4f("plane", &Vector4f {x: 0_f32, y: 10000_f32, z: 0_f32, w: 1_f32, }); // vec4 plane;
+    // self.renderer.shader.load_bool("use_clip_plane", false); // float useClipPlane;
     self.renderer.shader.load_vec_3f("sky_color", &Vector3f::new(0.5, 0.6, 0.5));
     
     self.renderer.render(self.entities.clone());
