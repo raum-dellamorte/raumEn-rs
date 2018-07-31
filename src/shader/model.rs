@@ -6,7 +6,7 @@ pub fn gen_model_shader() -> Shader {
   out.add_attributes(vec!("a_Pos", "a_TexCoord", "a_Norm"))
   .add_uniforms(vec!(
     "u_Transform", "u_Projection", "u_View", "t_Texture", 
-    "use_fake_lighting", "row_count", "offset", // "player_loc", 
+    "use_fake_lighting", // "row_count", "offset", // "player_loc", 
     "sky_color", "shine_damper", "reflectivity", // "plane", "use_clip_plane", 
     "light_pos", "light_color", "attenuation"
   ))

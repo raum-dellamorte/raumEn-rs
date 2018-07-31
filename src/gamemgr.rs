@@ -23,7 +23,7 @@ impl GameMgr {
   pub fn new() -> Self {
     let mut lights = Lights::new();
     lights.add_light();
-    lights.lights[0].pos.from_isize(-50,500,50);
+    lights.lights[0].pos.from_isize(0,500,-10);
     GameMgr {
       camera: Arc::new(Mutex::new(Camera::new())),
       handler: Arc::new(Mutex::new(Handler::new())),

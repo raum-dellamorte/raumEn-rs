@@ -105,14 +105,18 @@ impl Loader {
     unsafe {
       GenTextures(1, &mut tex_id);
       println!("texture: image<{}> tex_id<{}>", tex_name, tex_id);
+      assert!(tex_id != 0, "tex_id should not be 0");
       BindTexture(TEXTURE_2D, tex_id);
       TexImage2D(
         TEXTURE_2D, 0, RGBA as i32, width as i32, height as i32, 0, RGBA, UNSIGNED_BYTE, 
         mem::transmute(&img_raw[0])
       );
-      TexParameteri(TEXTURE_2D, TEXTURE_MIN_FILTER, NEAREST as i32);
-      TexParameteri(TEXTURE_2D, TEXTURE_MAG_FILTER, NEAREST as i32);
-      BindTexture(TEXTURE_2D, 0);
+      TexParameteri(TEXTURE_2D, TEXTURE_WRAP_S, REPEAT as i32);
+      TexParameteri(TEXTURE_2D, TEXTURE_WRAP_T, REPEAT as i32);
+      TexParameteri(TEXTURE_2D, TEXTURE_MIN_FILTER, LINEAR_MIPMAP_LINEAR as i32);
+      TexParameteri(TEXTURE_2D, TEXTURE_MAG_FILTER, LINEAR as i32);
+      GenerateMipmap(TEXTURE_2D);
+      //BindTexture(TEXTURE_2D, 0);
     }
     self.textures.push(tex_id);
     tex_id

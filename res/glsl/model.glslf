@@ -1,4 +1,4 @@
-#version 400 core
+#version 150
 
 in vec2 v_TexCoord;
 in vec3 v_SurfaceNorm;
@@ -33,10 +33,8 @@ void main(void) {
   float specularFactor = dot(reflectedLightDirection, unitCameraVector);
   specularFactor = max(specularFactor, 0.0);
   float dampedFactor = pow(specularFactor, shine_damper);
-  totalDiffuse = totalDiffuse + (brightness * light_color) / attFactor;
-  totalSpecular = totalSpecular + (dampedFactor * reflectivity * light_color) / attFactor;
-  
-  totalDiffuse = max(totalDiffuse, 0.2);
+  totalDiffuse = max((brightness * light_color) / attFactor, 0.2);
+  totalSpecular = (dampedFactor * reflectivity * light_color) / attFactor;
   
   vec4 textureColour = texture(t_Texture, v_TexCoord);
   if(textureColour.a < 0.5){

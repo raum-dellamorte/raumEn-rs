@@ -2,7 +2,7 @@
 #[allow(unused_imports)]
 
 use gl::*;
-use gl::types::{GLuint, }; // GLfloat, GLenum, GLint, GLchar, GLsizeiptr, GLboolean, 
+// use gl::types::{GLuint, }; // GLfloat, GLenum, GLint, GLchar, GLsizeiptr, GLboolean, 
 use glutin::dpi::PhysicalSize;
 // use std::collections::HashMap;
 // use std::ffi::CString;
@@ -20,7 +20,7 @@ use model::Model;
 // use shader::lighting::Lights;
 use shader::model::gen_model_shader;
 use shader::Shader;
-use util::rvector::{Vector2f, Vector3f, Vector4f};
+use util::rvector::{Vector3f, }; // Vector2f, Vector4f, 
 // use util::rvertex::{RVertex, RVertex2D};
 
 pub fn prepare() { unsafe {
@@ -71,8 +71,8 @@ impl RenderTexModel {
     let mut marker = pos.lock().unwrap();
     let trans_mat = marker.transformation();
     self.shader.load_matrix("u_Transform", &trans_mat);
-    self.shader.load_float("row_count", 0_f32); // float numOfRows
-    self.shader.load_vec_2f("offset", &Vector2f {x: 0_f32, y: 0_f32}); // vec2 offset;
+    // self.shader.load_float("row_count", 1_f32); // float numOfRows
+    // self.shader.load_vec_2f("offset", &Vector2f {x: 0_f32, y: 0_f32}); // vec2 offset;
   }
   pub fn unbind_tex_model(&mut self) { unsafe {
     DisableVertexAttribArray(2);

@@ -13,7 +13,7 @@ impl Lighting {
   pub fn new() -> Self {
     Lighting {
       shine_damper: 1_f32,
-      reflectivity: 0_f32,
+      reflectivity: 0.2_f32,
       use_fake_lighting: false,
     }
   }
