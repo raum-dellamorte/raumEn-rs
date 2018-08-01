@@ -1,7 +1,5 @@
 
-//use glium::{Display, Depth, DepthTest, DrawParameters, Frame, IndexBuffer, Surface, VertexBuffer}; // Program,
-//use glium::draw_parameters::BackfaceCullingMode;
-//use glium::texture::CompressedSrgbTexture2d;
+use std::sync::{Arc, Mutex};
 
 use entities::mobs::Mob;
 use entities::position::PosMarker;
@@ -10,8 +8,6 @@ use util::rvector::{RVec, Vector3f, XVEC, YVEC}; // , ZVEC
 // use util::rvertex::RVertex;
 
 pub struct Camera {
-  // pub display: Display,
-  // pub target: Option<Frame>,
   pub dimensions: (u32, u32),
   pub pos: Vector3f,
   pub pos_bak: Vector3f,
@@ -34,8 +30,6 @@ pub struct Camera {
 impl Camera {
   pub fn new() -> Self {
     Camera {
-      // display: display,
-      // target: None,
       dimensions: (0, 0),
       pos: Vector3f {x: 0_f32, y: 5_f32, z: 0_f32},
       pos_bak: Vector3f {x: 0_f32, y: 5_f32, z: 0_f32},
@@ -58,82 +52,7 @@ impl Camera {
     self.dimensions = dimensions;
   }
   
-  // pub fn finish(&mut self) {
-  //   self.target.take().unwrap().finish().unwrap();
-  // }
-  
-  // pub fn draw_entity(&mut self, ent: &mut Entity) {
-  //   let mut frame: Option<Frame> = self.target.take();
-  //   self.draw_entity_surface(ent, &mut frame);
-  //   self.target = frame;
-  // }
-  
-  // pub fn draw_entity_surface<S>(&mut self, ent: &mut Entity, fbo: &mut Option<S>) where S: Surface {
-  //   let light = [0.0, 1000.0, -7000.0_f32];
-  //   let mesh = ent.model.mesh.as_ref().unwrap().buffers.as_ref().unwrap();
-  //   let trans = ent.marker.transformation();
-  //   let view = self.view_matrix();
-  //   let proj = self.projection();
-  //   let params = DrawParameters {
-  //     depth: Depth {
-  //       test: DepthTest::IfLess,
-  //       write: true,
-  //       .. Default::default()
-  //     },
-  //     backface_culling: BackfaceCullingMode::CullClockwise,
-  //     .. Default::default()
-  //   };
-  //   match ent.model.texture.as_ref() {
-  //     Some(texture) => self.draw_with_texture(texture, &params, &mesh.verts, &mesh.indcs, trans, view, proj, light, fbo),
-  //     None => self.draw_with_color(&params, &mesh.verts, &mesh.indcs, trans, view, proj, light, fbo),
-  //   };
-    
-  // }
-  
-  // fn draw_with_texture<S>(&mut self, texture: &CompressedSrgbTexture2d, params: &DrawParameters,
-  //     verts: &VertexBuffer<Vertex>, indcs: &IndexBuffer<u16>,
-  //     trans: [[f32; 4]; 4], view: [[f32; 4]; 4], proj: [[f32; 4]; 4], light: [f32; 3],
-  //     fbo: &mut Option<S>) where S: Surface {
-  //   let program = model::get_shader(&self.display, true);
-  //   match fbo.as_mut() {
-  //     Some(target) => target.draw(
-  //                       verts, indcs, &program,
-  //                       &uniform! {
-  //                         transform: trans,
-  //                         view: view,
-  //                         projection: proj,
-  //                         u_light: light,
-  //                         tex: texture,
-  //                       },
-  //                       params
-  //                     ).unwrap(),
-  //     None => (),
-  //   };
-  // }
-  
-  // fn draw_with_color<S>(&mut self, params: &DrawParameters, verts: &VertexBuffer<Vertex>, indcs: &IndexBuffer<u16>,
-  //     trans: [[f32; 4]; 4], view: [[f32; 4]; 4], proj: [[f32; 4]; 4], light: [f32; 3],
-  //     fbo: &mut Option<S>) where S: Surface {
-  //   let program = model::get_shader(&self.display, false);
-  //   fbo.as_mut().unwrap().draw(
-  //     verts, indcs, &program,
-  //     &uniform! {
-  //       transform: trans,
-  //       view: view,
-  //       projection: proj,
-  //       u_light: light },
-  //     params
-  //   ).unwrap();
-  // }
-  
   pub fn view_matrix(&mut self) -> [f32; 16] { self.create_view_matrix(); self.view_mat.as_slice() }
-  
-  // pub fn get_dimensions(&self) -> (u32, u32) {
-  //   match self.target.as_ref() {
-  //     Some(target) => target.get_dimensions(),
-  //     None => (0, 0),
-  //   }
-  // }
   
   pub fn projection(&mut self) -> [f32; 16] {
     let (width, height) = self.dimensions;
@@ -154,13 +73,6 @@ impl Camera {
     self.proj_mat.as_slice()
   }
   
-  pub fn attach_listeners() {
-    //var camera = this
-    //DisplayMgr.mouse.scroll.set_listener { dx: f32, dy: f32 ->
-    //  camera.dist_from_focus_pos -= dy * 0.5
-    //}
-  }
-  
   pub fn store(&mut self) {
     self.pos_bak.from_v3f(&self.pos);
     self.pitch_bak = self.pitch;
@@ -178,7 +90,7 @@ impl Camera {
   pub fn calc_pos(&mut self, follow: &PosMarker) {
     self.calc_pitch();
     self.calc_angle();
-    self.calc_cam_pos(follow);
+    // self.calc_cam_pos(follow);
   }
   
   fn calc_pitch(&mut self) {
@@ -189,7 +101,8 @@ impl Camera {
     //if (DisplayMgr.mouse.is_button_down(2)) self.angle_around_focus_pos -= DisplayMgr.mouse.pos.get_dx() * 0.3
   }
 
-  fn calc_cam_pos(&mut self, follow: &PosMarker) {
+  pub fn calc_cam_pos(&mut self, follow_arc: Arc<Mutex<PosMarker>>) {
+    let follow = follow_arc.lock().unwrap();
     let h_dist: f32 = self.calc_h_distance();
     let v_dist: f32 = self.calc_v_distance() + 10_f32;
     let theta = follow.ry + self.angle_around_focus_pos;

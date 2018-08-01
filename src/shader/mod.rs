@@ -146,7 +146,7 @@ impl Shader {
         return uni.var_id
       }
     }
-    println!("Uniform name not found.");
+    println!("Uniform name not found: {}", name);
     -1 as GLint
   }
   pub fn load_int(&self, name: &str, value: GLint) { unsafe {

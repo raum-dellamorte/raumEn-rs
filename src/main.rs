@@ -107,6 +107,8 @@ fn main() {
     {
       let mut handler = render_mgr.mgr.handler.lock().unwrap();
       spaceship.move_mob(&mut handler, 0.01);
+      let mut camera = render_mgr.mgr.camera.lock().unwrap();
+      camera.calc_cam_pos(spaceship.pos.clone());
     }
     render_mgr.render();
     
