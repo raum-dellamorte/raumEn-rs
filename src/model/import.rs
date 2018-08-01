@@ -182,7 +182,7 @@ fn t3f_array(tpl: (f32, f32, f32)) -> [f32; 3] {
 fn t2f_array(tpl: (f32, f32)) -> [f32; 2] {
   let mut out = [0_f32; 2];
   out[0] = tpl.0;
-  out[1] = tpl.1;
+  out[1] = 1.0_f32 - tpl.1;
   out
 }
 
