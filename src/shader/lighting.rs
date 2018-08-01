@@ -12,15 +12,15 @@ pub struct Lighting {
 impl Lighting {
   pub fn new() -> Self {
     Lighting {
-      shine_damper: 1_f32,
-      reflectivity: 0.2_f32,
+      shine_damper: 2_f32,
+      reflectivity: 1_f32,
       use_fake_lighting: false,
     }
   }
   pub fn load_to_shader(&self, shader: &Shader) {
     // Assumes shader is active
-    // shader.load_float("shine_damper", self.shine_damper);
-    // shader.load_float("reflectivity", self.reflectivity);
+    shader.load_float("shine_damper", self.shine_damper);
+    shader.load_float("reflectivity", self.reflectivity);
     // shader.load_bool("use_fake_lighting", self.use_fake_lighting);
   }
   pub fn shine_damper(&mut self, shine_damper: f32) -> &mut Self {
