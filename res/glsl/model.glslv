@@ -5,8 +5,8 @@ in vec2 a_TexCoord;
 in vec3 a_Norm;
 
 out vec2 v_TexCoord;
-// out vec3 v_SurfaceNorm;
-// out vec3 v_toLight;
+out vec3 v_SurfaceNorm;
+out vec3 v_toLight;
 // out vec3 v_toCam;
 out float v_vis;
 
@@ -35,8 +35,8 @@ void main(void) {
   //   actualNormal = vec3(0.0,1.0,0.0);
   // }
   
-  // v_SurfaceNorm = (u_Transform * vec4(actualNormal, 0.0)).xyz;
-  // v_toLight = light_pos - worldPos.xyz;
+  v_SurfaceNorm = (u_Transform * vec4(a_Norm, 0.0)).xyz;
+  v_toLight = light_pos - worldPos.xyz;
   
   // v_toCam = (inverse(u_View) * vec4(0.0,0.0,0.0,1.0)).xyz - worldPos.xyz;
   

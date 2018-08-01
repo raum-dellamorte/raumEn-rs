@@ -47,14 +47,14 @@ impl Light {
   pub fn new() -> Self {
     Light {
       pos: Vector3f::blank(),
-      color: Vector3f::new_isize(1, 1, 1),
+      color: Vector3f::new(0.5, 0.5, 0.5),
       atten: Vector3f::blank(),
     }
   }
   pub fn load_to_shader_single(&self, shader: &Shader) {
     // Assumes shader is active
-    // shader.load_vec_3f("light_pos", &self.pos);
-    // shader.load_vec_3f("light_color", &self.color);
+    shader.load_vec_3f("light_pos", &self.pos);
+    shader.load_vec_3f("light_color", &self.color);
     // shader.load_vec_3f("attenuation", &self.atten);
   }
   pub fn load_to_shader_array(&self, shader: &Shader, id: usize) {

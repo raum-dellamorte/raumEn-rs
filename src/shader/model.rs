@@ -15,8 +15,8 @@ pub fn gen_model_shader() -> Shader {
     // "reflectivity", 
     // "plane", 
     // "use_clip_plane", 
-    // "light_pos", 
-    // "light_color", 
+    "light_pos", 
+    "light_color", 
     // "attenuation"
   ))
   .load_defaults();
