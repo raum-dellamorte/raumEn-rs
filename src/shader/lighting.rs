@@ -61,7 +61,7 @@ impl Light {
     // Assumes shader is active
     shader.load_vec_3f(&format!("light_pos[{}]", id), &self.pos);
     shader.load_vec_3f(&format!("light_color[{}]", id), &self.color);
-    shader.load_vec_3f(&format!("attenuation[{}]", id), &self.atten);
+    // shader.load_vec_3f(&format!("attenuation[{}]", id), &self.atten);
   }
   pub fn set_pos(&mut self, light_pos: Vector3f) -> &mut Self {
     self.pos = light_pos;
