@@ -23,6 +23,7 @@ pub mod input;
 pub mod model;
 pub mod render;
 pub mod shader;
+pub mod terrain;
 pub mod util;
 
 pub use camera::Camera;
