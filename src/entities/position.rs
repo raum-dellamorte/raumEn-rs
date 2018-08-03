@@ -25,6 +25,11 @@ impl PosMarker {
     }
   }
   
+  pub fn forward(&mut self, dist: f32) {
+    self.pos.x += dist * self.ry.to_radians().sin();
+    self.pos.z += dist * self.ry.to_radians().cos();
+  }
+  
   pub fn transformation(&mut self) -> [f32; 16] {
     self.calc_transformation();
     self.trans_mat.as_slice()
@@ -39,17 +44,11 @@ impl PosMarker {
     self.trans_mat.scale(&Vector3f::new(self.scale, self.scale, self.scale));
   }
   
-  pub fn inc_xrot(&mut self, dx: f32) {
+  pub fn inc_rot(&mut self, dx: f32, dy: f32, dz: f32) {
     self.rx += dx;
     if self.rx > 360_f32 { self.rx -= 360_f32; }
-  }
-  
-  pub fn inc_yrot(&mut self, dy: f32) {
     self.ry += dy;
     if self.ry > 360_f32 { self.ry -= 360_f32; }
-  }
-  
-  pub fn inc_zrot(&mut self, dz: f32) {
     self.rz += dz;
     if self.rz > 360_f32 { self.rz -= 360_f32; }
   }
