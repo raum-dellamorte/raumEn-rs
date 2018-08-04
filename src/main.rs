@@ -5,7 +5,7 @@ extern crate glutin;
 #[macro_use] extern crate nom;
 extern crate image;
 extern crate cgmath;
-
+extern crate time;
 
 use gl::*;
 use std::os::raw::c_void;
@@ -24,6 +24,7 @@ pub mod model;
 pub mod render;
 pub mod shader;
 pub mod terrain;
+pub mod timer;
 pub mod util;
 
 pub use camera::Camera;
@@ -32,9 +33,10 @@ pub use entities::mobs::Mob;
 pub use input::Handler;
 pub use model::loader::Loader;
 pub use model::Model;
+pub use render::{RenderMgr, };
 pub use shader::lighting::Lights;
 pub use shader::Shader;
-pub use render::{RenderMgr, };
+pub use timer::Timer;
 
 fn main() {
   let mut events_loop = glutin::EventsLoop::new();
@@ -82,7 +84,10 @@ fn main() {
     let size = gl_window.get_inner_size().unwrap().to_physical(dpi);
     render_mgr.load_proj_mat(size);
   }
+  let mut timer = Timer::new();
+  timer.tick();
   while running {
+    timer.tick();
     { let mut handler = render_mgr.mgr.handler.lock().unwrap();
       handler.reset_delta(); }
     events_loop.poll_events(|event| {
@@ -108,7 +113,7 @@ fn main() {
       }
     });
     { let mut handler = render_mgr.mgr.handler.lock().unwrap();
-      spaceship.move_mob(&mut handler, 0.01); }
+      spaceship.move_mob(&mut handler, timer.delta); }
     { let mut camera = render_mgr.mgr.camera.lock().unwrap();
       camera.calc_pos(spaceship.pos.clone()); }
     render_mgr.render();
