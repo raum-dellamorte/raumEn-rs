@@ -18,6 +18,9 @@ impl Handler {
   pub fn new() -> Self {
     Handler { kb: HashMap::new(), mouse: HashMap::new(), cursor_pos: None, cursor_delta: None }
   }
+  pub fn reset_delta(&mut self) {
+    self.cursor_delta = None;
+  }
   pub fn window_event(&mut self, event: &WEvent) {
     match event {
       WEvent::CursorMoved { position: pos, ..} => {

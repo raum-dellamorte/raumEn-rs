@@ -13,10 +13,10 @@ pub use render::{RenderMgr, };
 
 #[derive(Clone)]
 pub struct GameMgr {
-  pub camera: Arc<Mutex<Camera>>,
   pub handler: Arc<Mutex<Handler>>,
   pub loader: Arc<Mutex<Loader>>,
   pub lights: Arc<Mutex<Lights>>,
+  pub camera: Arc<Mutex<Camera>>,
 }
 
 impl GameMgr {
@@ -24,11 +24,12 @@ impl GameMgr {
     let mut lights = Lights::new();
     lights.add_light();
     lights.lights[0].pos.from_isize(0,500,-10);
+    let handler = Arc::new(Mutex::new(Handler::new()));
     GameMgr {
-      camera: Arc::new(Mutex::new(Camera::new())),
-      handler: Arc::new(Mutex::new(Handler::new())),
+      handler: handler.clone(),
       loader: Arc::new(Mutex::new(Loader::new())),
       lights: Arc::new(Mutex::new(lights)),
+      camera: Arc::new(Mutex::new(Camera::new(handler.clone()))),
     }
   }
   pub fn clean_up(&mut self) {

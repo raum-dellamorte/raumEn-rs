@@ -83,34 +83,34 @@ fn main() {
     render_mgr.load_proj_mat(size);
   }
   while running {
+    { let mut handler = render_mgr.mgr.handler.lock().unwrap();
+      handler.reset_delta(); }
     events_loop.poll_events(|event| {
-    match event {
-      glutin::Event::WindowEvent{ event, .. } => match event {
-        glutin::WindowEvent::CloseRequested => running = false,
-        glutin::WindowEvent::Resized(logical_size) => {
-          let dpi = gl_window.get_hidpi_factor();
-          let size = logical_size.to_physical(dpi);
-          gl_window.resize(size);
-          render_mgr.load_proj_mat(size);
+      match event {
+        glutin::Event::WindowEvent{ event, .. } => match event {
+          glutin::WindowEvent::CloseRequested => running = false,
+          glutin::WindowEvent::Resized(logical_size) => {
+            let dpi = gl_window.get_hidpi_factor();
+            let size = logical_size.to_physical(dpi);
+            gl_window.resize(size);
+            render_mgr.load_proj_mat(size);
+          },
+          _ => {
+            let mut handler = render_mgr.mgr.handler.lock().unwrap();
+            handler.window_event(&event);
+          }
         },
-        _ => {
+        glutin::Event::DeviceEvent{ event, ..} => {
           let mut handler = render_mgr.mgr.handler.lock().unwrap();
-          handler.window_event(&event);
+          handler.device_event(&event);
         }
-      },
-      glutin::Event::DeviceEvent{ event, ..} => {
-        let mut handler = render_mgr.mgr.handler.lock().unwrap();
-        handler.device_event(&event);
+        e => println!("Other Event:\n{:?}", e)
       }
-      e => println!("Other Event:\n{:?}", e)
-    }
     });
-    {
-      let mut handler = render_mgr.mgr.handler.lock().unwrap();
-      spaceship.move_mob(&mut handler, 0.01);
-      let mut camera = render_mgr.mgr.camera.lock().unwrap();
-      camera.calc_cam_pos(spaceship.pos.clone());
-    }
+    { let mut handler = render_mgr.mgr.handler.lock().unwrap();
+      spaceship.move_mob(&mut handler, 0.01); }
+    { let mut camera = render_mgr.mgr.camera.lock().unwrap();
+      camera.calc_pos(spaceship.pos.clone()); }
     render_mgr.render();
     
     gl_window.swap_buffers().unwrap();

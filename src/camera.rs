@@ -1,13 +1,17 @@
 
 use std::sync::{Arc, Mutex};
+// use glutin::VirtualKeyCode::*;
+use glutin::MouseButton as MB;
 
 use entities::mobs::Mob;
 use entities::position::PosMarker;
+use input::Handler;
 use util::rmatrix::Matrix4f;
 use util::rvector::{RVec, Vector3f, XVEC, YVEC}; // , ZVEC
 // use util::rvertex::RVertex;
 
 pub struct Camera {
+  pub handler: Arc<Mutex<Handler>>,
   pub dimensions: (u32, u32),
   pub pos: Vector3f,
   pub pos_bak: Vector3f,
@@ -19,6 +23,7 @@ pub struct Camera {
   pub roll_bak: f32,
   pub dist_from_focus_pos: f32,
   pub angle_around_focus_pos: f32,
+  pub mouse_rate: f32,
   
   to_pos: Vector3f,
   to_focus_pos: Vector3f,
@@ -28,8 +33,9 @@ pub struct Camera {
 }
 
 impl Camera {
-  pub fn new() -> Self {
+  pub fn new(handler: Arc<Mutex<Handler>>) -> Self {
     Camera {
+      handler: handler,
       dimensions: (0, 0),
       pos: Vector3f {x: 0_f32, y: 5_f32, z: 0_f32},
       pos_bak: Vector3f {x: 0_f32, y: 5_f32, z: 0_f32},
@@ -41,6 +47,7 @@ impl Camera {
       roll_bak: 0_f32,
       dist_from_focus_pos: 40_f32,
       angle_around_focus_pos: 0_f32,
+      mouse_rate: 1.0_f32,
       to_pos: Vector3f {x: 0_f32, y: 0_f32, z: 0_f32},
       to_focus_pos: Vector3f {x: 0_f32, y: 0_f32, z: 0_f32},
       view_mat: Matrix4f::new(),
@@ -87,18 +94,20 @@ impl Camera {
     self.roll = self.roll_bak;
   }
 
-  pub fn calc_pos(&mut self, follow: &PosMarker) {
-    self.calc_pitch();
-    self.calc_angle();
-    // self.calc_cam_pos(follow);
-  }
-  
-  fn calc_pitch(&mut self) {
-    //if (DisplayMgr.mouse.is_button_down(2)) self.pitch -= DisplayMgr.mouse.pos.get_dy() * 0.1
-  }
-
-  fn calc_angle(&mut self) {
-    //if (DisplayMgr.mouse.is_button_down(2)) self.angle_around_focus_pos -= DisplayMgr.mouse.pos.get_dx() * 0.3
+  pub fn calc_pos(&mut self, follow_arc: Arc<Mutex<PosMarker>>) {
+    {
+      let handler = self.handler.lock().unwrap();
+      if handler.read_mouse_multi(MB::Right) {
+        match handler.cursor_delta {
+          Some((dx, dy)) => {
+            self.pitch -= (dy as f32) * self.mouse_rate;
+            self.angle_around_focus_pos -= (dx as f32) * self.mouse_rate;
+          }
+          _ => ()
+        }
+      }
+    }
+    self.calc_cam_pos(follow_arc);
   }
 
   pub fn calc_cam_pos(&mut self, follow_arc: Arc<Mutex<PosMarker>>) {
