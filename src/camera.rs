@@ -22,7 +22,7 @@ pub struct Camera {
   pub roll: f32,
   pub roll_bak: f32,
   pub dist_from_focus_pos: f32,
-  pub angle_around_focus_pos: f32,
+  pub focus_angle: f32,
   pub mouse_rate: f32,
   
   to_pos: Vector3f,
@@ -46,7 +46,7 @@ impl Camera {
       roll: 0_f32,
       roll_bak: 0_f32,
       dist_from_focus_pos: 40_f32,
-      angle_around_focus_pos: 0_f32,
+      focus_angle: 0_f32,
       mouse_rate: 1.0_f32,
       to_pos: Vector3f {x: 0_f32, y: 0_f32, z: 0_f32},
       to_focus_pos: Vector3f {x: 0_f32, y: 0_f32, z: 0_f32},
@@ -98,8 +98,8 @@ impl Camera {
     if self.pitch != 25.0 {
       self.pitch = drift_to_zero(self.pitch - 25.0, rate, 0.05) + 25.0;
     }
-    if self.angle_around_focus_pos != 0.0 {
-      self.angle_around_focus_pos = drift_to_zero(self.angle_around_focus_pos, rate, 0.05);
+    if self.focus_angle != 0.0 {
+      self.focus_angle = drift_to_zero(self.focus_angle, rate, 0.05);
     }
   }
 
@@ -111,7 +111,7 @@ impl Camera {
         match handler.cursor_delta {
           Some((dx, dy)) => {
             self.pitch -= (dy as f32) * self.mouse_rate;
-            self.angle_around_focus_pos -= (dx as f32) * self.mouse_rate;
+            self.focus_angle -= (dx as f32) * self.mouse_rate;
           }
           _ => ()
         }
@@ -128,13 +128,13 @@ impl Camera {
     let follow = follow_arc.lock().unwrap();
     let h_dist: f32 = self.calc_h_distance();
     let v_dist: f32 = self.calc_v_distance() + 10_f32;
-    let theta = follow.ry + self.angle_around_focus_pos;
+    let theta = follow.ry + self.focus_angle;
     let x_offset = h_dist * theta.to_radians().sin();
     let z_offset = h_dist * theta.to_radians().cos();
     self.pos.x = follow.pos.x - x_offset;
     self.pos.z = follow.pos.z - z_offset;
     self.pos.y = follow.pos.y + v_dist;
-    self.yaw = 180_f32 - (follow.ry + self.angle_around_focus_pos);
+    self.yaw = 180_f32 - (follow.ry + self.focus_angle);
   }
 
   fn calc_h_distance(&self) -> f32 {self.dist_from_focus_pos * self.pitch.to_radians().cos()}
@@ -176,13 +176,20 @@ impl Camera {
   }
 }
 
+pub fn degree_cap(val: f32) -> f32 {
+  if (val <= 180.0) && (val > -180.0) { val } else {
+    if val > 0.0 { degree_cap(val - 360.0) } else { degree_cap(val + 360.0) }
+  }
+}
+
 pub fn drift_to_zero(val: f32, rate: f32, min: f32) -> f32 {
-  let min = if (val < 0.0 && min > 0.0) || (val > 0.0 && min < 0.0) { -min } else { min };
-  if val != 0.0 {
+  if val == 0.0 { 0.0 } else {
+    let min = if (val < 0.0 && min > 0.0) || (val > 0.0 && min < 0.0) { -min } else { min };
+    let val = degree_cap(val);
     let out = val - (val * rate);
     if out.abs() >= min.abs() { out } else {
       let out = val - (min * rate);
       if (val < 0.0 && out >= 0.0) || (val > 0.0 && out <= 0.0) { 0.0 } else { out }
     }
-  } else { 0.0 }
+  }
 }
