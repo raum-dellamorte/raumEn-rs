@@ -29,7 +29,8 @@ impl Mob {
       stats: HashMap::new(),
     }
   }
-  pub fn move_mob(&mut self, handler: &mut Handler, rate: f32) -> &Self {
+  pub fn move_mob(&mut self, handler: &mut Handler) -> &Self {
+    let rate = handler.timer.delta;
     let (mx, my) = match handler.cursor_pos {
       Some(xy) => xy,
       None     => (0_f64, 0_f64),

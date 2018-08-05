@@ -93,10 +93,20 @@ impl Camera {
     self.yaw = self.yaw_bak;
     self.roll = self.roll_bak;
   }
+  
+  pub fn drift_to_origin(&mut self, rate: f32) {
+    if self.pitch != 25.0 {
+      self.pitch = drift_to_zero(self.pitch - 25.0, rate, 0.05) + 25.0;
+    }
+    if self.angle_around_focus_pos != 0.0 {
+      self.angle_around_focus_pos = drift_to_zero(self.angle_around_focus_pos, rate, 0.05);
+    }
+  }
 
   pub fn calc_pos(&mut self, follow_arc: Arc<Mutex<PosMarker>>) {
     {
-      let handler = self.handler.lock().unwrap();
+      let handler_arc = self.handler.clone();
+      let handler = handler_arc.lock().unwrap();
       if handler.read_mouse_multi(MB::Right) {
         match handler.cursor_delta {
           Some((dx, dy)) => {
@@ -105,6 +115,10 @@ impl Camera {
           }
           _ => ()
         }
+      } else {
+        let rate = handler.timer.delta;
+        drop(handler);
+        self.drift_to_origin(rate);
       }
     }
     self.calc_cam_pos(follow_arc);
@@ -160,4 +174,15 @@ impl Camera {
     self.view_mat.translate_v3f(&neg_cam);
     self.view_mat.as_slice()
   }
+}
+
+pub fn drift_to_zero(val: f32, rate: f32, min: f32) -> f32 {
+  let min = if (val < 0.0 && min > 0.0) || (val > 0.0 && min < 0.0) { -min } else { min };
+  if val != 0.0 {
+    let out = val - (val * rate);
+    if out.abs() >= min.abs() { out } else {
+      let out = val - (min * rate);
+      if (val < 0.0 && out >= 0.0) || (val > 0.0 && out <= 0.0) { 0.0 } else { out }
+    }
+  } else { 0.0 }
 }

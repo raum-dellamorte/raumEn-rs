@@ -84,11 +84,9 @@ fn main() {
     let size = gl_window.get_inner_size().unwrap().to_physical(dpi);
     render_mgr.load_proj_mat(size);
   }
-  let mut timer = Timer::new();
-  timer.tick();
   while running {
-    timer.tick();
     { let mut handler = render_mgr.mgr.handler.lock().unwrap();
+      handler.timer.tick();
       handler.reset_delta(); }
     events_loop.poll_events(|event| {
       match event {
@@ -113,7 +111,7 @@ fn main() {
       }
     });
     { let mut handler = render_mgr.mgr.handler.lock().unwrap();
-      spaceship.move_mob(&mut handler, timer.delta); }
+      spaceship.move_mob(&mut handler); }
     { let mut camera = render_mgr.mgr.camera.lock().unwrap();
       camera.calc_pos(spaceship.pos.clone()); }
     render_mgr.render();
