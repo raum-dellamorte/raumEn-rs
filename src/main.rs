@@ -36,6 +36,7 @@ pub use model::Model;
 pub use render::{RenderMgr, };
 pub use shader::lighting::Lights;
 pub use shader::Shader;
+pub use terrain::World;
 pub use timer::Timer;
 
 fn main() {
