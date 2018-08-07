@@ -16,6 +16,7 @@ use shader::lighting::Lighting;
 #[derive (Debug, PartialEq)]
 pub struct Model {
   pub name: String,
+  pub tex_name: String,
   pub raw: Option<RawModel>,
   pub lighting: Option<Lighting>,
   pub texture: GLuint,
@@ -25,24 +26,32 @@ pub struct Model {
 impl Model {
   pub fn new(model_name: &str) -> Self {
     Model {
-      name: format!("{}", model_name),
+      name: model_name.to_string(),
+      tex_name: "".to_string(),
       raw: None,
       lighting: None,
       texture: 0,
       use_tex: false
     }
   }
-  pub fn init_with_texture(&mut self, loader: &mut Loader) -> &mut Self {
+  pub fn init_with_texture(&mut self, loader: &mut Loader, tex: &str) -> &mut Self {
+    self.tex_name = tex.to_string();
     self.init(loader)
-    .load_default_texture(loader)
+    .load_texture(loader)
+    .with_lighting()
+  }
+  pub fn init_default_texture(&mut self, loader: &mut Loader) -> &mut Self {
+    self.tex_name = self.name.clone();
+    self.init(loader)
+    .load_texture(loader)
     .with_lighting()
   }
   pub fn init(&mut self, loader: &mut Loader) -> &mut Self {
     self.raw = Some(loader.load_to_vao(&self.name));
     self
   }
-  pub fn load_default_texture(&mut self, loader: &mut Loader) -> &mut Self {
-    self.texture = loader.load_texture(&self.name);
+  pub fn load_texture(&mut self, loader: &mut Loader) -> &mut Self {
+    self.texture = loader.load_texture(&self.tex_name);
     self
   }
   pub fn with_lighting(&mut self) -> &mut Self {

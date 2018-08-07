@@ -72,7 +72,7 @@ impl Entities {
     let mut model = Model::new(name);
     let loader = self.loader.clone();
     let mut loader = loader.lock().unwrap();
-    model.init_with_texture(&mut loader);
+    model.init_default_texture(&mut loader);
     self.names.insert(name.to_string());
     self.models.insert(name.to_string(), Arc::new(Mutex::new(model)));
     self.entities.insert(name.to_string(), Arc::new(Mutex::new(Vec::new())));

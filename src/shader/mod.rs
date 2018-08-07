@@ -1,5 +1,6 @@
 pub mod lighting;
 pub mod model;
+pub mod terrain;
 //pub mod compute;
 
 use gl::*;
