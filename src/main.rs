@@ -59,7 +59,7 @@ fn main() {
   
   let mut render_mgr = RenderMgr::new();
   // let mut game_mgr = render_mgr.mgr.clone();
-  let ents_arc = render_mgr.entities.clone();
+  let ents_arc = render_mgr.mgr.entities.clone();
   
   let mut spaceship = {
     let mut ents = ents_arc.lock().unwrap();

@@ -59,8 +59,6 @@ impl Camera {
     self.dimensions = dimensions;
   }
   
-  pub fn view_matrix(&mut self) -> [f32; 16] { self.create_view_matrix(); self.view_mat.as_slice() }
-  
   pub fn projection(&mut self) -> [f32; 16] {
     let (width, height) = self.dimensions;
     let aspect_ratio = height as f32 / width as f32;
@@ -71,12 +69,12 @@ impl Camera {
     let frustum_length = zfar - znear;
     
     self.proj_mat.set_identity();
-    self.proj_mat.m00 = y_scale / aspect_ratio;
-    self.proj_mat.m11 = y_scale;
-    self.proj_mat.m22 = -((zfar + znear) / frustum_length);
-    self.proj_mat.m23 = -1_f32;
-    self.proj_mat.m32 = -(2_f32 * znear * zfar) / frustum_length;
-    self.proj_mat.m33 = 0_f32;
+    self.proj_mat.set_m00(y_scale / aspect_ratio);
+    self.proj_mat.set_m11(y_scale);
+    self.proj_mat.set_m22(-((zfar + znear) / frustum_length));
+    self.proj_mat.set_m23(-1_f32);
+    self.proj_mat.set_m32(-(2_f32 * znear * zfar) / frustum_length);
+    self.proj_mat.set_m33(0_f32);
     self.proj_mat.as_slice()
   }
   
@@ -164,15 +162,14 @@ impl Camera {
     self.to_focus_pos.dot(&self.to_pos)
   }
   
-  pub fn create_view_matrix(&mut self) -> [f32; 16] {
-    self.view_mat.set_identity();
-    self.view_mat.rotate(self.pitch.to_radians(), &XVEC);
-    self.view_mat.rotate(self.yaw.to_radians(), &YVEC);
+  pub fn create_view_matrix(&mut self, view_mat: &mut Matrix4f) {
+    view_mat.set_identity();
+    view_mat.rotate(self.pitch.to_radians(), &XVEC);
+    view_mat.rotate(self.yaw.to_radians(), &YVEC);
     let pos = self.pos;
     let mut neg_cam = Vector3f::blank();
     pos.negate_to(&mut neg_cam);
-    self.view_mat.translate_v3f(&neg_cam);
-    self.view_mat.as_slice()
+    view_mat.translate_v3f(&neg_cam);
   }
 }
 

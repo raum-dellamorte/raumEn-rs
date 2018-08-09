@@ -26,7 +26,14 @@ impl RenderTexModel {
       shader: gen_model_shader(),
     }
   }
-  pub fn render(&mut self, entities_arc: Arc<Mutex<Entities>>) {
+  pub fn render(&mut self, mgr: &mut GameMgr) {
+    self.shader.start();
+    self.shader.load_matrix("u_View", &mgr.view_mat.matrix);
+    mgr.lights_do(|lights| { lights.load_to_shader(&self.shader); });
+    // self.shader.load_vec_4f("plane", &Vector4f {x: 0_f32, y: 10000_f32, z: 0_f32, w: 1_f32, }); // vec4 plane;
+    // self.shader.load_bool("use_clip_plane", false); // float useClipPlane;
+    self.shader.load_vec_3f("sky_color", &Vector3f::new(0.5, 0.6, 0.5));
+    let entities_arc = mgr.entities.clone();
     let mut entities = entities_arc.lock().unwrap();
     for key in entities.keys() {
       entities.set_key(&key);
@@ -41,7 +48,7 @@ impl RenderTexModel {
       }
       self.unbind_tex_model();
     }
-    
+    self.shader.stop();
   }
   pub fn bind_tex_model(&mut self, model: &Model) { unsafe {
     BindVertexArray(model.raw().vao_id);
