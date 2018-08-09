@@ -56,6 +56,7 @@ impl RenderTerrain {
     self.shader.load_matrix("u_Transform", &trans_mat);
     // self.shader.load_float("row_count", 1_f32); // float numOfRows
     // self.shader.load_vec_2f("offset", &Vector2f {x: 0_f32, y: 0_f32}); // vec2 offset;
+    // println!("{:?}", trans_mat)
   }
   pub fn unbind_tex_model(&mut self) { unsafe {
     DisableVertexAttribArray(2);
