@@ -92,8 +92,8 @@ impl Platform {
   pub fn transformation(&self, 
       base: f32, height: f32, cx: isize, cz: isize, lx: u8, lz: u8, ) -> [f32; 16] {
     let mut trans_mat = Matrix4f::new();
-    let x = ((cx * 8) + lx as isize) as f32 - 0.5;
-    let z = ((cz * 8) + lz as isize) as f32 - 0.5;
+    let x = ((cx * 16) + (lx as isize)) as f32;
+    let z = ((cz * 16) + (lz as isize)) as f32;
     let y = (height * self.top) - ((height * self.depth) / 2.0) + base;
     let pos = Vector3f::new(x, y, z);
     trans_mat.set_identity();
