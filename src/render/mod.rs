@@ -54,26 +54,25 @@ impl RenderMgr {
     prepare();
     self.mgr.create_view_matrix();
     self.ren_tex_model.render(&mut self.mgr.clone());
-    
-    // self.ren_terrain.shader.start();
-    // self.ren_terrain.shader.load_matrix("u_View", &view_mat);
-    // self.mgr.clone().lights_do(|lights| { lights.load_to_shader(&self.ren_terrain.shader); });
-    // // self.ren_terrain.shader.load_vec_4f("plane", &Vector4f {x: 0_f32, y: 10000_f32, z: 0_f32, w: 1_f32, }); // vec4 plane;
-    // // self.ren_terrain.shader.load_bool("use_clip_plane", false); // float useClipPlane;
-    // self.ren_terrain.shader.load_vec_3f("sky_color", &Vector3f::new(0.5, 0.6, 0.5));
-    // self.ren_terrain.render(self.world.clone());
-    
-    // self.ren_terrain.shader.stop();
+    self.ren_terrain.render(&mut self.mgr.clone());
     unsafe { BindVertexArray(0); }
   }
   pub fn load_proj_mat(&mut self, size: PhysicalSize) {
     let mut camera = self.mgr.camera.lock().unwrap();
-    let shader = &self.ren_tex_model.shader;
     camera.update_size(size.into());
     let proj_mat = camera.projection();
-    shader.start();
-    shader.load_matrix("u_Projection", &proj_mat); // Maybe move this to Shader
-    shader.stop();
+    {
+      let shader = &self.ren_tex_model.shader;
+      shader.start();
+      shader.load_matrix("u_Projection", &proj_mat); // Maybe move this to Shader
+      shader.stop();
+    }
+    {
+      let shader = &self.ren_terrain.shader;
+      shader.start();
+      shader.load_matrix("u_Projection", &proj_mat); // Maybe move this to Shader
+      shader.stop();
+    }
   }
   pub fn clean_up(&mut self) {
     self.mgr.clean_up();
