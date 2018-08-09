@@ -47,7 +47,9 @@ impl Model {
     .with_lighting()
   }
   pub fn init(&mut self, loader: &mut Loader) -> &mut Self {
-    self.raw = Some(loader.load_to_vao(&self.name));
+    let raw = loader.load_to_vao(&self.name);
+    println!("Model<{}>({}, {})", &self.name, raw.vao_id, raw.vertex_count);
+    self.raw = Some(raw);
     self
   }
   pub fn load_texture(&mut self, loader: &mut Loader) -> &mut Self {
