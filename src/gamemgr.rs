@@ -70,6 +70,18 @@ impl GameMgr {
     let mut h = self.camera.lock().unwrap();
     f(&mut h);
   }
+  pub fn entities_do<F>(&mut self, f: F)
+    where F: Fn(&mut Entities) -> ()
+  {
+    let mut h = self.entities.lock().unwrap();
+    f(&mut h);
+  }
+  pub fn world_do<F>(&mut self, f: F)
+    where F: Fn(&mut World) -> ()
+  {
+    let mut h = self.world.lock().unwrap();
+    f(&mut h);
+  }
   pub fn create_view_matrix(&mut self) {
     let mut cam = self.camera.lock().unwrap();
     cam.create_view_matrix(&mut self.view_mat);
