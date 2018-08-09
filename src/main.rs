@@ -63,16 +63,14 @@ fn main() {
   
   let mut spaceship = {
     let mut ents = ents_arc.lock().unwrap();
-    ents.new_model("spaceship").new_entities(&vec!["01", "02", "03"]);
+    ents.new_model("spaceship", "").new_entities(&vec!["01", "02", "03"]);
+    ents.new_model("platform", "dirt").new_entities(&vec!["01", "02", "03"]);
     println!("entities loaded");
-    {
-      let spaceship_arc02 = ents.get_entity("spaceship", "02");
-      spaceship_arc02.lock().unwrap().set_pos(10.0,0.0,-10.0);
-    }
-    {
-      let spaceship_arc03 = ents.get_entity("spaceship", "03");
-      spaceship_arc03.lock().unwrap().set_pos(-12.0,5.0,-15.0);
-    }
+    ents.mod_entity("spaceship", "02", |ent| { ent.set_pos(10.0,0.0,-10.0); });
+    ents.mod_entity("spaceship", "03", |ent| { ent.set_pos(-12.0,5.0,-15.0); });
+    ents.mod_entity("platform", "01", |ent| { ent.set_pos(0.0,0.0,0.0); });
+    ents.mod_entity("platform", "02", |ent| { ent.set_pos(2.0,0.0,0.0); });
+    ents.mod_entity("platform", "03", |ent| { ent.set_pos(0.0,0.0,2.0); });
     let spaceship_arc = ents.get_entity("spaceship", "01");
     let mut spaceship = spaceship_arc.lock().unwrap();
     spaceship.create_mob()

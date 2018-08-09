@@ -68,11 +68,15 @@ impl Entities {
       _ => panic!("No model: {}", self.key)
     }
   }
-  pub fn new_model(&mut self, name: &str) -> &mut Self {
+  pub fn new_model(&mut self, name: &str, tex: &str) -> &mut Self {
     let mut model = Model::new(name);
     let loader = self.loader.clone();
     let mut loader = loader.lock().unwrap();
-    model.init_default_texture(&mut loader);
+    if tex.to_string().is_empty() {
+      model.init_default_texture(&mut loader);
+    } else {
+       model.init_with_texture(&mut loader, tex);
+    }
     self.names.insert(name.to_string());
     self.models.insert(name.to_string(), Arc::new(Mutex::new(model)));
     self.entities.insert(name.to_string(), Arc::new(Mutex::new(Vec::new())));
@@ -109,6 +113,13 @@ impl Entities {
       if ent.name == *name { return ent_arc.clone() }
     }
     panic!("No Entity {} found for Model {}", name, model_name)
+  }
+  pub fn mod_entity<F>(&mut self, model_name: &str, name: &str, f: F) 
+    where F: Fn(&mut Entity) -> ()
+  {
+    let ent_arc = self.get_entity(model_name, name);
+    let mut ent = ent_arc.lock().unwrap();
+    f(&mut ent);
   }
   pub fn entities(&mut self) -> Arc<Mutex<Vec<Arc<Mutex<Entity>>>>> {
     if !self.entities.contains_key(&self.key) {
