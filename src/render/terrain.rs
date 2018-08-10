@@ -25,6 +25,7 @@ impl RenderTerrain {
     }
   }
   pub fn render(&mut self, mgr: &mut GameMgr) {
+    self.shader.start();
     let world_arc = mgr.world.clone();
     let mut world = world_arc.lock().unwrap();
     let vc = {
@@ -32,11 +33,10 @@ impl RenderTerrain {
       self.bind_tex_model(model);
       model.raw().vertex_count
     };
-    self.shader.start();
     self.shader.load_matrix("u_View", &mgr.view_mat.matrix);
     mgr.lights_do(|lights| { lights.load_to_shader(&self.shader); });
-    // self.ren_terrain.shader.load_vec_4f("plane", &Vector4f {x: 0_f32, y: 10000_f32, z: 0_f32, w: 1_f32, }); // vec4 plane;
-    // self.ren_terrain.shader.load_bool("use_clip_plane", false); // float useClipPlane;
+    // self.shader.load_vec_4f("plane", &Vector4f {x: 0_f32, y: 10000_f32, z: 0_f32, w: 1_f32, }); // vec4 plane;
+    // self.shader.load_bool("use_clip_plane", false); // float useClipPlane;
     self.shader.load_vec_3f("sky_color", &Vector3f::new(0.5, 0.6, 0.5));
     for chunk_arc in world.nearby() {
       let chunk = chunk_arc.lock().unwrap();

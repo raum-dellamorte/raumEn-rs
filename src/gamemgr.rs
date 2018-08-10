@@ -33,7 +33,9 @@ impl GameMgr {
     lights.lights[0].pos.from_isize(0,500,-10);
     let handler = Arc::new(Mutex::new(Handler::new()));
     let ents = Entities::new(loader.clone());
-    let world = World::new(loader.clone());
+    let mut world = World::new(loader.clone());
+    world.new_chunk(0, 0);
+    world.new_chunk(-1, -1);
     GameMgr {
       handler: handler.clone(),
       loader: loader,

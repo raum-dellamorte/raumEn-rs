@@ -5,7 +5,7 @@ use std::sync::{Arc, Mutex};
 use model::loader::Loader;
 use model::Model;
 use util::rmatrix::Matrix4f;
-use util::rvector::Vector3f;
+use util::rvector::{Vector3f, XVEC, YVEC, ZVEC};
 
 pub struct World {
   pub chunks: Vec<Arc<Mutex<Chunk>>>,
@@ -92,16 +92,17 @@ impl Platform {
   pub fn transformation(&self, 
       base: f32, height: f32, cx: isize, cz: isize, lx: u8, lz: u8, ) -> [f32; 16] {
     let mut trans_mat = Matrix4f::new();
-    let x = ((cx * 16) + (lx as isize)) as f32;
-    let z = ((cz * 16) + (lz as isize)) as f32;
-    let y = (height * self.top) - ((height * self.depth) / 2.0) + base;
+    let x = ((cx * 16) + ((lx * 2) as isize)) as f32;
+    let z = ((cz * 16) + ((lz * 2) as isize)) as f32;
+    let y = ((height * self.top) - (height * self.depth)) + base;
     let pos = Vector3f::new(x, y, z);
+    let scale = Vector3f::new(1.0, height * self.depth, 1.0);
     trans_mat.set_identity();
     trans_mat.translate_v3f(&pos);
-    // trans_mat.rotate(self.rx.to_radians(), &XVEC);
-    // trans_mat.rotate(self.ry.to_radians(), &YVEC);
-    // trans_mat.rotate(self.rz.to_radians(), &ZVEC);
-    // trans_mat.scale(&Vector3f::new(self.scale, self.scale, self.scale));
+    trans_mat.rotate(0_f32.to_radians(), &XVEC);
+    trans_mat.rotate(0_f32.to_radians(), &YVEC);
+    trans_mat.rotate(0_f32.to_radians(), &ZVEC);
+    trans_mat.scale(&scale);
     trans_mat.as_slice()
   }
 }
