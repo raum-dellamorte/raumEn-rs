@@ -49,10 +49,9 @@ impl RenderTerrain {
           unsafe { DrawElements(TRIANGLES, vc, UNSIGNED_INT, CVOID); }
         }
       }
-      self.unbind_tex_model();
-      self.shader.stop();
     }
-    
+    self.unbind_tex_model();
+    self.shader.stop();
   }
   pub fn bind_tex_model(&mut self, model: &Model) { unsafe {
     BindVertexArray(model.raw().vao_id);
