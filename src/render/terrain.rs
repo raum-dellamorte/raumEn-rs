@@ -11,17 +11,20 @@ use model::Model;
 use shader::terrain::gen_terrain_shader;
 use shader::Shader;
 use terrain::{Chunk, ChunkColumn, Platform}; // World, 
+use util::rmatrix::Matrix4f;
 use util::rvector::{Vector3f, }; // Vector2f, Vector4f, 
 // use util::rvertex::{RVertex, RVertex2D};
 
 
 pub struct RenderTerrain {
   pub shader: Shader,
+  pub trans_mat: Matrix4f,
 }
 impl RenderTerrain {
   pub fn new() -> Self {
     RenderTerrain {
       shader: gen_terrain_shader(),
+      trans_mat: Matrix4f::new(),
     }
   }
   pub fn render(&mut self, mgr: &mut GameMgr) {
@@ -33,7 +36,7 @@ impl RenderTerrain {
       self.bind_tex_model(model);
       model.raw().vertex_count
     };
-    self.shader.load_matrix("u_View", &mgr.view_mat.matrix);
+    self.shader.load_matrix("u_View", &mgr.view_mat);
     mgr.lights_do(|lights| { lights.load_to_shader(&self.shader); });
     // self.shader.load_vec_4f("plane", &Vector4f {x: 0_f32, y: 10000_f32, z: 0_f32, w: 1_f32, }); // vec4 plane;
     // self.shader.load_bool("use_clip_plane", false); // float useClipPlane;
@@ -61,8 +64,8 @@ impl RenderTerrain {
     BindTexture(TEXTURE_2D, model.texture);
   }}
   pub fn prep_instance(&mut self, chunk: &Chunk, col: &ChunkColumn, platform: &Platform) {
-    let trans_mat = platform.transformation(chunk.base, chunk.height, chunk.x, chunk.z, col.x, col.z);
-    self.shader.load_matrix("u_Transform", &trans_mat);
+    platform.transformation(&mut self.trans_mat, chunk.base, chunk.height, chunk.x, chunk.z, col.x, col.z);
+    self.shader.load_matrix("u_Transform", &self.trans_mat);
     // self.shader.load_float("row_count", 1_f32); // float numOfRows
     // self.shader.load_vec_2f("offset", &Vector2f {x: 0_f32, y: 0_f32}); // vec2 offset;
     // println!("{:?}", trans_mat)

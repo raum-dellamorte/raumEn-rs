@@ -59,7 +59,7 @@ impl Camera {
     self.dimensions = dimensions;
   }
   
-  pub fn projection(&mut self) -> [f32; 16] {
+  pub fn projection(&mut self) -> &Matrix4f {
     let (width, height) = self.dimensions;
     let aspect_ratio = height as f32 / width as f32;
     let fov: f32 = 3.141592 / 3.0;
@@ -75,7 +75,7 @@ impl Camera {
     self.proj_mat.set_m23(-1_f32);
     self.proj_mat.set_m32(-(2_f32 * znear * zfar) / frustum_length);
     self.proj_mat.set_m33(0_f32);
-    self.proj_mat.as_slice()
+    &self.proj_mat
   }
   
   pub fn store(&mut self) {

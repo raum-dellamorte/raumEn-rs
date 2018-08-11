@@ -80,6 +80,7 @@ pub struct Platform {
   pub top: f32,
   pub depth: f32,
   pub color: Vector3f,
+  pub trans_mat: Matrix4f,
 }
 impl Platform {
   pub fn new(top: f32, depth: f32) -> Self {
@@ -87,11 +88,11 @@ impl Platform {
       top: top,
       depth: depth,
       color: Vector3f::new(0.5, 0.5, 0.5),
+      trans_mat: Matrix4f::new(),
     }
   }
-  pub fn transformation(&self, 
-      base: f32, height: f32, cx: isize, cz: isize, lx: u8, lz: u8, ) -> [f32; 16] {
-    let mut trans_mat = Matrix4f::new();
+  pub fn transformation(&self, trans_mat: &mut Matrix4f,
+      base: f32, height: f32, cx: isize, cz: isize, lx: u8, lz: u8, ) {
     let x = ((cx * 16) + ((lx * 2) as isize)) as f32;
     let z = ((cz * 16) + ((lz * 2) as isize)) as f32;
     let y = ((height * self.top) - (height * self.depth)) + base;
@@ -103,6 +104,5 @@ impl Platform {
     trans_mat.rotate(0_f32.to_radians(), &YVEC);
     trans_mat.rotate(0_f32.to_radians(), &ZVEC);
     trans_mat.scale(&scale);
-    trans_mat.as_slice()
   }
 }

@@ -30,9 +30,9 @@ impl PosMarker {
     self.pos.z += dist * self.ry.to_radians().cos();
   }
   
-  pub fn transformation(&mut self) -> [f32; 16] {
+  pub fn transformation(&mut self) -> &Matrix4f {
     self.calc_transformation();
-    self.trans_mat.as_slice()
+    &self.trans_mat
   }
   
   fn calc_transformation(&mut self) {
