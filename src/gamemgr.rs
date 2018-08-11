@@ -1,4 +1,5 @@
 
+use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
 pub use camera::Camera;
@@ -6,12 +7,14 @@ pub use entities::Entity;
 pub use entities::Entities;
 pub use entities::mobs::Mob;
 pub use input::Handler;
+pub use material::Material;
 pub use model::loader::Loader;
-pub use model::Model;
+pub use model::{Model, RawModel};
 pub use render::{RenderMgr, };
 pub use shader::lighting::Lights;
 pub use shader::Shader;
 pub use terrain::World;
+pub use texture::Texture;
 pub use util::rmatrix::Matrix4f;
 
 #[derive(Clone)]
@@ -22,6 +25,9 @@ pub struct GameMgr {
   pub camera: Arc<Mutex<Camera>>,
   pub entities: Arc<Mutex<Entities>>,
   pub world: Arc<Mutex<World>>,
+  pub models: Arc<Mutex<HashMap<String, RawModel>>>,
+  pub materials: Arc<Mutex<HashMap<String, Material>>>,
+  pub textures: Arc<Mutex<HashMap<String, Texture>>>,
   pub view_mat: Matrix4f,
 }
 
@@ -43,6 +49,9 @@ impl GameMgr {
       camera: Arc::new(Mutex::new(Camera::new(handler.clone()))),
       entities: Arc::new(Mutex::new(ents)),
       world: Arc::new(Mutex::new(world)),
+      models: Arc::new(Mutex::new(HashMap::new())),
+      materials: Arc::new(Mutex::new(HashMap::new())),
+      textures: Arc::new(Mutex::new(HashMap::new())),
       view_mat: Matrix4f::new(),
     }
   }

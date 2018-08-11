@@ -20,10 +20,12 @@ pub mod camera;
 pub mod entities;
 pub mod gamemgr;
 pub mod input;
+pub mod material;
 pub mod model;
 pub mod render;
 pub mod shader;
 pub mod terrain;
+pub mod texture;
 pub mod timer;
 pub mod util;
 
