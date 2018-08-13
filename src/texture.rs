@@ -10,10 +10,10 @@ pub struct Texture {
   pub tex_b: u32,
 }
 impl Texture {
-  pub fn new(name: &str) -> Self {
+  pub fn new(name: &str, tex_id: u32) -> Self {
     Texture {
       tex_name: name.to_string(),
-      tex_id: 0,
+      tex_id: tex_id,
       tex_r: 0,
       tex_g: 0,
       tex_b: 0,

@@ -20,6 +20,7 @@ pub mod camera;
 pub mod entities;
 pub mod gamemgr;
 pub mod input;
+pub mod loader;
 pub mod material;
 pub mod model;
 pub mod render;
@@ -33,8 +34,7 @@ pub use camera::Camera;
 pub use entities::Entity;
 pub use entities::mobs::Mob;
 pub use input::Handler;
-pub use model::loader::Loader;
-pub use model::Model;
+pub use loader::Loader;
 pub use render::{RenderMgr, };
 pub use shader::lighting::Lights;
 pub use shader::Shader;
@@ -60,22 +60,23 @@ fn main() {
   }
   
   let mut render_mgr = RenderMgr::new();
-  // let mut game_mgr = render_mgr.mgr.clone();
-  let ents_arc = render_mgr.mgr.entities.clone();
+  let mut game_mgr = render_mgr.mgr.clone();
   
   let mut spaceship = {
-    let mut ents = ents_arc.lock().unwrap();
-    ents.new_model("spaceship", "").new_entities(&vec!["01", "02", "03"]);
-    ents.new_model("platform", "dirt").new_entities(&vec!["01", "02", "03"]);
+    game_mgr.new_model("spaceship");
+    game_mgr.new_material("spaceship", "spaceship", "metal");
+    game_mgr.new_entity("spaceship", "spaceship", "spaceship");
+    game_mgr.mod_entity("spaceship", |ships| {
+      ships.new_instance();
+      ships.new_instance().set_pos(10.0,0.0,-10.0);
+      ships.new_instance().set_pos(-12.0,5.0,-15.0);
+    });
+    game_mgr.new_material("dirt", "dirt", "flat");
+    game_mgr.new_model("platform");
     println!("entities loaded");
-    ents.mod_entity("spaceship", "02", |ent| { ent.set_pos(10.0,0.0,-10.0); });
-    ents.mod_entity("spaceship", "03", |ent| { ent.set_pos(-12.0,5.0,-15.0); });
-    ents.mod_entity("platform", "01", |ent| { ent.set_pos(0.0,0.0,0.0); });
-    ents.mod_entity("platform", "02", |ent| { ent.set_pos(2.0,0.0,0.0); });
-    ents.mod_entity("platform", "03", |ent| { ent.set_pos(0.0,0.0,2.0); });
-    let spaceship_arc = ents.get_entity("spaceship", "01");
-    let mut spaceship = spaceship_arc.lock().unwrap();
-    spaceship.create_mob()
+    let _arc = game_mgr.entities.clone();
+    let hm = _arc.lock().unwrap();
+    hm.get("spaceship").unwrap().first().create_mob("player")
   };
   
   println!("Starting game loop.");
@@ -86,9 +87,10 @@ fn main() {
     render_mgr.load_proj_mat(size);
   }
   while running {
-    { let mut handler = render_mgr.mgr.handler.lock().unwrap();
+    game_mgr.handler_do(|handler| {
       handler.timer.tick();
-      handler.reset_delta(); }
+      handler.reset_delta();
+    });
     events_loop.poll_events(|event| {
       match event {
         glutin::Event::WindowEvent{ event, .. } => match event {
@@ -99,22 +101,16 @@ fn main() {
             gl_window.resize(size);
             render_mgr.load_proj_mat(size);
           },
-          _ => {
-            let mut handler = render_mgr.mgr.handler.lock().unwrap();
-            handler.window_event(&event);
-          }
+          _ => { game_mgr.handler_do(|handler| { handler.window_event(&event); }); }
         },
         glutin::Event::DeviceEvent{ event, ..} => {
-          let mut handler = render_mgr.mgr.handler.lock().unwrap();
-          handler.device_event(&event);
+          game_mgr.handler_do(|handler| { handler.device_event(&event); });
         }
         e => println!("Other Event:\n{:?}", e)
       }
     });
-    { let mut handler = render_mgr.mgr.handler.lock().unwrap();
-      spaceship.move_mob(&mut handler); }
-    { let mut camera = render_mgr.mgr.camera.lock().unwrap();
-      camera.calc_pos(spaceship.pos.clone()); }
+    spaceship.move_mob(game_mgr.handler.clone());
+    game_mgr.camera_do(|camera| { camera.calc_pos(spaceship.pos.clone()); });
     render_mgr.render();
     
     gl_window.swap_buffers().unwrap();

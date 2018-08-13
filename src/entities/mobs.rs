@@ -10,8 +10,8 @@ use input::KeyCode as KC;
 use input::KeyCodes as KCS;
 
 pub struct Mob {
-  pub model_name: String,
   pub name: String,
+  pub entity: String,
   pub pos: Arc<Mutex<PosMarker>>,
   pub speed: f32,
   pub turn: f32,
@@ -19,17 +19,18 @@ pub struct Mob {
 }
 
 impl Mob {
-  pub fn new(model_name: &str, name: &str, pos: Arc<Mutex<PosMarker>>) -> Self {
+  pub fn new(entity: &str, pos: Arc<Mutex<PosMarker>>) -> Self {
     Mob {
-      model_name: model_name.to_string(),
-      name: name.to_string(),
+      name: "".to_string(),
+      entity: entity.to_string(),
       pos: pos,
       speed: 20_f32,
       turn: 180_f32,
       stats: HashMap::new(),
     }
   }
-  pub fn move_mob(&mut self, handler: &mut Handler) -> &Self {
+  pub fn move_mob(&mut self, handler_arc: Arc<Mutex<Handler>>) -> &Self {
+    let mut handler = handler_arc.lock().unwrap();
     let rate = handler.timer.delta;
     let (mx, my) = match handler.cursor_pos {
       Some(xy) => xy,

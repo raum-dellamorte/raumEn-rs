@@ -10,6 +10,7 @@ use std::ptr;
 use model::import::load_obj;
 use model::RawModel;
 use model::mesh::Mesh;
+use texture::Texture;
 use util::rvertex::{RVertex, RVertex2D};
 
 pub struct Loader {
@@ -88,7 +89,7 @@ impl Loader {
   pub fn unbind_vao(&self) { unsafe {
     BindVertexArray(0_u32);
   }}
-  pub fn load_texture(&mut self, tex_name: &str) -> GLuint {
+  pub fn load_texture(&mut self, tex_name: &str) -> Texture {
     use image;
     use std::path::Path;
     let path: &str = &format!("res/img/{}.png", tex_name);
@@ -119,7 +120,7 @@ impl Loader {
       //BindTexture(TEXTURE_2D, 0);
     }
     self.textures.push(tex_id);
-    tex_id
+    Texture::new(tex_name, tex_id)
   }
   pub fn load_to_vao_2d(&mut self, verts: &[RVertex2D]) -> RawModel {
     let vao_id = self.create_vao();

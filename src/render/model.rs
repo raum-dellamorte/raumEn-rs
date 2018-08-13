@@ -6,13 +6,13 @@ use std::sync::{Arc, Mutex};
 use CVOID;
 
 // use camera::Camera;
-use entities::Entities;
 use entities::position::PosMarker;
 use gamemgr::GameMgr;
-use model::Model;
+use model::RawModel;
 // use shader::lighting::Lights;
 use shader::model::gen_model_shader;
 use shader::Shader;
+use texture::Texture;
 use util::rvector::{Vector3f, }; // Vector2f, Vector4f, 
 // use util::rvertex::{RVertex, RVertex2D};
 
@@ -33,32 +33,20 @@ impl RenderTexModel {
     // self.shader.load_vec_4f("plane", &Vector4f {x: 0_f32, y: 10000_f32, z: 0_f32, w: 1_f32, }); // vec4 plane;
     // self.shader.load_bool("use_clip_plane", false); // float useClipPlane;
     self.shader.load_vec_3f("sky_color", &Vector3f::new(0.5, 0.6, 0.5));
-    let entities_arc = mgr.entities.clone();
-    let mut entities = entities_arc.lock().unwrap();
-    for key in entities.keys() {
-      entities.set_key(&key);
-      let model_arc = entities.model();
-      let model = model_arc.lock().unwrap();
-      self.bind_tex_model(&model);
-      let ents = entities.entities();
-      for entity_arc in ents.lock().unwrap().iter() {
-        let mut entity = entity_arc.lock().unwrap();
-        self.prep_instance(entity.marker.clone());
-        unsafe { DrawElements(TRIANGLES, model.raw().vertex_count, UNSIGNED_INT, CVOID); }
+    let _arc = mgr.entities.clone();
+    let entities = _arc.lock().unwrap();
+    for entity in entities.values() {
+      let model = mgr.model(&entity.model);
+      Self::bind_model(&model);
+      Self::use_material(mgr, &self.shader, &entity.material);
+      for ent in &entity.instances {
+        self.prep_instance(ent.marker.clone());
+        unsafe { DrawElements(TRIANGLES, model.vertex_count, UNSIGNED_INT, CVOID); }
       }
-      self.unbind_tex_model();
+      Self::unbind();
     }
     self.shader.stop();
   }
-  pub fn bind_tex_model(&mut self, model: &Model) { unsafe {
-    BindVertexArray(model.raw().vao_id);
-    EnableVertexAttribArray(0);
-    EnableVertexAttribArray(1);
-    EnableVertexAttribArray(2);
-    model.lighting().load_to_shader(&self.shader);
-    ActiveTexture(TEXTURE0);
-    BindTexture(TEXTURE_2D, model.texture);
-  }}
   pub fn prep_instance(&mut self, pos: Arc<Mutex<PosMarker>>) {
     let mut marker = pos.lock().unwrap();
     let trans_mat = marker.transformation();
@@ -66,12 +54,38 @@ impl RenderTexModel {
     // self.shader.load_float("row_count", 1_f32); // float numOfRows
     // self.shader.load_vec_2f("offset", &Vector2f {x: 0_f32, y: 0_f32}); // vec2 offset;
   }
-  pub fn unbind_tex_model(&mut self) { unsafe {
+  pub fn clean_up(&mut self) {
+    self.shader.clean_up();
+  }
+  fn use_material(mgr: &mut GameMgr, shader: &Shader, material: &str) {
+    let (lighting, texture) = {
+      let _arc = mgr.material(material);
+      let material = _arc.lock().unwrap();
+      (&material.lighting.clone(), &material.texture.clone())
+    };
+    {
+      let _arc = mgr.lighting(lighting);
+      let lighting = _arc.lock().unwrap();
+      lighting.load_to_shader(shader);
+    }
+    {
+      let texture = mgr.texture(texture);
+      Self::bind_texture(&texture);
+    }
+  }
+  fn bind_model(model: &RawModel) { unsafe {
+    BindVertexArray(model.vao_id);
+    EnableVertexAttribArray(0);
+    EnableVertexAttribArray(1);
+    EnableVertexAttribArray(2);
+  }}
+  fn bind_texture(texture: &Texture) { unsafe {
+    ActiveTexture(TEXTURE0);
+    BindTexture(TEXTURE_2D, texture.tex_id);
+  }}
+  fn unbind() { unsafe {
     DisableVertexAttribArray(2);
     DisableVertexAttribArray(1);
     DisableVertexAttribArray(0);
   }}
-  pub fn clean_up(&mut self) {
-    self.shader.clean_up();
-  }
 }

@@ -1,138 +1,60 @@
 pub mod mobs;
 pub mod position;
 
-use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, Mutex};
 
 use entities::mobs::Mob;
 use entities::position::PosMarker;
-use model::Model;
-use model::loader::Loader;
 
 pub struct Entity {
-  pub model_name: String,
   pub name: String,
-  pub marker: Arc<Mutex<PosMarker>>,
+  pub model: String,
+  pub material: String,
+  pub instances: Vec<EntityInstance>,
 }
 
 impl Entity {
-  pub fn new(model_name: &str, name: &str) -> Self {
+  pub fn new(name: &str, model: &str, material: &str) -> Self {
     Entity {
-      model_name: model_name.to_string(),
       name: name.to_string(),
+      model: model.to_string(),
+      material: material.to_string(),
+      instances: Vec::new(),
+    }
+  }
+  pub fn new_instance(&mut self) -> &mut EntityInstance {
+    let id = self.instances.len() as u32;
+    self.instances.push(EntityInstance::new(id));
+    self.instances.get_mut(id as usize).unwrap()
+  }
+  pub fn first(&self) -> &EntityInstance {
+    if self.instances.len() == 0 { panic!("No instances of Entity<{}>", &self.name) }
+    &self.instances[0]
+  }
+  pub fn first_mut(&mut self) -> &mut EntityInstance {
+    if self.instances.len() == 0 { panic!("No instances of Entity<{}>", &self.name) }
+    self.instances.get_mut(0).unwrap()
+  }
+}
+
+pub struct EntityInstance {
+  pub id: u32,
+  pub marker: Arc<Mutex<PosMarker>>,
+}
+impl EntityInstance {
+  pub fn new(id: u32) -> Self {
+    EntityInstance {
+      id: id,
       marker: Arc::new(Mutex::new(PosMarker::new())),
     }
   }
-  pub fn create_mob(&self) -> Mob {
+  pub fn create_mob(&self, name: &str) -> Mob {
     println!("creating mob");
-    Mob::new(&self.model_name, &self.name, self.marker.clone())
+    Mob::new(name, self.marker.clone())
   }
   pub fn set_pos(&self, x: f32, y: f32, z: f32) {
     let marker = self.marker.clone();
     let mut marker = marker.lock().unwrap();
     marker.pos.from_f32(x, y, z);
-  }
-}
-
-pub struct Entities {
-  loader: Arc<Mutex<Loader>>,
-  names: HashSet<String>,
-  models: HashMap<String, Arc<Mutex<Model>>>,
-  entities: HashMap<String, Arc<Mutex< Vec<Arc<Mutex<Entity>>> >> >,
-  key: String,
-}
-
-impl Entities {
-  pub fn new(loader: Arc<Mutex<Loader>>) -> Self {
-    Entities {
-      loader: loader,
-      names: HashSet::new(),
-      models: HashMap::new(),
-      entities: HashMap::new(),
-      key: String::new(),
-    }
-  }
-  pub fn keys(&self) -> Vec<String> {
-    self.names.clone().into_iter().collect::<Vec<String>>()
-  }
-  pub fn set_key(&mut self, key: &str) -> &mut Self {
-    self.key = key.to_string();
-    self
-  }
-  pub fn has_key(&self, key: &str) -> bool {
-    self.names.contains(key)
-  }
-  pub fn model(&self) -> Arc<Mutex<Model>> {
-    match self.models.get(&self.key) {
-      Some(model) => { model.clone() }
-      _ => panic!("No model: {}", self.key)
-    }
-  }
-  pub fn new_model(&mut self, name: &str, tex: &str) -> &mut Self {
-    let mut model = Model::new(name);
-    let loader = self.loader.clone();
-    let mut loader = loader.lock().unwrap();
-    if tex.to_string().is_empty() {
-      model.init_default_texture(&mut loader);
-    } else {
-       model.init_with_texture(&mut loader, tex);
-    }
-    self.names.insert(name.to_string());
-    self.models.insert(name.to_string(), Arc::new(Mutex::new(model)));
-    self.entities.insert(name.to_string(), Arc::new(Mutex::new(Vec::new())));
-    self.set_key(name)
-  }
-  pub fn new_entity(&mut self, name: &str) -> &mut Self {
-    if !self.models.contains_key(&self.key) {
-      panic!("Need to add new model called {} before new entity.", &self.key) }
-    let ent_names = self.entity_names();
-    if ent_names.contains(name) {
-      panic!("Entity name not unique: {}", name) }
-    let entity = Arc::new(Mutex::new(Entity::new(&self.key, name)));
-    if self.entities.contains_key(&self.key) {
-      let ents = self.entities().clone();
-      let mut ents = ents.lock().unwrap();
-      ents.push(entity);
-    } else {
-      self.entities.insert(self.key.clone(), Arc::new(Mutex::new(vec![entity])));
-    }
-    self
-  }
-  pub fn new_entities(&mut self, names: &[&str]) -> &mut Self {
-    for name in names {
-      println!("attempting to add Entity {} {}", self.key, name);
-      self.new_entity(name);
-    }
-    self
-  }
-  pub fn get_entity(&mut self, model_name: &str, name: &str) -> Arc<Mutex<Entity>> {
-    self.set_key(model_name);
-    let ents = self.entities();
-    for ent_arc in ents.lock().unwrap().iter() {
-      let ent = ent_arc.lock().unwrap();
-      if ent.name == *name { return ent_arc.clone() }
-    }
-    panic!("No Entity {} found for Model {}", name, model_name)
-  }
-  pub fn mod_entity<F>(&mut self, model_name: &str, name: &str, f: F) 
-    where F: Fn(&mut Entity) -> ()
-  {
-    let ent_arc = self.get_entity(model_name, name);
-    let mut ent = ent_arc.lock().unwrap();
-    f(&mut ent);
-  }
-  pub fn entities(&mut self) -> Arc<Mutex<Vec<Arc<Mutex<Entity>>>>> {
-    if !self.entities.contains_key(&self.key) {
-      panic!("Tried to list Entities for uninitiated Model key: {}", &self.key) }
-    (*self.entities.get(&self.key).unwrap()).clone()
-  }
-  pub fn entity_names(&mut self) -> HashSet<String> {
-    let mut out = HashSet::new();
-    let ents = self.entities().clone();
-    for ent_arc in ents.lock().unwrap().iter() {
-      let ent = ent_arc.lock().unwrap();
-      out.insert(ent.name.clone());
-    }
-    out
   }
 }

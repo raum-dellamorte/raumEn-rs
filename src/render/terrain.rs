@@ -7,10 +7,11 @@ use CVOID;
 
 // use entities::position::PosMarker;
 use gamemgr::GameMgr;
-use model::Model;
+use model::RawModel;
 use shader::terrain::gen_terrain_shader;
 use shader::Shader;
 use terrain::{Chunk, ChunkColumn, Platform}; // World, 
+use texture::Texture;
 use util::rmatrix::Matrix4f;
 use util::rvector::{Vector3f, }; // Vector2f, Vector4f, 
 // use util::rvertex::{RVertex, RVertex2D};
@@ -29,12 +30,12 @@ impl RenderTerrain {
   }
   pub fn render(&mut self, mgr: &mut GameMgr) {
     self.shader.start();
-    let world_arc = mgr.world.clone();
-    let mut world = world_arc.lock().unwrap();
+    let _arc = mgr.world.clone();
+    let mut world = _arc.lock().unwrap();
     let vc = {
-      let model = &world.model;
-      self.bind_tex_model(model);
-      model.raw().vertex_count
+      let model = mgr.model(&world.model);
+      Self::bind_model(&model);
+      model.vertex_count
     };
     self.shader.load_matrix("u_View", &mgr.view_mat);
     mgr.lights_do(|lights| { lights.load_to_shader(&self.shader); });
@@ -45,23 +46,15 @@ impl RenderTerrain {
       let chunk = chunk_arc.lock().unwrap();
       for col in &chunk.columns {
         for platform in &col.platforms {
+          Self::use_material(mgr, &self.shader, &platform.material);
           self.prep_instance(&chunk, &col, platform);
           unsafe { DrawElements(TRIANGLES, vc, UNSIGNED_INT, CVOID); }
         }
       }
     }
-    self.unbind_tex_model();
+    Self::unbind();
     self.shader.stop();
   }
-  pub fn bind_tex_model(&mut self, model: &Model) { unsafe {
-    BindVertexArray(model.raw().vao_id);
-    EnableVertexAttribArray(0);
-    EnableVertexAttribArray(1);
-    EnableVertexAttribArray(2);
-    model.lighting().load_to_shader(&self.shader);
-    ActiveTexture(TEXTURE0);
-    BindTexture(TEXTURE_2D, model.texture);
-  }}
   pub fn prep_instance(&mut self, chunk: &Chunk, col: &ChunkColumn, platform: &Platform) {
     platform.transformation(&mut self.trans_mat, chunk.base, chunk.height, chunk.x, chunk.z, col.x, col.z);
     self.shader.load_matrix("u_Transform", &self.trans_mat);
@@ -69,12 +62,38 @@ impl RenderTerrain {
     // self.shader.load_vec_2f("offset", &Vector2f {x: 0_f32, y: 0_f32}); // vec2 offset;
     // println!("{:?}", trans_mat)
   }
-  pub fn unbind_tex_model(&mut self) { unsafe {
+  pub fn clean_up(&mut self) {
+    self.shader.clean_up();
+  }
+  fn use_material(mgr: &mut GameMgr, shader: &Shader, material: &str) {
+    let (lighting, texture) = {
+      let _arc = mgr.material(material);
+      let material = _arc.lock().unwrap();
+      (&material.lighting.clone(), &material.texture.clone())
+    };
+    {
+      let _arc = mgr.lighting(lighting);
+      let lighting = _arc.lock().unwrap();
+      lighting.load_to_shader(shader);
+    }
+    {
+      let texture = mgr.texture(texture);
+      Self::bind_texture(&texture);
+    }
+  }
+  fn bind_model(model: &RawModel) { unsafe {
+    BindVertexArray(model.vao_id);
+    EnableVertexAttribArray(0);
+    EnableVertexAttribArray(1);
+    EnableVertexAttribArray(2);
+  }}
+  fn bind_texture(texture: &Texture) { unsafe {
+    ActiveTexture(TEXTURE0);
+    BindTexture(TEXTURE_2D, texture.tex_id);
+  }}
+  fn unbind() { unsafe {
     DisableVertexAttribArray(2);
     DisableVertexAttribArray(1);
     DisableVertexAttribArray(0);
   }}
-  pub fn clean_up(&mut self) {
-    self.shader.clean_up();
-  }
 }

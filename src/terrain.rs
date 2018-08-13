@@ -2,23 +2,18 @@
 // use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
-use model::loader::Loader;
-use model::Model;
 use util::rmatrix::Matrix4f;
 use util::rvector::{Vector3f, XVEC, YVEC, ZVEC};
 
 pub struct World {
   pub chunks: Vec<Arc<Mutex<Chunk>>>,
-  pub model: Model,
+  pub model: String,
 }
 impl World {
-  pub fn new(loader_arc: Arc<Mutex<Loader>>) -> Self {
-    let mut loader = loader_arc.lock().unwrap();
-    let mut  model = Model::new("platform");
-    model.init_with_texture(&mut loader, "dirt"); // todo: texture should be per platform
+  pub fn new() -> Self {
     World {
       chunks: Vec::new(),
-      model: model,
+      model: "platform".to_string(),
     }
   }
   pub fn new_chunk(&mut self, x_pos: isize, z_pos:isize) {
@@ -77,6 +72,7 @@ impl ChunkColumn {
 }
 
 pub struct Platform {
+  pub material: String,
   pub top: f32,
   pub depth: f32,
   pub color: Vector3f,
@@ -85,6 +81,7 @@ pub struct Platform {
 impl Platform {
   pub fn new(top: f32, depth: f32) -> Self {
     Platform {
+      material: "dirt".to_string(),
       top: top,
       depth: depth,
       color: Vector3f::new(0.5, 0.5, 0.5),
