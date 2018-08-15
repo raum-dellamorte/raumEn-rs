@@ -43,6 +43,8 @@ impl GameMgr {
     // let ents = Entities::new(loader.clone());
     let mut world = World::new();
     world.new_chunk(0, 0);
+    world.new_chunk(-1, 0);
+    world.new_chunk(0, -1);
     world.new_chunk(-1, -1);
     GameMgr {
       handler: handler,

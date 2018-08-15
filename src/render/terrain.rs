@@ -10,7 +10,7 @@ use gamemgr::GameMgr;
 use model::RawModel;
 use shader::terrain::gen_terrain_shader;
 use shader::Shader;
-use terrain::{Chunk, ChunkColumn, Platform}; // World, 
+use terrain::{Chunk, Platform}; // World, ChunkColumn, 
 use texture::Texture;
 use util::rmatrix::Matrix4f;
 use util::rvector::{Vector3f, }; // Vector2f, Vector4f, 
@@ -47,7 +47,7 @@ impl RenderTerrain {
       for col in &chunk.columns {
         for platform in &col.platforms {
           Self::use_material(mgr, &self.shader, &platform.material);
-          self.prep_instance(&chunk, &col, platform);
+          self.prep_instance(&chunk, platform);
           unsafe { DrawElements(TRIANGLES, vc, UNSIGNED_INT, CVOID); }
         }
       }
@@ -55,8 +55,8 @@ impl RenderTerrain {
     Self::unbind();
     self.shader.stop();
   }
-  pub fn prep_instance(&mut self, chunk: &Chunk, col: &ChunkColumn, platform: &Platform) {
-    platform.transformation(&mut self.trans_mat, chunk.base, chunk.height, chunk.x, chunk.z, col.x, col.z);
+  pub fn prep_instance(&mut self, chunk: &Chunk, platform: &Platform) {
+    platform.transformation(&mut self.trans_mat, chunk.base, chunk.height);
     self.shader.load_matrix("u_Transform", &self.trans_mat);
     // self.shader.load_float("row_count", 1_f32); // float numOfRows
     // self.shader.load_vec_2f("offset", &Vector2f {x: 0_f32, y: 0_f32}); // vec2 offset;

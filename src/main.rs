@@ -6,6 +6,7 @@ extern crate glutin;
 extern crate image;
 extern crate cgmath;
 extern crate time;
+extern crate noise;
 
 use gl::*;
 use std::os::raw::c_void;
