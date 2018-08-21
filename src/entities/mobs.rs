@@ -33,6 +33,7 @@ impl Mob {
   pub fn move_mob(&mut self, handler_arc: Arc<Mutex<Handler>>, world_arc: Arc<Mutex<World>>) -> &Self {
     let mut handler = handler_arc.lock().unwrap();
     let rate = handler.timer.delta;
+    if rate > 0.07 { return self; }
     let (mx, my) = match handler.cursor_pos {
       Some(xy) => xy,
       None     => (0_f64, 0_f64),

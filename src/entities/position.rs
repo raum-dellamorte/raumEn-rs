@@ -35,6 +35,7 @@ impl PosMarker {
         dy: 0_f32,
         upward: 0_f32,
         fall: true,
+        time: 0_f32,
         ground: 0_f32,
         new_ground: 0_f32,
         peak: 0_f32,
@@ -85,25 +86,39 @@ impl PosMarker {
       grav.fall = false;
       grav.dy = 0.0;
       grav.upward = 0.0;
+      grav.time = 0.0;
       self.new_pos.y = ground;
     } else if grav.fall && ht >= ground {
       // falling
+      grav.time += rate;
       if grav.upward > 0.0 {
-        grav.dy -= grav.upward;
-        grav.upward -= GRAVITY * rate * rate;
-      } else {
-        grav.upward = 0.0;
+        grav.dy = -grav.upward;
+        grav.upward -= GRAVITY * grav.time * grav.time;
       }
-      grav.dy += GRAVITY * rate * rate;
+      if grav.upward <= 0.0 && grav.dy < 0.0 {
+        grav.upward = 0.0;
+        grav.dy = 0.0;
+        grav.time = 0.0;
+      }
+      if grav.upward == 0.0 {
+        grav.dy += GRAVITY * grav.time * grav.time;
+      }
       println!("grav.dy {}", grav.dy);
       self.new_pos.y -= grav.dy;
+      if self.new_pos.y < ground {
+        grav.fall = false;
+        grav.dy = 0.0;
+        grav.upward = 0.0;
+        grav.time = 0.0;
+        self.new_pos.y = ground;
+      }
     } else if !grav.fall && ht > ground {
       grav.fall = true;
     }
   }
   pub fn jump(&mut self, rate: f32) {
     if !self.grav.fall {
-      self.grav.upward = 1.3 * rate;
+      self.grav.upward = 35.0 * rate;
       self.grav.fall = true;
     }
   }
@@ -134,6 +149,7 @@ pub struct Grav {
   pub dy: f32,
   pub upward: f32,
   pub fall: bool,
+  pub time: f32,
   pub ground: f32,
   pub new_ground: f32,
   pub peak: f32,

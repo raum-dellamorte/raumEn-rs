@@ -12,7 +12,7 @@ impl Timer {
   pub fn new() -> Self {
     let tmp = SteadyTime::now();
     Timer {
-      delta: 0_f32,
+      delta: 0.0667_f32,
       fps: 0_f32,
       last: tmp,
       now: SteadyTime::now(),
