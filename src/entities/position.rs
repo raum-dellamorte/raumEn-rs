@@ -73,7 +73,7 @@ impl PosMarker {
     } else {
       if !self.grav.fall && ((self.fut_pos.y >= fu) && (self.new_pos.y < fu)) {
         // auto jump
-        self.jump();
+        self.jump(rate);
       }
     }
   }
@@ -101,9 +101,9 @@ impl PosMarker {
       grav.fall = true;
     }
   }
-  pub fn jump(&mut self) {
+  pub fn jump(&mut self, rate: f32) {
     if !self.grav.fall {
-      self.grav.upward = 0.05;
+      self.grav.upward = 1.3 * rate;
       self.grav.fall = true;
     }
   }

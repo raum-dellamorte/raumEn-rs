@@ -43,7 +43,7 @@ impl Mob {
     if handler.read_kb_multi_any_of(KCS::new(&[Down,  S])) { marker.forward(-self.speed, rate, world_arc.clone()); } // Down
     if handler.read_kb_multi_any_of(KCS::new(&[Left,  A])) { marker.inc_rot(0.0, self.turn * rate, 0.0); } // Left
     if handler.read_kb_multi_any_of(KCS::new(&[Right, D])) { marker.inc_rot(0.0,-self.turn * rate, 0.0); } // Right
-    if handler.read_kb_single(KC::new(Space))              { marker.jump() } // Jump
+    if handler.read_kb_single(KC::new(Space))              { marker.jump(rate) } // Jump
     if handler.read_mouse_single(MB::Left)                 { println!("mouse x: {} y: {}", mx, my); } // Fire/Select
     marker.move_to_new_pos(rate);
     self
