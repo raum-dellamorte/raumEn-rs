@@ -38,13 +38,14 @@ impl Handler {
         self.mouse.insert(*bttn, false);
       }
       WEvent::KeyboardInput { input: KB { virtual_keycode: Some(bttn), state: Pressed, modifiers: modkey, ..}, ..} => {
-        print!("{:?}-{}-{}-{}-{}", bttn, modkey.shift, modkey.ctrl, modkey.alt, modkey.logo);
+        // print!("{:?}-{}-{}-{}-{}", bttn, modkey.shift, modkey.ctrl, modkey.alt, modkey.logo);
         self.kb.insert(key_code(&bttn, &modkey), true);
       }
       WEvent::KeyboardInput { input: KB { virtual_keycode: Some(bttn), state: Released, modifiers: modkey, ..}, ..} => {
         self.kb.insert(key_code(&bttn, &modkey), false);
       }
-      e => println!("Window Event:\n{:?}", e)
+      e => println!("Window Event:\n  {:?}", e)
+      // _ => ()
     }
   }
   pub fn device_event(&mut self, event: &DEvent) {

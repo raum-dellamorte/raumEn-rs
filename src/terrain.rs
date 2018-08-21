@@ -5,6 +5,8 @@ use std::sync::{Arc, Mutex};
 use util::rmatrix::Matrix4f;
 use util::rvector::{Vector3f, }; // XVEC, YVEC, ZVEC, 
 
+const LOWER_BOUNDS: (f32, f32) = (-1000_f32, -1100_f32);
+
 pub struct World {
   pub chunks: Vec<Arc<Mutex<Chunk>>>,
   pub model: String,
@@ -27,6 +29,25 @@ impl World {
     }
     out
   }
+  pub fn get_chunk(&self, x: isize, z: isize) -> Option<Arc<Mutex<Chunk>>> {
+    for chunk_arc in &self.chunks {
+      let chunk = chunk_arc.lock().unwrap();
+      if chunk.x == x && chunk.z == z { return Some(chunk_arc.clone()) }
+    }
+    None
+  }
+  pub fn bounds_under(&self, x: f32, z: f32, ht: f32) -> (f32, f32) {
+    let cx = ((x.abs() / 16.0).floor() as isize) * if x >= 0.0 { 1 } else { -1 };
+    let cz = ((z.abs() / 16.0).floor() as isize) * if z >= 0.0 { 1 } else { -1 };
+    if let Some(chunk_arc) = self.get_chunk(cx, cz) {
+      let chunk = chunk_arc.lock().unwrap();
+      return chunk.bounds_under(x, z, ht);
+    } 
+    LOWER_BOUNDS
+  }
+  pub fn bounds_under_v3f(&self, pos: &Vector3f) -> (f32, f32) {
+    self.bounds_under(pos.x, pos.z, pos.y)
+  }
 }
 
 pub struct Chunk {
@@ -41,7 +62,7 @@ impl Chunk {
     let mut columns = Vec::new();
     for r in 0..8 {
       for c in 0..8 {
-        columns.push(ChunkColumn::new(x, z, r, c));
+        columns.push(ChunkColumn::new(base, height, x, z, r, c));
       }
     }
     Chunk {
@@ -52,6 +73,15 @@ impl Chunk {
       height: height,
     }
   }
+  fn bounds_under(&self, x: f32, z: f32, ht: f32) -> (f32, f32) {
+    let cx = ((x.abs() / 2.0) % 8.0).floor() as usize;
+    let cz = ((z.abs() / 2.0) % 8.0).floor() as usize;
+    let c = if x >= 0.0 { cx } else { 7 - cx };
+    let r = if z >= 0.0 { cz } else { 7 - cz };
+    let i = (r * 8) + c;
+    let col = &self.columns[i];
+    col.bounds_under(ht)
+  }
 }
 
 pub struct ChunkColumn {
@@ -60,19 +90,34 @@ pub struct ChunkColumn {
   pub z: u8,
 }
 impl ChunkColumn {
-  pub fn new(cx: isize, cz: isize, x: u8, z: u8) -> Self {
+  pub fn new(base: f32, height: f32, cx: isize, cz: isize, x: u8, z: u8) -> Self {
     let mut platforms = Vec::new();
-    platforms.push(Platform::new(0.5, 0.05, cx, cz, x, z));
+    platforms.push(Platform::new(base, height, 0.5, 0.05, cx, cz, x, z));
     ChunkColumn {
       platforms: platforms,
       x: x,
       z: z,
     }
   }
+  fn bounds_under(&self, ht: f32) -> (f32, f32)  {
+    let mut out = LOWER_BOUNDS;
+    for plat in &self.platforms {
+      let (u, l) = plat.world_upper_lower();
+      if ht >= l {
+        let (_, tl) = out;
+        if l > tl {
+          out = (u, l);
+        }
+      }
+    }
+    out
+  }
 }
 
 pub struct Platform {
   pub material: String,
+  pub world_base: f32,
+  pub world_height: f32,
   pub top: f32,
   pub depth: f32,
   pub x: f32,
@@ -81,12 +126,14 @@ pub struct Platform {
   pub trans_mat: Matrix4f,
 }
 impl Platform {
-  pub fn new(top: f32, depth: f32, cx: isize, cz: isize, lx: u8, lz: u8) -> Self {
+  pub fn new(base: f32, height: f32, top: f32, depth: f32, cx: isize, cz: isize, lx: u8, lz: u8) -> Self {
     let x = ((cx * 16) + ((lx * 2) as isize)) as f32;
     let z = ((cz * 16) + ((lz * 2) as isize)) as f32;
-    let top = gen_height(x, z, top, 7);
+    let top = gen_height(x, z, top, 3);
     Platform {
       material: "dirt".to_string(),
+      world_base: base,
+      world_height: height,
       top: top,
       depth: depth,
       x: x,
@@ -95,10 +142,15 @@ impl Platform {
       trans_mat: Matrix4f::new(),
     }
   }
-  pub fn transformation(&self, trans_mat: &mut Matrix4f, base: f32, height: f32) {
-    let y = ((height * self.top) - (height * self.depth)) + base;
+  pub fn world_upper_lower(&self) -> (f32, f32) {
+    let y = (self.world_height * self.top) + self.world_base;
+    // println!("World height @{},{}: {}", self.x, self.z, y);
+    (y, y - (self.world_height * self.depth))
+  }
+  pub fn transformation(&self, trans_mat: &mut Matrix4f) {
+    let y = ((self.world_height * self.top) - (self.world_height * self.depth)) + self.world_base;
     let pos = Vector3f::new(self.x, y, self.z);
-    let scale = Vector3f::new(1.0, height * self.depth, 1.0);
+    let scale = Vector3f::new(1.0, self.world_height * self.depth, 1.0);
     trans_mat.set_identity();
     trans_mat.translate_v3f(&pos);
     // trans_mat.rotate(0_f32.to_radians(), &XVEC);
@@ -115,8 +167,8 @@ fn gen_height(x: f32, z: f32, weight: f32, mult: i32) -> f32 {
   use noise::Fbm;
   use noise::Point2;
   use noise::Seedable;
-  let x = x as f64 / 2.0_f64;
-  let z = z as f64 / 2.0_f64;
+  let x = x as f64 / 256.0_f64;
+  let z = z as f64 / 256.0_f64;
   let pt: Point2<f64> = [x, z];
   let noisefn = Fbm::new().set_seed(186074_u32);
   // let noise: Clamp<[f64; 2]> = Clamp::new(&noisefn).set_bounds(0.0_f64, 1.0_f64);

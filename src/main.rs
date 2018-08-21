@@ -68,7 +68,7 @@ fn main() {
     game_mgr.new_material("spaceship", "spaceship", "metal");
     game_mgr.new_entity("spaceship", "spaceship", "spaceship");
     game_mgr.mod_entity("spaceship", |ships| {
-      ships.new_instance();
+      ships.new_instance().set_pos(0.0,10.0,0.0);
       ships.new_instance().set_pos(10.0,0.0,-10.0);
       ships.new_instance().set_pos(-12.0,5.0,-15.0);
     });
@@ -110,7 +110,7 @@ fn main() {
         e => println!("Other Event:\n{:?}", e)
       }
     });
-    spaceship.move_mob(game_mgr.handler.clone());
+    spaceship.move_mob(game_mgr.handler.clone(), game_mgr.world.clone());
     game_mgr.camera_do(|camera| { camera.calc_pos(spaceship.pos.clone()); });
     render_mgr.render();
     

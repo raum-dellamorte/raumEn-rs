@@ -8,6 +8,7 @@ use entities::position::PosMarker;
 use input::Handler;
 use input::KeyCode as KC;
 use input::KeyCodes as KCS;
+use terrain::World;
 
 pub struct Mob {
   pub name: String,
@@ -29,7 +30,7 @@ impl Mob {
       stats: HashMap::new(),
     }
   }
-  pub fn move_mob(&mut self, handler_arc: Arc<Mutex<Handler>>) -> &Self {
+  pub fn move_mob(&mut self, handler_arc: Arc<Mutex<Handler>>, world_arc: Arc<Mutex<World>>) -> &Self {
     let mut handler = handler_arc.lock().unwrap();
     let rate = handler.timer.delta;
     let (mx, my) = match handler.cursor_pos {
@@ -37,12 +38,14 @@ impl Mob {
       None     => (0_f64, 0_f64),
     };
     let mut marker = self.pos.lock().unwrap();
-    if handler.read_kb_multi_any_of(KCS::new(&[Up,    W])) { marker.forward( self.speed * rate); } // Up
-    if handler.read_kb_multi_any_of(KCS::new(&[Down,  S])) { marker.forward(-self.speed * rate); } // Down
+    marker.prep(world_arc.clone());
+    if handler.read_kb_multi_any_of(KCS::new(&[Up,    W])) { marker.forward( self.speed, rate, world_arc.clone()); } // Up
+    if handler.read_kb_multi_any_of(KCS::new(&[Down,  S])) { marker.forward(-self.speed, rate, world_arc.clone()); } // Down
     if handler.read_kb_multi_any_of(KCS::new(&[Left,  A])) { marker.inc_rot(0.0, self.turn * rate, 0.0); } // Left
     if handler.read_kb_multi_any_of(KCS::new(&[Right, D])) { marker.inc_rot(0.0,-self.turn * rate, 0.0); } // Right
-    if handler.read_kb_single(KC::new(Space))              {} // Jump
+    if handler.read_kb_single(KC::new(Space))              { marker.jump() } // Jump
     if handler.read_mouse_single(MB::Left)                 { println!("mouse x: {} y: {}", mx, my); } // Fire/Select
+    marker.move_to_new_pos(rate);
     self
   }
 }
