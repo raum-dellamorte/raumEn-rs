@@ -3,19 +3,22 @@ RaumEn
 
 An OpenGL engine written in Rust.
 
+I started with glium but it's no longer being updated and at this point I have a better understanding of OpenGL than of glium's current state.  I tried vulkano but didn't make it very far.  I tried GFX but couldn't figure the basics out well enough and they're upcoming version looks to be very different so learning the old version then having to relearn the new version doesn't sound like fun.  So straight OpenGL it is! And I've made a lot of progress.  I'm not as far as I was in the version I was writing in Kotlin, but I hit a road block with reading and writing frame buffers.  I didn't want to go through the entire codebase to find out what I was doing wrong and I wanted to have a binary executable when all was said and done, so I started again in Rust.
+
 Status
 ------
 
 The "engine" is currently able to:
 - load an obj file as a mesh
-- optionally use a texture
-- draw the mesh with or without a texture
+- load glsl from files instead of being hard coded
+- load and use a texture
+- ~~draw the mesh with or without a texture~~
 - accept keyboard and mouse input
 - move a Mob object with WASD keys
+- Terrain! (A work in progress)
 
 Near future ToDo:
-- load glsl from files instead of being hard coded
-- Terrain!
+- determine textures and objects to load from a data file
 - improve Mob movement
 - implement rudimentary animation
 
