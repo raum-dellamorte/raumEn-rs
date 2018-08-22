@@ -37,9 +37,8 @@ impl World {
     None
   }
   pub fn bounds_under(&self, x: f32, z: f32, ht: f32) -> (f32, f32) {
-    let cx = ((x.abs() / 16.0).floor() as isize) * if x >= 0.0 { 1 } else { -1 };
-    let cz = ((z.abs() / 16.0).floor() as isize) * if z >= 0.0 { 1 } else { -1 };
-    println!("cx {} cz{}", cx, cz);
+    let cx = (x / 16.0).floor() as isize;
+    let cz = (z / 16.0).floor() as isize;
     if let Some(chunk_arc) = self.get_chunk(cx, cz) {
       let chunk = chunk_arc.lock().unwrap();
       return chunk.bounds_under(x, z, ht);
@@ -168,8 +167,8 @@ fn gen_height(x: f32, z: f32, weight: f32, mult: i32) -> f32 {
   use noise::Fbm;
   use noise::Point2;
   use noise::Seedable;
-  let x = x as f64 / 256.0_f64;
-  let z = z as f64 / 256.0_f64;
+  let x = x as f64 / 128.0_f64;
+  let z = z as f64 / 128.0_f64;
   let pt: Point2<f64> = [x, z];
   let noisefn = Fbm::new().set_seed(186074_u32);
   // let noise: Clamp<[f64; 2]> = Clamp::new(&noisefn).set_bounds(0.0_f64, 1.0_f64);
