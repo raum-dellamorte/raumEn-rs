@@ -118,11 +118,3 @@ fn main() {
   }
   render_mgr.clean_up();
 }
-
-// fn default_view() -> Matrix4<f32> {
-//   Matrix4::look_at(
-//     Point3::new(0f32, 0.0, 0.0),
-//     Point3::new(0.0f32, -5.0, 1.0),
-//     Vector3::unit_z(),
-//   )
-// }

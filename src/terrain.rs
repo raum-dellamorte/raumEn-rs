@@ -39,6 +39,7 @@ impl World {
   pub fn bounds_under(&self, x: f32, z: f32, ht: f32) -> (f32, f32) {
     let cx = ((x.abs() / 16.0).floor() as isize) * if x >= 0.0 { 1 } else { -1 };
     let cz = ((z.abs() / 16.0).floor() as isize) * if z >= 0.0 { 1 } else { -1 };
+    println!("cx {} cz{}", cx, cz);
     if let Some(chunk_arc) = self.get_chunk(cx, cz) {
       let chunk = chunk_arc.lock().unwrap();
       return chunk.bounds_under(x, z, ht);
