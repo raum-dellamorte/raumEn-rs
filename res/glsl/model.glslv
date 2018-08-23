@@ -17,8 +17,8 @@ uniform mat4 u_View;
 uniform vec3 light_pos;
 // uniform float use_fake_lighting;
 
-// uniform float row_count;
-// uniform vec2 offset;
+uniform float row_count;
+uniform vec2 offset;
 
 const float density = 0.007;
 const float gradient = 1.5;
@@ -28,7 +28,7 @@ void main(void) {
   
   vec4 posRelToCam = u_View * worldPos; // for fog from cam perspective
   gl_Position = u_Projection * posRelToCam;
-  v_TexCoord = a_TexCoord; // (a_TexCoord / row_count) + offset;
+  v_TexCoord = (a_TexCoord / row_count) + offset;
   
   // vec3 actualNormal = a_Norm;
   // if(use_fake_lighting > 0.5){

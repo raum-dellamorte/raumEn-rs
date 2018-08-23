@@ -45,7 +45,8 @@ pub trait RVec {
 }
 
 impl Vector2f {
-  pub fn new() -> Self { Vector2f {x: 0.0_f32, y: 0.0_f32} }
+  pub fn new(x: f32, y: f32) -> Self { Vector2f {x: x, y: y} }
+  pub fn blank() -> Self { Vector2f {x: 0.0_f32, y: 0.0_f32} }
   pub fn to_slice(&self) -> [f32; 2] { [self.x, self.y] }
   pub fn scale_to(&self, dest: &mut Self, scale: f32) {
     (*dest).x = self.x * scale;

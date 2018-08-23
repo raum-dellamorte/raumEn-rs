@@ -7,8 +7,8 @@ pub fn gen_model_shader() -> Shader {
   .add_uniforms(vec!(
     "u_Transform", "u_Projection", "u_View", "t_Texture", 
     // "use_fake_lighting", 
-    // "row_count", 
-    // "offset", 
+    "row_count", 
+    "offset", 
     // "player_loc", 
     "sky_color", 
     "shine_damper", 

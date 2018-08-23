@@ -51,8 +51,6 @@ impl RenderTexModel {
     let mut marker = pos.lock().unwrap();
     let trans_mat = marker.transformation();
     self.shader.load_matrix("u_Transform", trans_mat);
-    // self.shader.load_float("row_count", 1_f32); // float numOfRows
-    // self.shader.load_vec_2f("offset", &Vector2f {x: 0_f32, y: 0_f32}); // vec2 offset;
   }
   pub fn clean_up(&mut self) {
     self.shader.clean_up();
@@ -61,6 +59,8 @@ impl RenderTexModel {
     let (lighting, texture) = {
       let _arc = mgr.material(material);
       let material = _arc.lock().unwrap();
+      shader.load_float("row_count", material.row_count as f32); // float numOfRows
+      shader.load_vec_2f("offset", &material.offset); // vec2 offset;
       (&material.lighting.clone(), &material.texture.clone())
     };
     {
