@@ -122,11 +122,19 @@ impl Loader {
     self.textures.push(tex_id);
     Texture::new(tex_name, tex_id)
   }
-  pub fn load_to_vao_2d(&mut self, verts: &[RVertex2D]) -> RawModel {
+  pub fn load_to_vao_2d(&mut self, verts: &[f32], tex_coords: &[f32]) -> u32 {
     let vao_id = self.create_vao();
-    let vdata = verts_pos_to_glfloats_2d(&verts); self.bind_attrib(0, 2, &vdata);
+    self.bind_attrib(0, 2, &verts);
+    self.bind_attrib(1, 2, &tex_coords);
     self.unbind_vao();
-    RawModel::new(vao_id, verts.len() as i32)
+    vao_id
+  }
+  pub fn rm_vao(&mut self, id: u32) {
+    for i in 0..self.vaos.len() {
+      if self.vaos[i] == id {
+        self.vaos.remove(i);
+        break; } }
+    unsafe { DeleteVertexArrays(1_i32, &id); }
   }
   pub fn clean_up(&mut self) { unsafe {
     for vao in &self.vaos {

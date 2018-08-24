@@ -27,6 +27,7 @@ pub mod model;
 pub mod render;
 pub mod shader;
 pub mod terrain;
+pub mod text;
 pub mod texture;
 pub mod timer;
 pub mod util;
