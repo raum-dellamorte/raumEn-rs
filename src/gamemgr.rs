@@ -2,20 +2,20 @@
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
-pub use camera::Camera;
-pub use entities::Entity;
-// pub use entities::Entities;
-pub use entities::mobs::Mob;
-pub use input::Handler;
-pub use material::Material;
-pub use loader::Loader;
-pub use model::{RawModel};
-pub use render::{RenderMgr, };
-pub use shader::lighting::{Lighting, Lights};
-pub use shader::Shader;
-pub use terrain::World;
-pub use texture::Texture;
-pub use util::rmatrix::Matrix4f;
+use camera::Camera;
+use entities::Entity;
+// use entities::Entities;
+// use entities::mobs::Mob;
+use input::Handler;
+use material::Material;
+use loader::Loader;
+use model::{RawModel};
+// use render::{RenderMgr, };
+use shader::lighting::{Lighting, Lights};
+// use shader::Shader;
+use terrain::World;
+use texture::Texture;
+use util::rmatrix::Matrix4f;
 
 #[derive(Clone)]
 pub struct GameMgr {
