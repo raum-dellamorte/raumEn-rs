@@ -1,4 +1,6 @@
+#![recursion_limit="128"]
 #[allow(unused_imports)]
+#[allow(dead_code)]
 
 extern crate gl;
 extern crate glutin;
@@ -118,4 +120,12 @@ fn main() {
     gl_window.swap_buffers().unwrap();
   }
   render_mgr.clean_up();
+}
+
+pub const EOF: &str = "\04";
+
+pub fn eof(string: &str) -> String {
+  let mut out = string.to_owned();
+  out.push_str(EOF);
+  out
 }
