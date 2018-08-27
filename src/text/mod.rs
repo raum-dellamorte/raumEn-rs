@@ -7,8 +7,8 @@ use text::guitext::GuiTextVals;
 // use text::metafile::MetaFile;
 use text::rtmc::RTextMeshCreator;
 
-const SPACE_ASCII: u32 = 32;
-const LINE_HEIGHT: f32 = 0.03;
+pub const SPACE_ASCII: u32 = 32;
+pub const LINE_HEIGHT: f32 = 0.03;
 
 pub struct RFontType {
   pub tex_atlas: String,

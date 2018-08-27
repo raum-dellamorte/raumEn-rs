@@ -1,4 +1,6 @@
 
+
+
 use gamemgr::GameMgr;
 use loader::Loader;
 use text::{RFontType, RTextMesh};
@@ -44,6 +46,7 @@ impl GuiText {
     self.num_of_lines = tmp.num_of_lines;
     self.loaded = true;
   }
+  #[allow(dead_code)]
   fn update(&mut self, loader: &mut Loader, text: &str) {
     self.text = text.to_string();
     if self.text_mesh_vao == 0 { return }
