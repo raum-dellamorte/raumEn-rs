@@ -1,6 +1,9 @@
 pub mod guitext;
 pub mod metafile;
 pub mod rtmc;
+pub mod textmgr;
+
+pub use text::textmgr::TextMgr;
 
 use gamemgr::GameMgr;
 use text::guitext::GuiTextVals;
