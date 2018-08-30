@@ -125,7 +125,5 @@ fn main() {
 pub const EOF: &str = "\04";
 
 pub fn eof(string: &str) -> String {
-  let mut out = string.to_owned();
-  out.push_str(EOF);
-  out
+  [string, EOF].join("")
 }
