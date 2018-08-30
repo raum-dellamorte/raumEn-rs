@@ -11,7 +11,6 @@ pub struct GuiObj {
   pub scale: Vector2f,
   pub transMat: Matrix4f,
 }
-
 impl GuiObj {
   pub fn new() -> Self {
     let verts: Vec<Vertex2D> = Vec::new();
@@ -26,12 +25,10 @@ impl GuiObj {
       transMat: Matrix4f::new(),
     }
   }
-  
   pub fn transformation(&mut self) -> [[f32; 4]; 4] {
     self.calc_transformation();
     self.transMat.as_slice()
   }
-  
   fn calc_transformation(&mut self) {
     self.transMat.setIdentity();
     let x = (&self.pos.x *  2.0_f32) - 1.0_f32;
@@ -44,7 +41,6 @@ impl GuiObj {
 pub struct HUD {
   pub elements: Vec<GuiObj>,
 }
-
 impl HUD {
   pub fn new() -> Self {
     HUD {
