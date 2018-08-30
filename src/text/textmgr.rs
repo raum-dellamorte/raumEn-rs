@@ -24,11 +24,9 @@ impl TextMgr {
     println!("Adding Font: {}", fname);
     self.fonts.insert(fname.to_owned(), RFontType::new(mgr, fname));
   }
-  
   pub fn add_fonts(&mut self, mgr: GameMgr, fnames: &[String]) {
     for fname in fnames { self.add_font(mgr.clone(), fname) }
   }
-  
   pub fn new_text(&mut self, mgr: GameMgr, label: &str, text: &str, font_name: &str,
               font_size: f32, x: f32, y: f32,
               line_max_size: f32, is_centered: bool, enable: bool)
