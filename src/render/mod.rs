@@ -1,11 +1,13 @@
 #[allow(non_snake_case)]
 #[allow(unused_imports)]
 
+pub mod font;
 pub mod model;
 pub mod terrain;
 
 use render::model::RenderTexModel;
 use render::terrain::RenderTerrain;
+use render::font::RenderFont;
 
 use gl::*;
 // use gl::types::{GLuint, }; // GLfloat, GLenum, GLint, GLchar, GLsizeiptr, GLboolean, 
@@ -40,6 +42,7 @@ pub struct RenderMgr {
   pub mgr: GameMgr,
   pub ren_tex_model: RenderTexModel,
   pub ren_terrain: RenderTerrain,
+  pub ren_font: RenderFont,
 }
 
 impl RenderMgr {
@@ -48,6 +51,7 @@ impl RenderMgr {
       mgr: GameMgr::new(),
       ren_tex_model: RenderTexModel::new(),
       ren_terrain: RenderTerrain::new(),
+      ren_font: RenderFont::new(),
     }
   }
   pub fn render(&mut self) { 
@@ -55,6 +59,7 @@ impl RenderMgr {
     self.mgr.create_view_matrix();
     self.ren_tex_model.render(&mut self.mgr.clone());
     self.ren_terrain.render(&mut self.mgr.clone());
+    self.ren_font.render(self.mgr.clone());
     unsafe { BindVertexArray(0); }
   }
   pub fn load_proj_mat(&mut self, size: PhysicalSize) {

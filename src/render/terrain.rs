@@ -8,7 +8,7 @@ use CVOID;
 // use entities::position::PosMarker;
 use gamemgr::GameMgr;
 use model::RawModel;
-use shader::terrain::gen_terrain_shader;
+use shader::gen_terrain_shader;
 use shader::Shader;
 use terrain::Platform; // World, Chunk, ChunkColumn, 
 use texture::Texture;

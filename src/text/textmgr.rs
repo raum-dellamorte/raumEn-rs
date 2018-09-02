@@ -21,8 +21,11 @@ impl TextMgr {
     }
   }
   pub fn add_font(&mut self, mgr: GameMgr, fname: &str) {
-    println!("Adding Font: {}", fname);
-    self.fonts.insert(fname.to_owned(), RFontType::new(mgr, fname));
+    let mut mgr = mgr;
+    // println!("Adding Font: {}", fname);
+    self.fonts.insert(fname.to_owned(), RFontType::new(mgr.clone(), fname));
+    // println!("Adding Font Texture: {}", fname);
+    mgr.new_texture(fname);
   }
   pub fn add_fonts(&mut self, mgr: GameMgr, fnames: &[String]) {
     for fname in fnames { self.add_font(mgr.clone(), fname) }
@@ -31,15 +34,22 @@ impl TextMgr {
               font_size: f32, x: f32, y: f32,
               line_max_size: f32, is_centered: bool, enable: bool)
   {
+    // println!("Adding text {}", label);
     let gt = GuiText::new(font_name, label, text, Vector2f::new(x, y), font_size, line_max_size, is_centered);
     self.texts.insert(label.to_owned(), gt);
     if enable { self.enable_label(mgr, label) }
   }
   pub fn enable_label(&mut self, mgr: GameMgr, label: &str) {
+    // println!("Enabling text {}", label);
     let mut font = "".to_owned();
-    if let Some(text) = self.texts.get_mut(label) {
-      text.load(mgr);
+    let mut text = self.texts.remove(label);
+    if let Some(ref mut text) = text {
+      text.load(self, mgr);
       font = text.font.clone();
+    }
+    // println!("Text font: {}", font);
+    if text.is_some() {
+      self.texts.insert(label.to_owned(), text.unwrap());
     }
     let mut hs: Option<HashSet<String>> = None;
     if !font.is_empty() {
@@ -55,6 +65,7 @@ impl TextMgr {
       }
     }
     if hs.is_some() {
+      println!("Adding text {} to active_text", label);
       self.active_text.insert(font, hs.unwrap());
     }
   }
@@ -73,9 +84,13 @@ impl TextMgr {
     if rm { self.active_text.remove(&font); }
   }
   #[allow(dead_code)]
-  pub fn update(&mut self, mgr: GameMgr, label: String, new_text: &str) {
-    if let Some(text) = self.texts.get_mut(&label) {
-      text.update(mgr, new_text);
+  pub fn update(&mut self, mgr: GameMgr, label: &str, new_text: &str) {
+    let mut text = self.texts.remove(label);
+    if let Some(ref mut text) = text {
+      text.update(self, mgr, new_text);
+    }
+    if text.is_some() {
+      self.texts.insert(label.to_owned(), text.unwrap());
     }
   }
 }

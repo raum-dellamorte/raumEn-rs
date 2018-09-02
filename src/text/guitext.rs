@@ -2,7 +2,7 @@
 
 
 use gamemgr::GameMgr;
-use text::{RTextMesh, }; // RFontType, 
+use text::{TextMgr, RTextMesh, }; // RFontType, 
 use util::rvector::{Vector2f, Vector3f, };
 
 pub struct GuiText {
@@ -36,24 +36,30 @@ impl GuiText {
       loaded: false,
     }
   }
-  pub fn load(&mut self, mgr: GameMgr) {
+  pub fn load(&mut self, textmgr: &mut TextMgr, mgr: GameMgr) {
     if self.loaded { return }
-    let fonts_arc = mgr.fonts.clone();
-    let mut fonts = fonts_arc.lock().unwrap();
-    if let Some(font) = fonts.get_mut(&self.font) {
-      let mut tmp = self.copy_vals();
-      let data: RTextMesh = font.load_text(&mut tmp);
-      let vao = {
-        let _arc = mgr.loader.clone();
-        let mut loader = _arc.lock().unwrap();
-        loader.load_to_vao_2d(&data.verts, &data.tex_coords)
-      };
-      self.set_mesh_info(vao, data.vert_count);
-      self.num_of_lines = tmp.num_of_lines;
-      self.loaded = true;
+    println!("Attempting to load guitext to vao");
+    let mut data: Option<RTextMesh> = None;
+    {
+      for font in textmgr.fonts.get_mut(&self.font) {
+        let mut tmp = self.copy_vals();
+        data = Some(font.load_text(&mut tmp));
+        println!("  data: {:?}", &data);
+        self.num_of_lines = tmp.num_of_lines;
+      }
     }
+    println!("  stage 2");
+    let data = data.unwrap();
+    let vao = {
+      let _arc = mgr.loader.clone();
+      let mut loader = _arc.lock().unwrap();
+      loader.load_to_vao_2d(&data.verts, &data.tex_coords)
+    };
+    println!("  vao: {:?}", vao);
+    self.set_mesh_info(vao, data.vert_count);
+    self.loaded = true;
   }
-  pub fn update(&mut self, mgr: GameMgr, text: &str) {
+  pub fn update(&mut self, textmgr: &mut TextMgr, mgr: GameMgr, text: &str) {
     self.text = text.to_string();
     if self.text_mesh_vao == 0 { return }
     {
@@ -62,7 +68,7 @@ impl GuiText {
       loader.rm_vao(self.text_mesh_vao);
     }
     self.loaded = false;
-    self.load(mgr);
+    self.load(textmgr, mgr);
   }
   pub fn set_colour(&mut self, r: f32, g: f32, b: f32) { self.colour.from_f32(r, g, b); }
   pub fn set_mesh_info(&mut self, vao: u32, vert_count: u32) {
@@ -79,7 +85,7 @@ impl GuiText {
     }
   }
 }
-
+#[derive(Debug)]
 pub struct GuiTextVals {
   pub text: String,
   pub font_size: f32,

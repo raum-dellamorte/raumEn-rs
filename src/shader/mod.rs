@@ -1,7 +1,12 @@
+pub mod font;
 pub mod lighting;
 pub mod model;
 pub mod terrain;
 //pub mod compute;
+
+pub use shader::model::gen_model_shader;
+pub use shader::terrain::gen_terrain_shader;
+pub use shader::font::gen_font_shader;
 
 use gl::*;
 use gl::types::{GLenum, GLuint, GLint, GLfloat, }; // GLchar, GLsizeiptr, GLboolean, 

@@ -1,6 +1,6 @@
 #![recursion_limit="128"]
-#[allow(unused_imports)]
-#[allow(dead_code)]
+#![allow(unused_imports)]
+#![allow(dead_code)]
 
 extern crate gl;
 extern crate glutin;
@@ -46,6 +46,10 @@ pub use terrain::World;
 pub use timer::Timer;
 
 fn main() {
+  // Test code for parsing fnt files
+  // use text::metafile::test_noms;
+  // test_noms();
+  
   let mut events_loop = glutin::EventsLoop::new();
   let window = glutin::WindowBuilder::new()
     .with_title("RaumEn")
@@ -64,34 +68,40 @@ fn main() {
   }
   
   let mut render_mgr = RenderMgr::new();
-  let mut game_mgr = render_mgr.mgr.clone();
-  
+  let mut mgr = render_mgr.mgr.clone();
   let mut spaceship = {
-    game_mgr.new_model("spaceship");
-    game_mgr.new_material("spaceship", "spaceship", "metal");
-    game_mgr.new_entity("spaceship", "spaceship", "spaceship");
-    game_mgr.mod_entity("spaceship", |ships| {
+    mgr.new_model("spaceship");
+    mgr.new_material("spaceship", "spaceship", "metal");
+    mgr.new_entity("spaceship", "spaceship", "spaceship");
+    mgr.mod_entity("spaceship", |ships| {
       ships.new_instance().set_pos(0.0,10.0,0.0);
       ships.new_instance().set_pos(10.0,0.0,-10.0);
       ships.new_instance().set_pos(-12.0,5.0,-15.0);
     });
-    game_mgr.new_material("dirt", "dirt", "flat");
-    game_mgr.new_model("platform");
+    mgr.new_material("dirt", "dirt", "flat");
+    mgr.new_model("platform");
     println!("entities loaded");
-    let _arc = game_mgr.entities.clone();
+    let _arc = mgr.entities.clone();
     let hm = _arc.lock().unwrap();
     hm.get("spaceship").unwrap().first().create_mob("player")
   };
   
-  println!("Starting game loop.");
-  let mut running = true;
   {
     let dpi = gl_window.get_hidpi_factor();
     let size = gl_window.get_inner_size().unwrap().to_physical(dpi);
     render_mgr.load_proj_mat(size);
   }
+  {
+    let _textmgr = mgr.clone().textmgr.take().unwrap();
+    let mut textmgr = _textmgr.lock().unwrap();
+    textmgr.add_font(mgr.clone(), "pirate");
+    textmgr.add_font(mgr.clone(), "sans");
+    textmgr.new_text(mgr.clone(), "Title", "The Never", "pirate", 4.0, 0.0, 0.0, 1.0, true, true);
+  }
+  println!("Starting game loop.");
+  let mut running = true;
   while running {
-    game_mgr.handler_do(|handler| {
+    mgr.handler_do(|handler| {
       handler.timer.tick();
       handler.reset_delta();
     });
@@ -105,16 +115,16 @@ fn main() {
             gl_window.resize(size);
             render_mgr.load_proj_mat(size);
           },
-          _ => { game_mgr.handler_do(|handler| { handler.window_event(&event); }); }
+          _ => { mgr.handler_do(|handler| { handler.window_event(&event); }); }
         },
         glutin::Event::DeviceEvent{ event, ..} => {
-          game_mgr.handler_do(|handler| { handler.device_event(&event); });
+          mgr.handler_do(|handler| { handler.device_event(&event); });
         }
         e => println!("Other Event:\n{:?}", e)
       }
     });
-    spaceship.move_mob(game_mgr.handler.clone(), game_mgr.world.clone());
-    game_mgr.camera_do(|camera| { camera.calc_pos(spaceship.pos.clone()); });
+    spaceship.move_mob(mgr.handler.clone(), mgr.world.clone());
+    mgr.camera_do(|camera| { camera.calc_pos(spaceship.pos.clone()); });
     render_mgr.render();
     
     gl_window.swap_buffers().unwrap();

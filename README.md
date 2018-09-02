@@ -16,9 +16,10 @@ The "engine" is currently able to:
 - accept keyboard and mouse input
 - move a Mob object with WASD keys
 - Terrain! (A work in progress)
+- draw text to the screen (plenty of tweaking to do here)
 
 Near future ToDo:
-- determine textures and objects to load from a data file
+- determine textures and objects to load from a data file (perhaps yaml?)
 - improve Mob movement
 - implement rudimentary animation
 

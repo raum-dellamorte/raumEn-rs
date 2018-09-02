@@ -6,6 +6,7 @@ use text::{RChar, RLine, RWord, RTextMesh, SPACE_ASCII, LINE_HEIGHT, }; // RFont
 use text::guitext::GuiTextVals;
 use text::metafile::MetaFile;
 
+#[derive(Debug)]
 pub struct RTextMeshCreator {
   pub line_ht: f32,
   pub space_ascii: u32,
@@ -42,6 +43,7 @@ impl RTextMeshCreator {
     RTextMesh::new(verts, t_coords)
   }
   fn create_structure(&mut self, text: &GuiTextVals) -> Vec<RLine> {
+    // println!("GuiTextVals: {:?}", text);
     let chars = text.text.as_bytes();
     let mut lines: Vec<RLine> = Vec::new();
     let mut current_line = RLine::new(self.metadata.space_width, text.font_size, text.line_max_size);
@@ -50,15 +52,17 @@ impl RTextMeshCreator {
       let ascii = *chr as u32;
       if ascii == self.space_ascii {
         current_word = current_line.try_add_word(&mut current_word);
-        if !current_word.is_none() {
+        if current_word.is_some() {
           lines.push(current_line);
           current_line = RLine::new(self.metadata.space_width, text.font_size, text.line_max_size);
           current_line.try_add_word(&mut current_word);
+          // println!("CurrentLine: {:?}", &current_line);
         }
         current_word = Some(RWord::new(text.font_size));
-        
+        continue
       }
       let character = self.metadata.get(ascii);
+      // println!("RChar: {:?}", &character);
       if current_word.is_some() { let mut cw = current_word.take().unwrap(); cw.add_char(character); current_word = Some(cw); }
     }
     current_word = current_line.try_add_word(&mut current_word);
@@ -83,6 +87,9 @@ fn add_verts_for_char(verts: &mut Vec<f32>, x_curser: f32, y_curser: f32, rchar:
   push_verts(verts, x_proper, y_proper, x_proper_max, y_proper_max);
 }
 fn push_verts(verts: &mut Vec<f32>, x: f32, y: f32, x_max: f32, y_max: f32) {
+  let mut tmp = Vec::new();
+  tmp.append(verts);
+  verts.clear();
   verts.push(x);
   verts.push(y);
   verts.push(x);
@@ -95,8 +102,12 @@ fn push_verts(verts: &mut Vec<f32>, x: f32, y: f32, x_max: f32, y_max: f32) {
   verts.push(y);
   verts.push(x);
   verts.push(y);
+  verts.append(&mut tmp);
 }
 fn push_tex_coords(tex_coords: &mut Vec<f32>, x: f32, y: f32, x_max: f32, y_max: f32) {
+  let mut tmp = Vec::new();
+  tmp.append(tex_coords);
+  tex_coords.clear();
   tex_coords.push(x);
   tex_coords.push(y);
   tex_coords.push(x);
@@ -109,4 +120,5 @@ fn push_tex_coords(tex_coords: &mut Vec<f32>, x: f32, y: f32, x_max: f32, y_max:
   tex_coords.push(y);
   tex_coords.push(x);
   tex_coords.push(y);
+  tex_coords.append(&mut tmp);
 }

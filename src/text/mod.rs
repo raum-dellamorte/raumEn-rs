@@ -13,22 +13,24 @@ use text::rtmc::RTextMeshCreator;
 pub const SPACE_ASCII: u32 = 32;
 pub const LINE_HEIGHT: f32 = 0.03;
 
+#[derive(Debug)]
 pub struct RFontType {
   pub tex_atlas: String,
-  pub loader: RTextMeshCreator,
+  pub rtmc: RTextMeshCreator,
 }
 impl RFontType {
   pub fn new(mgr: GameMgr, font: &str) -> Self {
     Self {
-      tex_atlas: String::new(),
-      loader: RTextMeshCreator::new(mgr, &format!("res/fonts/{}.fnt", font)),
+      tex_atlas: font.to_owned(),
+      rtmc: RTextMeshCreator::new(mgr, font),
     }
   }
   pub fn load_text(&mut self, text: &mut GuiTextVals) -> RTextMesh {
-    self.loader.create_text_mesh(text)
+    self.rtmc.create_text_mesh(text)
   }
 }
 
+#[derive(Debug)]
 pub struct RTextMesh {
   pub verts: Vec<f32>,
   pub tex_coords: Vec<f32>,
@@ -36,7 +38,7 @@ pub struct RTextMesh {
 }
 impl RTextMesh {
   pub fn new(verts: Vec<f32>, tex_coords: Vec<f32>) -> Self {
-    let count = verts.len();
+    let count = verts.len() / 2;
     Self {
       verts: verts,
       tex_coords: tex_coords,
@@ -45,6 +47,7 @@ impl RTextMesh {
   }
 }
 
+#[derive(Debug)]
 pub struct RLine {
   pub words: Vec<RWord>,
   pub line_length: f32,
@@ -64,6 +67,7 @@ impl RLine {
     let word = word.take().unwrap();
     let mut plus_length = (&word).width;
     if !self.words.is_empty() { plus_length += self.space_size; }
+    // println!("size: {} trying to add word: {:?}, ", plus_length, word);
     if self.line_length + plus_length <= self.max_length {
       self.words.push(word);
       self.line_length += plus_length;
@@ -74,6 +78,7 @@ impl RLine {
   }
 }
 
+#[derive(Debug)]
 pub struct RWord {
   pub font_size: f32,
   pub chars: Vec<RChar>,
@@ -88,7 +93,7 @@ impl RWord {
     }
   }
   pub fn add_char(&mut self, char: Option<&RChar>) {
-    if !char.is_none() {
+    if char.is_some() {
       let char = char.unwrap();
       self.width += char.x_advance * self.font_size;
       self.chars.push((*char).clone());
@@ -96,7 +101,7 @@ impl RWord {
   }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct RChar {
   pub id: u32,
   pub x_tex: f32, pub y_tex: f32,

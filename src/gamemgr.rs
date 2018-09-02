@@ -14,7 +14,7 @@ use model::{RawModel};
 use shader::lighting::{Lighting, Lights};
 // use shader::Shader;
 use terrain::World;
-use text::{TextMgr, RFontType};
+use text::{TextMgr, }; // RFontType, 
 use texture::Texture;
 use util::rmatrix::Matrix4f;
 
@@ -25,13 +25,13 @@ pub struct GameMgr {
   pub lights: Arc<Mutex<Lights>>,
   pub camera: Arc<Mutex<Camera>>,
   pub world: Arc<Mutex<World>>,
-  pub textmgr: Arc<Mutex<TextMgr>>,
+  pub textmgr: Option<Arc<Mutex<TextMgr>>>,
   pub entities: Arc<Mutex<HashMap<String, Entity>>>,
   pub models: Arc<Mutex<HashMap<String, Arc<RawModel>>>>,
   pub materials: Arc<Mutex<HashMap<String, Arc<Mutex<Material>>>>>,
   pub textures: Arc<Mutex<HashMap<String, Arc<Texture>>>>,
   pub lightings: Arc<Mutex<HashMap<String, Arc<Mutex<Lighting>>>>>,
-  pub fonts: Arc<Mutex<HashMap<String, RFontType>>>,
+  // pub fonts: Option<Arc<Mutex<HashMap<String, RFontType>>>>,
   pub view_mat: Matrix4f,
 }
 
@@ -56,13 +56,13 @@ impl GameMgr {
       lights: Arc::new(Mutex::new(lights)),
       camera: camera,
       world: Arc::new(Mutex::new(world)),
-      textmgr: Arc::new(Mutex::new(textmgr)),
+      textmgr: Some(Arc::new(Mutex::new(textmgr))),
       entities: Arc::new(Mutex::new(HashMap::new())),
       models: Arc::new(Mutex::new(HashMap::new())),
       materials: Arc::new(Mutex::new(HashMap::new())),
       textures: Arc::new(Mutex::new(HashMap::new())),
       lightings: Arc::new(Mutex::new(HashMap::new())),
-      fonts: Arc::new(Mutex::new(HashMap::new())),
+      // fonts: Some(Arc::new(Mutex::new(HashMap::new()))),
       view_mat: Matrix4f::new(),
     }
   }
@@ -147,6 +147,7 @@ impl GameMgr {
     };
     let _arc = self.textures.clone();
     let mut hm = _arc.lock().unwrap();
+    // println!("texture: image<{}> tex_id<{}>", name, texture.tex_id);
     hm.insert(name.to_string(), Arc::new(texture));
   }
   pub fn new_lighting(&mut self, name: &str) {

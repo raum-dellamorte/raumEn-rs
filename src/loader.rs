@@ -114,9 +114,10 @@ impl Loader {
       );
       TexParameteri(TEXTURE_2D, TEXTURE_WRAP_S, REPEAT as i32);
       TexParameteri(TEXTURE_2D, TEXTURE_WRAP_T, REPEAT as i32);
+      GenerateMipmap(TEXTURE_2D);
       TexParameteri(TEXTURE_2D, TEXTURE_MIN_FILTER, LINEAR_MIPMAP_LINEAR as i32);
       TexParameteri(TEXTURE_2D, TEXTURE_MAG_FILTER, LINEAR as i32);
-      GenerateMipmap(TEXTURE_2D);
+      TexParameterf(TEXTURE_2D, TEXTURE_LOD_BIAS, 0.0);
       //BindTexture(TEXTURE_2D, 0);
     }
     self.textures.push(tex_id);

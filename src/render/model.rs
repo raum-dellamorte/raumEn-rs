@@ -10,7 +10,7 @@ use entities::position::PosMarker;
 use gamemgr::GameMgr;
 use model::RawModel;
 // use shader::lighting::Lights;
-use shader::model::gen_model_shader;
+use shader::gen_model_shader;
 use shader::Shader;
 use texture::Texture;
 use util::rvector::{Vector3f, }; // Vector2f, Vector4f, 
