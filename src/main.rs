@@ -20,6 +20,7 @@ const CVOID: *const c_void = 0 as *const c_void;
 
 // in project stuff
 pub mod camera;
+pub mod display;
 pub mod entities;
 pub mod gamemgr;
 pub mod input;
@@ -35,10 +36,13 @@ pub mod timer;
 pub mod util;
 
 pub use camera::Camera;
+pub use display::Display;
 pub use entities::Entity;
 pub use entities::mobs::Mob;
+pub use gamemgr::GameMgr;
 pub use input::Handler;
 pub use loader::Loader;
+pub use material::Material;
 pub use render::{RenderMgr, };
 pub use shader::lighting::Lights;
 pub use shader::Shader;
@@ -89,7 +93,7 @@ fn main() {
   {
     let dpi = gl_window.get_hidpi_factor();
     let size = gl_window.get_inner_size().unwrap().to_physical(dpi);
-    render_mgr.load_proj_mat(size);
+    render_mgr.update_size(size.into());
   }
   {
     let _textmgr = mgr.clone().textmgr.take().unwrap();
@@ -113,7 +117,7 @@ fn main() {
             let dpi = gl_window.get_hidpi_factor();
             let size = logical_size.to_physical(dpi);
             gl_window.resize(size);
-            render_mgr.load_proj_mat(size);
+            render_mgr.update_size(size.into());
           },
           _ => { mgr.handler_do(|handler| { handler.window_event(&event); }); }
         },

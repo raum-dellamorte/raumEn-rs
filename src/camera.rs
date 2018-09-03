@@ -5,14 +5,14 @@ use glutin::MouseButton as MB;
 
 use entities::mobs::Mob;
 use entities::position::PosMarker;
-use input::Handler;
+use GameMgr;
+use Handler;
 use util::rmatrix::Matrix4f;
 use util::rvector::{RVec, Vector3f, XVEC, YVEC}; // , ZVEC
 // use util::rvertex::RVertex;
 
 pub struct Camera {
   pub handler: Arc<Mutex<Handler>>,
-  pub dimensions: (u32, u32),
   pub pos: Vector3f,
   pub pos_bak: Vector3f,
   pub pitch: f32,
@@ -29,14 +29,12 @@ pub struct Camera {
   to_focus_pos: Vector3f,
   
   pub view_mat: Matrix4f,
-  pub proj_mat: Matrix4f,
 }
 
 impl Camera {
   pub fn new(handler: Arc<Mutex<Handler>>) -> Self {
     Camera {
       handler: handler,
-      dimensions: (0, 0),
       pos: Vector3f {x: 0_f32, y: 5_f32, z: 0_f32},
       pos_bak: Vector3f {x: 0_f32, y: 5_f32, z: 0_f32},
       pitch: 25_f32,
@@ -51,31 +49,7 @@ impl Camera {
       to_pos: Vector3f {x: 0_f32, y: 0_f32, z: 0_f32},
       to_focus_pos: Vector3f {x: 0_f32, y: 0_f32, z: 0_f32},
       view_mat: Matrix4f::new(),
-      proj_mat: Matrix4f::new(),
     }
-  }
-  
-  pub fn update_size(&mut self, dimensions: (u32, u32)) {
-    self.dimensions = dimensions;
-  }
-  
-  pub fn projection(&mut self) -> &Matrix4f {
-    let (width, height) = self.dimensions;
-    let aspect_ratio = height as f32 / width as f32;
-    let fov: f32 = 3.141592 / 3.0;
-    let zfar = 1024.0;
-    let znear = 0.1;
-    let y_scale = 1_f32 / (fov / 2_f32).tan();
-    let frustum_length = zfar - znear;
-    
-    self.proj_mat.set_identity();
-    self.proj_mat.set_m00(y_scale / aspect_ratio);
-    self.proj_mat.set_m11(y_scale);
-    self.proj_mat.set_m22(-((zfar + znear) / frustum_length));
-    self.proj_mat.set_m23(-1_f32);
-    self.proj_mat.set_m32(-(2_f32 * znear * zfar) / frustum_length);
-    self.proj_mat.set_m33(0_f32);
-    &self.proj_mat
   }
   
   pub fn store(&mut self) {

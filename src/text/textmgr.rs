@@ -65,7 +65,7 @@ impl TextMgr {
       }
     }
     if hs.is_some() {
-      println!("Adding text {} to active_text", label);
+      // println!("Adding text {} to active_text", label);
       self.active_text.insert(font, hs.unwrap());
     }
   }
@@ -84,13 +84,41 @@ impl TextMgr {
     if rm { self.active_text.remove(&font); }
   }
   #[allow(dead_code)]
-  pub fn update(&mut self, mgr: GameMgr, label: &str, new_text: &str) {
+  pub fn update_text(&mut self, mgr: GameMgr, label: &str, new_text: &str) {
     let mut text = self.texts.remove(label);
     if let Some(ref mut text) = text {
-      text.update(self, mgr, new_text);
+      text.update_text(self, mgr, new_text);
     }
     if text.is_some() {
       self.texts.insert(label.to_owned(), text.unwrap());
+    }
+  }
+  pub fn update_size(&mut self, mgr: GameMgr) {
+    let mut fonts = Vec::new();
+    for (font, _) in &self.fonts {
+      fonts.push(font.to_owned());
+    }
+    for font in &fonts {
+      let mut fnt = self.fonts.remove(font);
+      if let Some(ref mut fnt) = fnt {
+        fnt.update_size(mgr.clone());
+      }
+      if fnt.is_some() {
+        self.fonts.insert(font.to_owned(), fnt.unwrap());
+      }
+    }
+    let mut labels = Vec::new();
+    for (label, _) in &self.texts {
+      labels.push(label.to_owned());
+    }
+    for label in &labels {
+      let mut text = self.texts.remove(label);
+      if let Some(ref mut text) = text {
+        text.update_size(self, mgr.clone());
+      }
+      if text.is_some() {
+        self.texts.insert(label.to_owned(), text.unwrap());
+      }
     }
   }
 }

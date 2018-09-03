@@ -209,6 +209,7 @@ pub struct MetaFile {
   aspect_ratio: f32,
   vertical_per_pixel_size: f32,
   horizontal_per_pixel_size: f32,
+  image_width: f32,
   pub space_width: f32,
   padding: Vec<u32>,
   padding_width: u32,
@@ -222,18 +223,13 @@ pub struct MetaFile {
 }
 impl MetaFile {
   pub fn new(mgr: GameMgr, font_file: &str) -> Self {
-    let aspect_ratio = {
-      let cam = mgr.camera.clone();
-      let cam = cam.lock().unwrap();
-      let (w, h) = cam.dimensions;
-      // println!("w: {:?} h: {:?}", w, h);
-      w as f32 / h as f32
-    };
+    let aspect_ratio = mgr.aspect_ratio();
     
     let mut out = Self {
       aspect_ratio: aspect_ratio,
       vertical_per_pixel_size: 0.0,
       horizontal_per_pixel_size: 0.0,
+      image_width: 512.0,
       space_width: 0.03,
       padding: Vec::new(),
       padding_width: 0,
@@ -264,8 +260,8 @@ impl MetaFile {
       }
     }
     out.load_padding_data();
-    let image_width = out.load_line_sizes();
-    out.load_char_data(image_width);
+    out.load_line_sizes();
+    out.load_char_data();
     out
   }
   pub fn get(&self, ascii: u32) -> Option<&RChar> {
@@ -281,7 +277,7 @@ impl MetaFile {
     // println!("padding: {:?}", self.padding);
     self.info = Some(info);
   }
-  fn load_line_sizes(&mut self) -> f32 {
+  fn load_line_sizes(&mut self) {
     let common = self.common.take().unwrap();
     let line_height_pixels = common.line_height as i32 - self.padding_height as i32;
     self.vertical_per_pixel_size = LINE_HEIGHT / line_height_pixels as f32;
@@ -289,11 +285,16 @@ impl MetaFile {
     // println!("self.vertical_per_pixel_size: {:?}", self.vertical_per_pixel_size);
     // println!("self.horizontal_per_pixel_size: {:?}", self.horizontal_per_pixel_size);
     // println!("self.aspect_ratio: {:?}", self.aspect_ratio);
-    let image_width = common.scale_w;
+    self.image_width = common.scale_w as f32;
     self.common = Some(common);
-    image_width as f32
   }
-  fn load_char_data(&mut self, image_width: f32) {
+  pub fn update_size(&mut self, aspect_ratio: f32) {
+    self.aspect_ratio = aspect_ratio;
+    self.horizontal_per_pixel_size = self.vertical_per_pixel_size / self.aspect_ratio;
+    self.metadata.clear();
+    self.load_char_data();
+  }
+  fn load_char_data(&mut self) {
     for chr in &self.chars {
       // println!("CharVal: {:?}", chr);
       let id = chr.id;
@@ -301,14 +302,14 @@ impl MetaFile {
         self.space_width = (chr.xadvance - self.padding_width as i32) as f32 * self.horizontal_per_pixel_size;
         continue
       }
-      let x_tex = (chr.x + (self.padding[PAD_LEFT] as i32 - DESIRED_PADDING)) as f32 / image_width;
-      let y_tex = (chr.y + (self.padding[PAD_TOP] as i32 - DESIRED_PADDING)) as f32 / image_width;
+      let x_tex = (chr.x + (self.padding[PAD_LEFT] as i32 - DESIRED_PADDING)) as f32 / self.image_width;
+      let y_tex = (chr.y + (self.padding[PAD_TOP] as i32 - DESIRED_PADDING)) as f32 / self.image_width;
       let width = (chr.width - (self.padding_width as i32 - (2_i32 * DESIRED_PADDING))) as f32;
       let height = (chr.height - (self.padding_height as i32 - (2_i32 * DESIRED_PADDING))) as f32;
       let x_size = width * self.horizontal_per_pixel_size as f32;
       let y_size = height * self.vertical_per_pixel_size as f32;
-      let x_tex_size = width as f32 / image_width;
-      let y_tex_size = height as f32 / image_width;
+      let x_tex_size = width as f32 / self.image_width;
+      let y_tex_size = height as f32 / self.image_width;
       let x_offset = (chr.xoffset + (self.padding[PAD_LEFT] as i32 - DESIRED_PADDING) as f32) * self.horizontal_per_pixel_size;
       let y_offset = (chr.yoffset + (self.padding[PAD_TOP] as i32 - DESIRED_PADDING) as f32) * self.vertical_per_pixel_size;
       let x_advance = (chr.xadvance - self.padding_width as i32) as f32 * self.horizontal_per_pixel_size;

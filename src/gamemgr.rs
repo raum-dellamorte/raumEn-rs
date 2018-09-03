@@ -2,17 +2,14 @@
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
-use camera::Camera;
-use entities::Entity;
-// use entities::Entities;
-// use entities::mobs::Mob;
-use input::Handler;
-use material::Material;
-use loader::Loader;
+use Camera;
+use Display;
+use Entity;
+use Handler;
+use Material;
+use Loader;
 use model::{RawModel};
-// use render::{RenderMgr, };
 use shader::lighting::{Lighting, Lights};
-// use shader::Shader;
 use terrain::World;
 use text::{TextMgr, }; // RFontType, 
 use texture::Texture;
@@ -24,6 +21,7 @@ pub struct GameMgr {
   pub loader: Arc<Mutex<Loader>>,
   pub lights: Arc<Mutex<Lights>>,
   pub camera: Arc<Mutex<Camera>>,
+  pub display: Arc<Mutex<Display>>,
   pub world: Arc<Mutex<World>>,
   pub textmgr: Option<Arc<Mutex<TextMgr>>>,
   pub entities: Arc<Mutex<HashMap<String, Entity>>>,
@@ -43,6 +41,7 @@ impl GameMgr {
     lights.lights[0].pos.from_isize(0,500,-10);
     let handler = Arc::new(Mutex::new(Handler::new()));
     let camera = Arc::new(Mutex::new(Camera::new(handler.clone())));
+    let display = Arc::new(Mutex::new(Display::new()));
     // let ents = Entities::new(loader.clone());
     let textmgr = TextMgr::new();
     let mut world = World::new();
@@ -55,6 +54,7 @@ impl GameMgr {
       loader: loader,
       lights: Arc::new(Mutex::new(lights)),
       camera: camera,
+      display: display,
       world: Arc::new(Mutex::new(world)),
       textmgr: Some(Arc::new(Mutex::new(textmgr))),
       entities: Arc::new(Mutex::new(HashMap::new())),
@@ -65,6 +65,27 @@ impl GameMgr {
       // fonts: Some(Arc::new(Mutex::new(HashMap::new()))),
       view_mat: Matrix4f::new(),
     }
+  }
+  pub fn update_size(&mut self, dimensions: (u32, u32)) {
+    {
+      let mut d = self.display.lock().unwrap();
+      d.update_size(dimensions);
+    }
+    let mgr = self.clone();
+    let _textmgr = self.textmgr.take().unwrap();
+    {
+      let mut textmgr = _textmgr.lock().unwrap();
+      textmgr.update_size(mgr);
+    }
+    self.textmgr = Some(_textmgr);
+  }
+  pub fn aspect_ratio(&self) -> f32 {
+    let d = self.display.lock().unwrap();
+    d.aspect_ratio
+  }
+  pub fn dimensions(&self) -> (u32, u32) {
+    let d = self.display.lock().unwrap();
+    d.dimensions()
   }
   pub fn handler_do<F>(&mut self, f: F)
     where F: Fn(&mut Handler) -> ()

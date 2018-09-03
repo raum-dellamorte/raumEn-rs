@@ -20,6 +20,10 @@ impl RTextMeshCreator {
       metadata: MetaFile::new(mgr, file),
     }
   }
+  pub fn update_size(&mut self, mgr: GameMgr) {
+    self.metadata.update_size(mgr.aspect_ratio());
+    
+  }
   pub fn create_text_mesh(&mut self, text: &mut GuiTextVals) -> RTextMesh {
     let lines: Vec<RLine> = self.create_structure(text);
     text.num_of_lines = lines.len() as u32;

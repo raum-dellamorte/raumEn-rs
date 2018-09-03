@@ -62,10 +62,10 @@ impl RenderMgr {
     self.ren_font.render(self.mgr.clone());
     unsafe { BindVertexArray(0); }
   }
-  pub fn load_proj_mat(&mut self, size: PhysicalSize) {
-    let mut camera = self.mgr.camera.lock().unwrap();
-    camera.update_size(size.into());
-    let proj_mat = camera.projection();
+  pub fn update_size(&mut self, dimensions: (u32, u32)) {
+    self.mgr.update_size(dimensions);
+    let mut d = self.mgr.display.lock().unwrap();
+    let proj_mat = d.projection();
     {
       let shader = &self.ren_tex_model.shader;
       shader.start();
