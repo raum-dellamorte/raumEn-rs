@@ -2,7 +2,7 @@
 
 
 use gamemgr::GameMgr;
-use text::{RChar, RLine, RWord, RTextMesh, SPACE_ASCII, LINE_HEIGHT, }; // RFontType, 
+use text::{RChar, RLine, RWord, RTextMesh, NEWLINE_ASCII, SPACE_ASCII, LINE_HEIGHT, }; // RFontType, 
 use text::guitext::GuiTextVals;
 use text::metafile::MetaFile;
 
@@ -10,6 +10,7 @@ use text::metafile::MetaFile;
 pub struct RTextMeshCreator {
   pub line_ht: f32,
   pub space_ascii: u32,
+  pub newline_ascii: u32,
   pub metadata: MetaFile,
 }
 impl RTextMeshCreator {
@@ -17,6 +18,7 @@ impl RTextMeshCreator {
     Self {
       line_ht: LINE_HEIGHT,
       space_ascii: SPACE_ASCII,
+      newline_ascii: NEWLINE_ASCII,
       metadata: MetaFile::new(mgr, file),
     }
   }
@@ -54,12 +56,14 @@ impl RTextMeshCreator {
     let mut current_word = Some(RWord::new(text.font_size));
     for chr in chars {
       let ascii = *chr as u32;
-      if ascii == self.space_ascii {
+      if (ascii == self.space_ascii) || (ascii == self.newline_ascii) {
         current_word = current_line.try_add_word(&mut current_word);
-        if current_word.is_some() {
+        if current_word.is_some() || ascii == self.newline_ascii {
           lines.push(current_line);
           current_line = RLine::new(self.metadata.space_width, text.font_size, text.line_max_size);
-          current_line.try_add_word(&mut current_word);
+          if current_word.is_some() {
+            current_line.try_add_word(&mut current_word);
+          }
           // println!("CurrentLine: {:?}", &current_line);
         }
         current_word = Some(RWord::new(text.font_size));
@@ -67,7 +71,11 @@ impl RTextMeshCreator {
       }
       let character = self.metadata.get(ascii);
       // println!("RChar: {:?}", &character);
-      if current_word.is_some() { let mut cw = current_word.take().unwrap(); cw.add_char(character); current_word = Some(cw); }
+      if current_word.is_some() {
+        let mut cw = current_word.take().unwrap();
+        cw.add_char(character);
+        current_word = Some(cw);
+      }
     }
     current_word = current_line.try_add_word(&mut current_word);
     if current_word.is_some() {

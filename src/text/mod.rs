@@ -11,6 +11,7 @@ use text::guitext::GuiTextVals;
 use text::rtmc::RTextMeshCreator;
 
 pub const SPACE_ASCII: u32 = 32;
+pub const NEWLINE_ASCII: u32 = 10;
 pub const LINE_HEIGHT: f32 = 0.03;
 
 #[derive(Debug)]
