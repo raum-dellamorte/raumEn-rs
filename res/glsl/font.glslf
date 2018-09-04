@@ -11,7 +11,7 @@ uniform sampler2D fontAtlas;
 const float width = 0.50;
 const float edge = 0.05;
 const float widthBorder = 0.4;
-const float edgeBorder = 0.45;
+const float edgeBorder = 0.3;
 
 const vec3 colourBorder = vec3(1.0, 0.0, 0.5);
 
