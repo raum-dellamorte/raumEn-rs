@@ -90,6 +90,9 @@ fn main() {
     hm.get("spaceship").unwrap().first().create_mob("player")
   };
   
+  let mut fps: f32;
+  let mut sec = 0.0;
+  
   {
     let dpi = gl_window.get_hidpi_factor();
     let size = gl_window.get_inner_size().unwrap().to_physical(dpi);
@@ -101,6 +104,7 @@ fn main() {
     textmgr.add_font(mgr.clone(), "pirate");
     textmgr.add_font(mgr.clone(), "sans");
     textmgr.new_text(mgr.clone(), "Title", "The Never", "pirate", 4.0, 0.0, 0.0, 1.0, true, true);
+    textmgr.new_text(mgr.clone(), "FPS", "FPS: 0.0", "sans", 1.5, 0.0, 0.0, 0.3, false, true);
   }
   println!("Starting game loop.");
   let mut running = true;
@@ -127,6 +131,18 @@ fn main() {
         e => println!("Other Event:\n{:?}", e)
       }
     });
+    {
+      let handler = mgr.handler.lock().unwrap();
+      fps = handler.timer.fps;
+      sec += handler.timer.delta;
+    }
+    if sec >= 1.0 {
+      sec -= 1.0;
+      let _textmgr = mgr.clone().textmgr.take().unwrap();
+      let mut textmgr = _textmgr.lock().unwrap();
+      textmgr.update_text(mgr.clone(), "FPS", &format!("FPS: {:.3}", (fps * 1000.0).round() / 1000.0 ) );
+    }
+    
     spaceship.move_mob(mgr.handler.clone(), mgr.world.clone());
     mgr.camera_do(|camera| { camera.calc_pos(spaceship.pos.clone()); });
     render_mgr.render();
