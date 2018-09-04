@@ -70,7 +70,7 @@ impl GuiText {
       loader.rm_vao(self.text_mesh_vao);
     }
     self.loaded = false;
-    println!("Reloading GuiText");
+    // println!("Reloading GuiText");
     self.load(textmgr, mgr);
   }
   pub fn set_colour(&mut self, r: f32, g: f32, b: f32) { self.colour.from_f32(r, g, b); }
