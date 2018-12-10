@@ -222,9 +222,7 @@ pub struct MetaFile {
   chars: Vec<CharVars>,
 }
 impl MetaFile {
-  pub fn new(mgr: GameMgr, font_file: &str) -> Self {
-    let aspect_ratio = mgr.aspect_ratio();
-    
+  pub fn new(aspect_ratio: f32, font_file: &str) -> Self {
     let mut out = Self {
       aspect_ratio: aspect_ratio,
       vertical_per_pixel_size: 0.0,

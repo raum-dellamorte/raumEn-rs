@@ -28,7 +28,8 @@ impl RenderTerrain {
       trans_mat: Matrix4f::new(),
     }
   }
-  pub fn render(&mut self, mgr: &mut GameMgr) {
+  pub fn render(&mut self, mgr: GameMgr) -> GameMgr {
+    let mut mgr = mgr;
     self.shader.start();
     let _arc = mgr.world.clone();
     let mut world = _arc.lock().unwrap();
@@ -46,7 +47,7 @@ impl RenderTerrain {
       let chunk = chunk_arc.lock().unwrap();
       for col in &chunk.columns {
         for platform in &col.platforms {
-          Self::use_material(mgr, &self.shader, &platform.material);
+          Self::use_material(&mut mgr, &self.shader, &platform.material);
           self.prep_instance(platform);
           unsafe { DrawElements(TRIANGLES, vc, UNSIGNED_INT, CVOID); }
         }
@@ -54,6 +55,7 @@ impl RenderTerrain {
     }
     Self::unbind();
     self.shader.stop();
+    mgr
   }
   pub fn prep_instance(&mut self, platform: &Platform) {
     platform.transformation(&mut self.trans_mat);

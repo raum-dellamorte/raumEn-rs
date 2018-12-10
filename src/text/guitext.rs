@@ -36,8 +36,8 @@ impl GuiText {
       loaded: false,
     }
   }
-  pub fn load(&mut self, textmgr: &mut TextMgr, mgr: GameMgr) {
-    if self.loaded { return }
+  pub fn load(&mut self, textmgr: &mut TextMgr, mgr: GameMgr) -> GameMgr {
+    if self.loaded { return mgr }
     // println!("Attempting to load guitext to vao");
     let mut data: Option<RTextMesh> = None;
     {
@@ -58,20 +58,21 @@ impl GuiText {
     // println!("  vao: {:?}", vao);
     self.set_mesh_info(vao, data.vert_count);
     self.loaded = true;
+    mgr
   }
-  pub fn update_text(&mut self, textmgr: &mut TextMgr, mgr: GameMgr, text: &str) {
+  pub fn update_text(&mut self, textmgr: &mut TextMgr, mgr: GameMgr, text: &str) -> GameMgr {
     self.text = text.to_string();
-    self.update_size(textmgr, mgr);
+    self.update_size(textmgr, mgr)
   }
-  pub fn update_size(&mut self, textmgr: &mut TextMgr, mgr: GameMgr) {
-    if self.text_mesh_vao == 0 { return }
+  pub fn update_size(&mut self, textmgr: &mut TextMgr, mgr: GameMgr) -> GameMgr {
+    if self.text_mesh_vao == 0 { return mgr }
     {
       let mut loader = mgr.loader.lock().unwrap();
       loader.rm_vao(self.text_mesh_vao);
     }
     self.loaded = false;
     // println!("Reloading GuiText");
-    self.load(textmgr, mgr);
+    self.load(textmgr, mgr)
   }
   pub fn set_colour(&mut self, r: f32, g: f32, b: f32) { self.colour.from_f32(r, g, b); }
   pub fn set_mesh_info(&mut self, vao: u32, vert_count: u32) {

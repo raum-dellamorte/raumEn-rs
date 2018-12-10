@@ -72,7 +72,8 @@ fn main() {
   }
   
   let mut render_mgr = RenderMgr::new();
-  let mut mgr = render_mgr.mgr.clone();
+  let mut mgr = render_mgr.take_mgr().unwrap();
+  
   let mut spaceship = {
     mgr.new_model("spaceship");
     mgr.new_material("spaceship", "spaceship", "metal");
@@ -89,6 +90,7 @@ fn main() {
     let hm = _arc.lock().unwrap();
     hm.get("spaceship").unwrap().first().create_mob("player")
   };
+  render_mgr.return_mgr(mgr);
   
   let mut fps: f32;
   let mut sec = 0.0;
@@ -98,18 +100,23 @@ fn main() {
     let size = gl_window.get_inner_size().unwrap().to_physical(dpi);
     render_mgr.update_size(size.into());
   }
+  let mut mgr = render_mgr.take_mgr().unwrap();
   {
-    let _textmgr = mgr.clone().textmgr.take().unwrap();
-    let mut textmgr = _textmgr.lock().unwrap();
-    textmgr.add_font(mgr.clone(), "pirate");
-    textmgr.add_font(mgr.clone(), "sans");
-    textmgr.new_text(mgr.clone(), "Title", "The Never", "pirate", 4.0, 0.0, 0.0, 1.0, true, true);
-    textmgr.new_text(mgr.clone(), "FPS", "FPS: 0.0", "sans", 1.5, 0.0, 0.0, 0.3, false, true);
+    let _textmgr = mgr.textmgr.take().unwrap();
+    {
+      let mut textmgr = _textmgr.lock().unwrap();
+      mgr = textmgr.add_font(mgr, "pirate");
+      mgr = textmgr.add_font(mgr, "sans");
+      mgr = textmgr.new_text(mgr, "Title", "The Never", "pirate", 4.0, 0.0, 0.0, 1.0, true, true);
+      mgr = textmgr.new_text(mgr, "FPS", "FPS: 0.0", "sans", 1.5, 0.0, 0.0, 0.3, false, true);
+    }
+    mgr.textmgr = Some(_textmgr);
   }
+  render_mgr.return_mgr(mgr);
   println!("Starting game loop.");
   let mut running = true;
   while running {
-    mgr.handler_do(|handler| {
+    render_mgr.mgr.as_mut().unwrap().handler_do(|handler| {
       handler.timer.tick();
       handler.reset_delta();
     });
@@ -123,28 +130,37 @@ fn main() {
             gl_window.resize(size);
             render_mgr.update_size(size.into());
           },
-          _ => { mgr.handler_do(|handler| { handler.window_event(&event); }); }
+          _ => { render_mgr.mgr.as_mut().unwrap().handler_do(|handler| { handler.window_event(&event); }); }
         },
         glutin::Event::DeviceEvent{ event, ..} => {
-          mgr.handler_do(|handler| { handler.device_event(&event); });
+          render_mgr.mgr.as_mut().unwrap().handler_do(|handler| { handler.device_event(&event); });
         }
         e => println!("Other Event:\n{:?}", e)
       }
     });
+    let mut mgr = render_mgr.take_mgr().unwrap();
     {
-      let handler = mgr.handler.lock().unwrap();
-      fps = handler.timer.fps;
-      sec += handler.timer.delta;
+      {
+        let handler = mgr.handler.lock().unwrap();
+        fps = handler.timer.fps;
+        sec += handler.timer.delta;
+      }
+      if sec >= 1.0 {
+        sec -= 1.0;
+        let _textmgr = mgr.textmgr.take().unwrap();
+        {
+          let mut textmgr = _textmgr.lock().unwrap();
+          mgr = textmgr.update_text(mgr, "FPS", &format!("FPS: {:.3}", (fps * 1000.0).round() / 1000.0 ) );
+        }
+        mgr.textmgr = Some(_textmgr);
+        
+      }
+      
+      spaceship.move_mob(mgr.handler.clone(), mgr.world.clone());
+      mgr.camera_do(|camera| { camera.calc_pos(spaceship.pos.clone()); });
     }
-    if sec >= 1.0 {
-      sec -= 1.0;
-      let _textmgr = mgr.clone().textmgr.take().unwrap();
-      let mut textmgr = _textmgr.lock().unwrap();
-      textmgr.update_text(mgr.clone(), "FPS", &format!("FPS: {:.3}", (fps * 1000.0).round() / 1000.0 ) );
-    }
+    render_mgr.return_mgr(mgr);
     
-    spaceship.move_mob(mgr.handler.clone(), mgr.world.clone());
-    mgr.camera_do(|camera| { camera.calc_pos(spaceship.pos.clone()); });
     render_mgr.render();
     
     gl_window.swap_buffers().unwrap();

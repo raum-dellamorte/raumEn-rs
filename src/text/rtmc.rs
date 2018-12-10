@@ -14,17 +14,17 @@ pub struct RTextMeshCreator {
   pub metadata: MetaFile,
 }
 impl RTextMeshCreator {
-  pub fn new(mgr: GameMgr, file: &str) -> Self {
+  pub fn new(aspect_ratio: f32, file: &str) -> Self {
     Self {
       line_ht: LINE_HEIGHT,
       space_ascii: SPACE_ASCII,
       newline_ascii: NEWLINE_ASCII,
-      metadata: MetaFile::new(mgr, file),
+      metadata: MetaFile::new(aspect_ratio, file),
     }
   }
-  pub fn update_size(&mut self, mgr: GameMgr) {
+  pub fn update_size(&mut self, mgr: GameMgr) -> GameMgr {
     self.metadata.update_size(mgr.aspect_ratio());
-    
+    mgr
   }
   pub fn create_text_mesh(&mut self, text: &mut GuiTextVals) -> RTextMesh {
     let lines: Vec<RLine> = self.create_structure(text);

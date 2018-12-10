@@ -26,7 +26,8 @@ impl RenderTexModel {
       shader: gen_model_shader(),
     }
   }
-  pub fn render(&mut self, mgr: &mut GameMgr) {
+  pub fn render(&mut self, mgr: GameMgr) -> GameMgr {
+    let mut mgr = mgr;
     self.shader.start();
     self.shader.load_matrix("u_View", &mgr.view_mat);
     mgr.lights_do(|lights| { lights.load_to_shader(&self.shader); });
@@ -38,7 +39,7 @@ impl RenderTexModel {
     for entity in entities.values() {
       let model = mgr.model(&entity.model);
       Self::bind_model(&model);
-      Self::use_material(mgr, &self.shader, &entity.material);
+      Self::use_material(&mut mgr, &self.shader, &entity.material);
       for ent in &entity.instances {
         self.prep_instance(ent.marker.clone());
         unsafe { DrawElements(TRIANGLES, model.vertex_count, UNSIGNED_INT, CVOID); }
@@ -46,6 +47,7 @@ impl RenderTexModel {
       Self::unbind();
     }
     self.shader.stop();
+    mgr
   }
   pub fn prep_instance(&mut self, pos: Arc<Mutex<PosMarker>>) {
     let mut marker = pos.lock().unwrap();

@@ -15,9 +15,10 @@ use text::{TextMgr, }; // RFontType,
 use texture::Texture;
 use util::rmatrix::Matrix4f;
 
-#[derive(Clone)]
+//#[derive(Clone)]
 pub struct GameMgr {
   pub handler: Arc<Mutex<Handler>>,
+  //pub handler: Option<Box<Handler>>,
   pub loader: Arc<Mutex<Loader>>,
   pub lights: Arc<Mutex<Lights>>,
   pub camera: Arc<Mutex<Camera>>,
@@ -45,10 +46,11 @@ impl GameMgr {
     // let ents = Entities::new(loader.clone());
     let textmgr = TextMgr::new();
     let mut world = World::new();
-    world.new_chunk(0, 0);
-    world.new_chunk(-1, 0);
-    world.new_chunk(0, -1);
-    world.new_chunk(-1, -1);
+    for x_pos in 0..11 {
+      for z_pos in 0..11 {
+        world.new_chunk(x_pos - 5, z_pos - 5);
+      }
+    }
     GameMgr {
       handler: handler,
       loader: loader,
@@ -66,18 +68,19 @@ impl GameMgr {
       view_mat: Matrix4f::new(),
     }
   }
-  pub fn update_size(&mut self, dimensions: (u32, u32)) {
+  pub fn update_size(self, dimensions: (u32, u32)) -> Self {
+    let mut _self = self;
     {
-      let mut d = self.display.lock().unwrap();
+      let mut d = (&mut _self).display.lock().unwrap();
       d.update_size(dimensions);
     }
-    let mgr = self.clone();
-    let _textmgr = self.textmgr.take().unwrap();
+    let _textmgr = (&mut _self).textmgr.take().unwrap();
     {
       let mut textmgr = _textmgr.lock().unwrap();
-      textmgr.update_size(mgr);
+      _self = textmgr.update_size(_self);
     }
-    self.textmgr = Some(_textmgr);
+    (&mut _self).textmgr = Some(_textmgr);
+    _self
   }
   pub fn aspect_ratio(&self) -> f32 {
     let d = self.display.lock().unwrap();

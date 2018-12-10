@@ -20,31 +20,37 @@ impl TextMgr {
       fonts: HashMap::new(),
     }
   }
-  pub fn add_font(&mut self, mgr: GameMgr, fname: &str) {
+  pub fn add_font(&mut self, mgr: GameMgr, fname: &str) -> GameMgr {
     let mut mgr = mgr;
     // println!("Adding Font: {}", fname);
-    self.fonts.insert(fname.to_owned(), RFontType::new(mgr.clone(), fname));
+    self.fonts.insert(fname.to_owned(), RFontType::new(mgr.aspect_ratio(), fname));
     // println!("Adding Font Texture: {}", fname);
     mgr.new_texture(fname);
+    mgr
   }
-  pub fn add_fonts(&mut self, mgr: GameMgr, fnames: &[String]) {
-    for fname in fnames { self.add_font(mgr.clone(), fname) }
+  pub fn add_fonts(&mut self, mgr: GameMgr, fnames: &[String]) -> GameMgr {
+    let mut mgr = mgr;
+    for fname in fnames { mgr = self.add_font(mgr, fname); }
+    mgr
   }
   pub fn new_text(&mut self, mgr: GameMgr, label: &str, text: &str, font_name: &str,
               font_size: f32, x: f32, y: f32,
-              line_max_size: f32, is_centered: bool, enable: bool)
+              line_max_size: f32, is_centered: bool, enable: bool) -> GameMgr
   {
+    let mut mgr = mgr;
     // println!("Adding text {}", label);
     let gt = GuiText::new(font_name, label, text, Vector2f::new(x, y), font_size, line_max_size, is_centered);
     self.texts.insert(label.to_owned(), gt);
-    if enable { self.enable_label(mgr, label) }
+    if enable { mgr = self.enable_label(mgr, label); }
+    mgr
   }
-  pub fn enable_label(&mut self, mgr: GameMgr, label: &str) {
+  pub fn enable_label(&mut self, mgr: GameMgr, label: &str) -> GameMgr {
+    let mut mgr = mgr;
     // println!("Enabling text {}", label);
     let mut font = "".to_owned();
     let mut text = self.texts.remove(label);
     if let Some(ref mut text) = text {
-      text.load(self, mgr);
+      mgr = text.load(self, mgr);
       font = text.font.clone();
     }
     // println!("Text font: {}", font);
@@ -68,6 +74,7 @@ impl TextMgr {
       // println!("Adding text {} to active_text", label);
       self.active_text.insert(font, hs.unwrap());
     }
+    mgr
   }
   pub fn disable_label(&mut self, label: &str) {
     let mut rm = false;
@@ -84,16 +91,19 @@ impl TextMgr {
     if rm { self.active_text.remove(&font); }
   }
   #[allow(dead_code)]
-  pub fn update_text(&mut self, mgr: GameMgr, label: &str, new_text: &str) {
+  pub fn update_text(&mut self, mgr: GameMgr, label: &str, new_text: &str) -> GameMgr {
+    let mut mgr = mgr;
     let mut text = self.texts.remove(label);
     if let Some(ref mut text) = text {
-      text.update_text(self, mgr, new_text);
+      mgr = text.update_text(self, mgr, new_text);
     }
     if text.is_some() {
       self.texts.insert(label.to_owned(), text.unwrap());
     }
+    mgr
   }
-  pub fn update_size(&mut self, mgr: GameMgr) {
+  pub fn update_size(&mut self, mgr: GameMgr) -> GameMgr {
+    let mut mgr = mgr;
     let mut fonts = Vec::new();
     for (font, _) in &self.fonts {
       fonts.push(font.to_owned());
@@ -101,7 +111,7 @@ impl TextMgr {
     for font in &fonts {
       let mut fnt = self.fonts.remove(font);
       if let Some(ref mut fnt) = fnt {
-        fnt.update_size(mgr.clone());
+        mgr = fnt.update_size(mgr);
       }
       if fnt.is_some() {
         self.fonts.insert(font.to_owned(), fnt.unwrap());
@@ -114,11 +124,12 @@ impl TextMgr {
     for label in &labels {
       let mut text = self.texts.remove(label);
       if let Some(ref mut text) = text {
-        text.update_size(self, mgr.clone());
+        mgr = text.update_size(self, mgr);
       }
       if text.is_some() {
         self.texts.insert(label.to_owned(), text.unwrap());
       }
     }
+    mgr
   }
 }

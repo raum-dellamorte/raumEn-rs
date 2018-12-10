@@ -20,17 +20,17 @@ pub struct RFontType {
   pub rtmc: RTextMeshCreator,
 }
 impl RFontType {
-  pub fn new(mgr: GameMgr, font: &str) -> Self {
+  pub fn new(aspect_ratio: f32, font: &str) -> Self {
     Self {
       tex_atlas: font.to_owned(),
-      rtmc: RTextMeshCreator::new(mgr, font),
+      rtmc: RTextMeshCreator::new(aspect_ratio, font),
     }
   }
   pub fn load_text(&mut self, text: &mut GuiTextVals) -> RTextMesh {
     self.rtmc.create_text_mesh(text)
   }
-  pub fn update_size(&mut self, mgr: GameMgr) {
-    self.rtmc.update_size(mgr);
+  pub fn update_size(&mut self, mgr: GameMgr) -> GameMgr {
+    self.rtmc.update_size(mgr)
   }
 }
 

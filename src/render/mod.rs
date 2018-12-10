@@ -39,7 +39,7 @@ pub fn prepare() { unsafe {
 }}
 
 pub struct RenderMgr {
-  pub mgr: GameMgr,
+  pub mgr: Option<GameMgr>,
   pub ren_tex_model: RenderTexModel,
   pub ren_terrain: RenderTerrain,
   pub ren_font: RenderFont,
@@ -48,39 +48,51 @@ pub struct RenderMgr {
 impl RenderMgr {
   pub fn new() -> Self {
     RenderMgr {
-      mgr: GameMgr::new(),
+      mgr: Some(GameMgr::new()),
       ren_tex_model: RenderTexModel::new(),
       ren_terrain: RenderTerrain::new(),
       ren_font: RenderFont::new(),
     }
   }
+  pub fn take_mgr(&mut self) -> Option<GameMgr> {
+    self.mgr.take()
+  }
+  pub fn return_mgr(&mut self, mgr: GameMgr) {
+    self.mgr = Some(mgr);
+  }
   pub fn render(&mut self) { 
     prepare();
-    self.mgr.create_view_matrix();
-    self.ren_tex_model.render(&mut self.mgr.clone());
-    self.ren_terrain.render(&mut self.mgr.clone());
-    self.ren_font.render(self.mgr.clone());
+    let mut mgr = self.take_mgr().unwrap();
+    mgr.create_view_matrix();
+    mgr = self.ren_tex_model.render(mgr);
+    mgr = self.ren_terrain.render(mgr);
+    mgr = self.ren_font.render(mgr);
+    self.return_mgr(mgr);
     unsafe { BindVertexArray(0); }
   }
   pub fn update_size(&mut self, dimensions: (u32, u32)) {
-    self.mgr.update_size(dimensions);
-    let mut d = self.mgr.display.lock().unwrap();
-    let proj_mat = d.projection();
+    let mut mgr = self.take_mgr().unwrap();
     {
-      let shader = &self.ren_tex_model.shader;
-      shader.start();
-      shader.load_matrix("u_Projection", &proj_mat); // Maybe move this to Shader
-      shader.stop();
+      mgr = mgr.update_size(dimensions);
+      let mut d = mgr.display.lock().unwrap();
+      let proj_mat = d.projection();
+      {
+        let shader = &self.ren_tex_model.shader;
+        shader.start();
+        shader.load_matrix("u_Projection", &proj_mat); // Maybe move this to Shader
+        shader.stop();
+      }
+      {
+        let shader = &self.ren_terrain.shader;
+        shader.start();
+        shader.load_matrix("u_Projection", &proj_mat); // Maybe move this to Shader
+        shader.stop();
+      }
     }
-    {
-      let shader = &self.ren_terrain.shader;
-      shader.start();
-      shader.load_matrix("u_Projection", &proj_mat); // Maybe move this to Shader
-      shader.stop();
-    }
+    self.return_mgr(mgr);
   }
   pub fn clean_up(&mut self) {
-    self.mgr.clean_up();
+    self.mgr.as_mut().unwrap().clean_up();
     self.ren_tex_model.clean_up();
   }
 }
