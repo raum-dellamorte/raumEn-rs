@@ -26,7 +26,7 @@ impl RenderTexModel {
       shader: gen_model_shader(),
     }
   }
-  pub fn render(&mut self, mgr: GameMgr) -> GameMgr {
+  pub fn render(&mut self, mgr: Box<GameMgr>) -> Box<GameMgr> {
     let mut mgr = mgr;
     self.shader.start();
     self.shader.load_matrix("u_View", &mgr.view_mat);

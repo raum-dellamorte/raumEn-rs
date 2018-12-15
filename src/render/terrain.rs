@@ -28,7 +28,7 @@ impl RenderTerrain {
       trans_mat: Matrix4f::new(),
     }
   }
-  pub fn render(&mut self, mgr: GameMgr) -> GameMgr {
+  pub fn render(&mut self, mgr: Box<GameMgr>) -> Box<GameMgr> {
     let mut mgr = mgr;
     self.shader.start();
     let _arc = mgr.world.clone();

@@ -72,7 +72,7 @@ fn main() {
   }
   
   let mut render_mgr = RenderMgr::new();
-  let mut mgr = render_mgr.take_mgr().unwrap();
+  let mut mgr = render_mgr.take_mgr();
   
   let mut spaceship = {
     mgr.new_model("spaceship");
@@ -100,7 +100,7 @@ fn main() {
     let size = gl_window.get_inner_size().unwrap().to_physical(dpi);
     render_mgr.update_size(size.into());
   }
-  let mut mgr = render_mgr.take_mgr().unwrap();
+  let mut mgr = render_mgr.take_mgr();
   {
     let _textmgr = mgr.textmgr.take().unwrap();
     {
@@ -116,10 +116,12 @@ fn main() {
   println!("Starting game loop.");
   let mut running = true;
   while running {
-    render_mgr.mgr.as_mut().unwrap().handler_do(|handler| {
+    {
+      let mut handler = render_mgr.mgr.as_mut().unwrap().take_handler();
       handler.timer.tick();
       handler.reset_delta();
-    });
+      render_mgr.mgr.as_mut().unwrap().return_handler(handler);
+    }
     events_loop.poll_events(|event| {
       match event {
         glutin::Event::WindowEvent{ event, .. } => match event {
@@ -130,20 +132,27 @@ fn main() {
             gl_window.resize(size);
             render_mgr.update_size(size.into());
           },
-          _ => { render_mgr.mgr.as_mut().unwrap().handler_do(|handler| { handler.window_event(&event); }); }
+          _ => {
+            let mut handler = render_mgr.mgr.as_mut().unwrap().take_handler();
+            handler.window_event(&event);
+            render_mgr.mgr.as_mut().unwrap().return_handler(handler);
+          }
         },
         glutin::Event::DeviceEvent{ event, ..} => {
-          render_mgr.mgr.as_mut().unwrap().handler_do(|handler| { handler.device_event(&event); });
+          let mut handler = render_mgr.mgr.as_mut().unwrap().take_handler();
+          handler.device_event(&event);
+          render_mgr.mgr.as_mut().unwrap().return_handler(handler);
         }
         e => println!("Other Event:\n{:?}", e)
       }
     });
-    let mut mgr = render_mgr.take_mgr().unwrap();
+    let mut mgr = render_mgr.take_mgr();
     {
       {
-        let handler = mgr.handler.lock().unwrap();
+        let handler = mgr.take_handler();
         fps = handler.timer.fps;
         sec += handler.timer.delta;
+        mgr.return_handler(handler);
       }
       if sec >= 1.0 {
         sec -= 1.0;
@@ -156,8 +165,14 @@ fn main() {
         
       }
       
-      spaceship.move_mob(mgr.handler.clone(), mgr.world.clone());
-      mgr.camera_do(|camera| { camera.calc_pos(spaceship.pos.clone()); });
+      {
+        let mut handler = mgr.take_handler();
+        let mut camera = mgr.take_camera();
+        spaceship.move_mob(&mut handler, mgr.world.clone());
+        camera.calc_pos(&mut handler, spaceship.pos.clone());
+        mgr.return_camera(camera);
+        mgr.return_handler(handler);
+      }
     }
     render_mgr.return_mgr(mgr);
     

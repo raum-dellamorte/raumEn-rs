@@ -29,7 +29,7 @@ impl RFontType {
   pub fn load_text(&mut self, text: &mut GuiTextVals) -> RTextMesh {
     self.rtmc.create_text_mesh(text)
   }
-  pub fn update_size(&mut self, mgr: GameMgr) -> GameMgr {
+  pub fn update_size(&mut self, mgr: Box<GameMgr>) -> Box<GameMgr> {
     self.rtmc.update_size(mgr)
   }
 }

@@ -12,7 +12,6 @@ use util::rvector::{RVec, Vector3f, XVEC, YVEC}; // , ZVEC
 // use util::rvertex::RVertex;
 
 pub struct Camera {
-  pub handler: Arc<Mutex<Handler>>,
   pub pos: Vector3f,
   pub pos_bak: Vector3f,
   pub pitch: f32,
@@ -32,9 +31,8 @@ pub struct Camera {
 }
 
 impl Camera {
-  pub fn new(handler: Arc<Mutex<Handler>>) -> Self {
+  pub fn new() -> Self {
     Camera {
-      handler: handler,
       pos: Vector3f {x: 0_f32, y: 5_f32, z: 0_f32},
       pos_bak: Vector3f {x: 0_f32, y: 5_f32, z: 0_f32},
       pitch: 25_f32,
@@ -75,10 +73,8 @@ impl Camera {
     }
   }
 
-  pub fn calc_pos(&mut self, follow_arc: Arc<Mutex<PosMarker>>) {
+  pub fn calc_pos(&mut self, handler: &mut Handler, follow_arc: Arc<Mutex<PosMarker>>) {
     {
-      let handler_arc = self.handler.clone();
-      let handler = handler_arc.lock().unwrap();
       if handler.read_mouse_multi(MB::Right) {
         match handler.cursor_delta {
           Some((dx, dy)) => {

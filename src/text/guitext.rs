@@ -36,7 +36,7 @@ impl GuiText {
       loaded: false,
     }
   }
-  pub fn load(&mut self, textmgr: &mut TextMgr, mgr: GameMgr) -> GameMgr {
+  pub fn load(&mut self, textmgr: &mut TextMgr, mgr: Box<GameMgr>) -> Box<GameMgr> {
     if self.loaded { return mgr }
     // println!("Attempting to load guitext to vao");
     let mut data: Option<RTextMesh> = None;
@@ -60,11 +60,11 @@ impl GuiText {
     self.loaded = true;
     mgr
   }
-  pub fn update_text(&mut self, textmgr: &mut TextMgr, mgr: GameMgr, text: &str) -> GameMgr {
+  pub fn update_text(&mut self, textmgr: &mut TextMgr, mgr: Box<GameMgr>, text: &str) -> Box<GameMgr> {
     self.text = text.to_string();
     self.update_size(textmgr, mgr)
   }
-  pub fn update_size(&mut self, textmgr: &mut TextMgr, mgr: GameMgr) -> GameMgr {
+  pub fn update_size(&mut self, textmgr: &mut TextMgr, mgr: Box<GameMgr>) -> Box<GameMgr> {
     if self.text_mesh_vao == 0 { return mgr }
     {
       let mut loader = mgr.loader.lock().unwrap();

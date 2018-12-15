@@ -17,11 +17,10 @@ use util::rmatrix::Matrix4f;
 
 //#[derive(Clone)]
 pub struct GameMgr {
-  pub handler: Arc<Mutex<Handler>>,
-  //pub handler: Option<Box<Handler>>,
+  pub handler: Option<Box<Handler>>,
   pub loader: Arc<Mutex<Loader>>,
   pub lights: Arc<Mutex<Lights>>,
-  pub camera: Arc<Mutex<Camera>>,
+  pub camera: Option<Box<Camera>>,
   pub display: Arc<Mutex<Display>>,
   pub world: Arc<Mutex<World>>,
   pub textmgr: Option<Arc<Mutex<TextMgr>>>,
@@ -40,8 +39,9 @@ impl GameMgr {
     let mut lights = Lights::new();
     lights.add_light();
     lights.lights[0].pos.from_isize(0,500,-10);
-    let handler = Arc::new(Mutex::new(Handler::new()));
-    let camera = Arc::new(Mutex::new(Camera::new(handler.clone())));
+    // let handler = Arc::new(Mutex::new(Handler::new()));
+    let handler = Some(Box::new(Handler::new()));
+    let camera = Some(Box::new(Camera::new()));
     let display = Arc::new(Mutex::new(Display::new()));
     // let ents = Entities::new(loader.clone());
     let textmgr = TextMgr::new();
@@ -68,8 +68,8 @@ impl GameMgr {
       view_mat: Matrix4f::new(),
     }
   }
-  pub fn update_size(self, dimensions: (u32, u32)) -> Self {
-    let mut _self = self;
+  pub fn update_size(self, dimensions: (u32, u32)) -> Box<Self> {
+    let mut _self = Box::new(self);
     {
       let mut d = (&mut _self).display.lock().unwrap();
       d.update_size(dimensions);
@@ -90,12 +90,20 @@ impl GameMgr {
     let d = self.display.lock().unwrap();
     d.dimensions()
   }
-  pub fn handler_do<F>(&mut self, f: F)
-    where F: Fn(&mut Handler) -> ()
-  {
-    let mut h = self.handler.lock().unwrap();
-    f(&mut h);
+  pub fn take_handler(&mut self) -> Box<Handler> {
+    let out = self.handler.take();
+    Box::new(*out.unwrap())
   }
+  pub fn return_handler(&mut self, handler: Box<Handler>) {
+    self.handler = Some(handler)
+  }
+  // pub fn handler_do<F>(&mut self, f: F)
+  //   where F: Fn(&mut Handler) -> ()
+  // {
+  //   let mut h = self.take_handler();
+  //   f(&mut h);
+  //   self.return_handler(h);
+  // }
   pub fn loader_do<F>(&mut self, f: F)
     where F: Fn(&mut Loader) -> ()
   {
@@ -110,12 +118,21 @@ impl GameMgr {
     f(&mut h);
     // println!("Lights out");
   }
-  pub fn camera_do<F>(&mut self, f: F)
-    where F: Fn(&mut Camera) -> ()
-  {
-    let mut h = self.camera.lock().unwrap();
-    f(&mut h);
+  pub fn take_camera(&mut self) -> Box<Camera> {
+    let out = self.camera.take();
+    Box::new(*out.unwrap())
   }
+  pub fn return_camera(&mut self, camera: Box<Camera>) {
+    self.camera = Some(camera)
+  }
+  // pub fn camera_do<F>(&mut self, f: F)
+  //   where F: Fn(&mut Camera, &mut Handler) -> ()
+  // {
+  //   let mut c = self.take_camera();
+  //   let mut h = self.take_handler();
+  //   f(&mut c, &mut h);
+  //   self.return_handler(h);
+  // }
   pub fn world_do<F>(&mut self, f: F)
     where F: Fn(&mut World) -> ()
   {
@@ -129,8 +146,9 @@ impl GameMgr {
     f(&mut h);
   }
   pub fn create_view_matrix(&mut self) {
-    let mut cam = self.camera.lock().unwrap();
+    let mut cam = self.take_camera();
     cam.create_view_matrix(&mut self.view_mat);
+    self.return_camera(cam);
   }
   pub fn new_entity(&mut self, name: &str, model: &str, material: &str) {
     let _arc = self.entities.clone();

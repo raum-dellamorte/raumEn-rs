@@ -49,9 +49,9 @@ impl Handler {
     }
   }
   pub fn device_event(&mut self, event: &DEvent) {
-    match event.clone() {
+    match event {
       DEvent::MouseMotion { delta: dxdy} => {
-        self.cursor_delta = Some(dxdy);
+        self.cursor_delta = Some((dxdy.0, dxdy.1));
       }
       DEvent::Button { button: bttn, state: Pressed } => {
         println!("Button pressed: {}", bttn);

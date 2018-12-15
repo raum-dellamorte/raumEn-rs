@@ -20,7 +20,7 @@ impl TextMgr {
       fonts: HashMap::new(),
     }
   }
-  pub fn add_font(&mut self, mgr: GameMgr, fname: &str) -> GameMgr {
+  pub fn add_font(&mut self, mgr: Box<GameMgr>, fname: &str) -> Box<GameMgr> {
     let mut mgr = mgr;
     // println!("Adding Font: {}", fname);
     self.fonts.insert(fname.to_owned(), RFontType::new(mgr.aspect_ratio(), fname));
@@ -28,14 +28,14 @@ impl TextMgr {
     mgr.new_texture(fname);
     mgr
   }
-  pub fn add_fonts(&mut self, mgr: GameMgr, fnames: &[String]) -> GameMgr {
+  pub fn add_fonts(&mut self, mgr: Box<GameMgr>, fnames: &[String]) -> Box<GameMgr> {
     let mut mgr = mgr;
     for fname in fnames { mgr = self.add_font(mgr, fname); }
     mgr
   }
-  pub fn new_text(&mut self, mgr: GameMgr, label: &str, text: &str, font_name: &str,
+  pub fn new_text(&mut self, mgr: Box<GameMgr>, label: &str, text: &str, font_name: &str,
               font_size: f32, x: f32, y: f32,
-              line_max_size: f32, is_centered: bool, enable: bool) -> GameMgr
+              line_max_size: f32, is_centered: bool, enable: bool) -> Box<GameMgr>
   {
     let mut mgr = mgr;
     // println!("Adding text {}", label);
@@ -44,7 +44,7 @@ impl TextMgr {
     if enable { mgr = self.enable_label(mgr, label); }
     mgr
   }
-  pub fn enable_label(&mut self, mgr: GameMgr, label: &str) -> GameMgr {
+  pub fn enable_label(&mut self, mgr: Box<GameMgr>, label: &str) -> Box<GameMgr> {
     let mut mgr = mgr;
     // println!("Enabling text {}", label);
     let mut font = "".to_owned();
@@ -91,7 +91,7 @@ impl TextMgr {
     if rm { self.active_text.remove(&font); }
   }
   #[allow(dead_code)]
-  pub fn update_text(&mut self, mgr: GameMgr, label: &str, new_text: &str) -> GameMgr {
+  pub fn update_text(&mut self, mgr: Box<GameMgr>, label: &str, new_text: &str) -> Box<GameMgr> {
     let mut mgr = mgr;
     let mut text = self.texts.remove(label);
     if let Some(ref mut text) = text {
@@ -102,7 +102,7 @@ impl TextMgr {
     }
     mgr
   }
-  pub fn update_size(&mut self, mgr: GameMgr) -> GameMgr {
+  pub fn update_size(&mut self, mgr: Box<GameMgr>) -> Box<GameMgr> {
     let mut mgr = mgr;
     let mut fonts = Vec::new();
     for (font, _) in &self.fonts {

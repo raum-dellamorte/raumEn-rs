@@ -27,7 +27,7 @@ impl RenderFont {
       shader: gen_font_shader(),
     }
   }
-  pub fn render(&mut self, mgr: GameMgr) -> GameMgr {
+  pub fn render(&mut self, mgr: Box<GameMgr>) -> Box<GameMgr> {
     let mut mgr = mgr;
     unsafe {
       Enable(BLEND);

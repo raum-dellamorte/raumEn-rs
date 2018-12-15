@@ -22,7 +22,7 @@ impl RTextMeshCreator {
       metadata: MetaFile::new(aspect_ratio, file),
     }
   }
-  pub fn update_size(&mut self, mgr: GameMgr) -> GameMgr {
+  pub fn update_size(&mut self, mgr: Box<GameMgr>) -> Box<GameMgr> {
     self.metadata.update_size(mgr.aspect_ratio());
     mgr
   }
