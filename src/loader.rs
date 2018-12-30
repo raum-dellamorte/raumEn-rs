@@ -95,7 +95,7 @@ impl Loader {
     let path: &str = &format!("res/img/{}.png", tex_name);
     let img = match image::open(&Path::new(path)) {
       Ok(image) => {
-        println!("Image loaded");
+        // println!("Image loaded");
         image.to_rgba()
       },
       _ => panic!("Failed to load image")
@@ -105,7 +105,7 @@ impl Loader {
     let mut tex_id: GLuint = 0;
     unsafe {
       GenTextures(1, &mut tex_id);
-      println!("texture: image<{}> tex_id<{}>", tex_name, tex_id);
+      // println!("texture: image<{}> tex_id<{}>", tex_name, tex_id);
       assert!(tex_id != 0, "tex_id should not be 0");
       BindTexture(TEXTURE_2D, tex_id);
       TexImage2D(

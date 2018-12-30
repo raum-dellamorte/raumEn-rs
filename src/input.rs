@@ -44,8 +44,9 @@ impl Handler {
       WEvent::KeyboardInput { input: KB { virtual_keycode: Some(bttn), state: Released, modifiers: modkey, ..}, ..} => {
         self.kb.insert(key_code(&bttn, &modkey), false);
       }
-      e => println!("Window Event:\n  {:?}", e)
-      // _ => ()
+      WEvent::AxisMotion { device_id: _, axis: _axis, value: _val } => {} // DeviceId(X(DeviceId(2)))
+      // e => println!("Window Event:\n  {:?}", e)
+      _ => ()
     }
   }
   pub fn device_event(&mut self, event: &DEvent) {
@@ -53,11 +54,11 @@ impl Handler {
       DEvent::MouseMotion { delta: dxdy} => {
         self.cursor_delta = Some((dxdy.0, dxdy.1));
       }
-      DEvent::Button { button: bttn, state: Pressed } => {
-        println!("Button pressed: {}", bttn);
+      DEvent::Button { button: _bttn, state: Pressed } => {
+        // println!("Button pressed: {}", bttn);
       }
-      DEvent::Button { button: bttn, state: Released } => {
-        println!("Button released: {}", bttn);
+      DEvent::Button { button: _bttn, state: Released } => {
+        // println!("Button released: {}", bttn);
       }
       DEvent::Motion {..} => {}
       // e => println!("Device Event:\n{:?}", e)

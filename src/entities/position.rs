@@ -81,7 +81,7 @@ impl PosMarker {
         self.new_pos.y = u;
       } else {
         // try left and right to see if we can progress by sliding
-        println!("from ({},{}) to ({},{}) ht diff {}", self.pos.x, self.pos.z, self.new_pos.x, self.new_pos.z, u - self.pos.y);
+        // println!("from ({},{}) to ({},{}) ht diff {}", self.pos.x, self.pos.z, self.new_pos.x, self.new_pos.z, u - self.pos.y);
         self.new_pos.from_v3f(&self.pos);
       }
     }

@@ -85,7 +85,7 @@ fn main() {
     });
     mgr.new_material("dirt", "dirt", "flat");
     mgr.new_model("platform");
-    println!("entities loaded");
+    // println!("entities loaded");
     let _arc = mgr.entities.clone();
     let hm = _arc.lock().unwrap();
     hm.get("spaceship").unwrap().first().create_mob("player")

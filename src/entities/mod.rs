@@ -49,7 +49,7 @@ impl EntityInstance {
     }
   }
   pub fn create_mob(&self, name: &str) -> Mob {
-    println!("creating mob");
+    // println!("creating mob");
     Mob::new(name, self.marker.clone())
   }
   pub fn set_pos(&self, x: f32, y: f32, z: f32) {
