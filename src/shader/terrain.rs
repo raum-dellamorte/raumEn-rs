@@ -20,7 +20,7 @@ pub fn gen_terrain_shader() -> Shader {
     // "attenuation"
   ))
   .load_defaults();
-  println!("Created model shader.");
+  println!("Created terrain shader.");
   out
 }
 
