@@ -1,4 +1,5 @@
 
+use util::rvector::Vector3f;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use glutin::VirtualKeyCode::*;
@@ -30,7 +31,7 @@ impl Mob {
       stats: HashMap::new(),
     }
   }
-  pub fn move_mob(&mut self, handler: &mut Handler, world_arc: Arc<Mutex<World>>) -> &Self {
+  pub fn move_mob(&mut self, handler: &mut Handler, world: &mut Box<World>) -> &Self {
     let rate = handler.timer.delta;
     if rate > 0.07 { return self; }
     let (mx, my) = match handler.cursor_pos {
@@ -38,14 +39,21 @@ impl Mob {
       None     => (0_f64, 0_f64),
     };
     let mut marker = self.pos.lock().unwrap();
-    marker.prep(world_arc.clone());
-    if handler.read_kb_multi_any_of(KCS::new(&[Up,    W])) { marker.forward( self.speed, rate, world_arc.clone()); } // Up
-    if handler.read_kb_multi_any_of(KCS::new(&[Down,  S])) { marker.forward(-self.speed, rate, world_arc.clone()); } // Down
+    marker.prep(world);
+    if handler.read_kb_multi_any_of(KCS::new(&[Up,    W])) { marker.forward( self.speed, rate, world); } // Up
+    if handler.read_kb_multi_any_of(KCS::new(&[Down,  S])) { marker.forward(-self.speed, rate, world); } // Down
     if handler.read_kb_multi_any_of(KCS::new(&[Left,  A])) { marker.inc_rot(0.0, self.turn * rate, 0.0); } // Left
     if handler.read_kb_multi_any_of(KCS::new(&[Right, D])) { marker.inc_rot(0.0,-self.turn * rate, 0.0); } // Right
     if handler.read_kb_single(KC::new(Space))              { marker.jump() } // Jump
     if handler.read_mouse_single(MB::Left)                 { println!("mouse x: {} y: {}", mx, my); } // Fire/Select
     marker.move_to_new_pos(rate);
     self
+  }
+  pub fn pos_copy(&self, v: &mut Vector3f) {
+    let marker = self.pos.lock().unwrap();
+    let x = marker.pos.x;
+    let y = marker.pos.y;
+    let z = marker.pos.z;
+    v.from_f32(x, y, z);
   }
 }

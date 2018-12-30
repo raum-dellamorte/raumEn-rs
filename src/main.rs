@@ -46,7 +46,7 @@ pub use material::Material;
 pub use render::{RenderMgr, };
 pub use shader::lighting::Lights;
 pub use shader::Shader;
-pub use terrain::World;
+pub use terrain::{World, WorldBuilder};
 pub use timer::Timer;
 
 fn main() {
@@ -168,10 +168,14 @@ fn main() {
       {
         let mut handler = mgr.take_handler();
         let mut camera = mgr.take_camera();
-        spaceship.move_mob(&mut handler, mgr.world.clone());
+        let mut world = mgr.take_world();
+        spaceship.move_mob(&mut handler, &mut world);
         camera.calc_pos(&mut handler, spaceship.pos.clone());
+        spaceship.pos_copy(&mut mgr.player_loc);
         mgr.return_camera(camera);
         mgr.return_handler(handler);
+        mgr.return_world(world);
+        mgr.gen_chunks();
       }
     }
     render_mgr.return_mgr(mgr);

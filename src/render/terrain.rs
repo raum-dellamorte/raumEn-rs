@@ -10,7 +10,7 @@ use gamemgr::GameMgr;
 use model::RawModel;
 use shader::gen_terrain_shader;
 use shader::Shader;
-use terrain::Platform; // World, Chunk, ChunkColumn, 
+use terrain::{World, Platform, from_world_to_chunk_space}; // Chunk, ChunkColumn, 
 use texture::Texture;
 use util::rmatrix::Matrix4f;
 use util::rvector::{Vector3f, }; // Vector2f, Vector4f, 
@@ -31,8 +31,7 @@ impl RenderTerrain {
   pub fn render(&mut self, mgr: Box<GameMgr>) -> Box<GameMgr> {
     let mut mgr = mgr;
     self.shader.start();
-    let _arc = mgr.world.clone();
-    let mut world = _arc.lock().unwrap();
+    let mut world = mgr.take_world();
     let vc = {
       let model = mgr.model(&world.model);
       Self::bind_model(&model);
@@ -43,22 +42,24 @@ impl RenderTerrain {
     // self.shader.load_vec_4f("plane", &Vector4f {x: 0_f32, y: 10000_f32, z: 0_f32, w: 1_f32, }); // vec4 plane;
     // self.shader.load_bool("use_clip_plane", false); // float useClipPlane;
     self.shader.load_vec_3f("sky_color", &Vector3f::new(0.5, 0.6, 0.5));
-    for chunk_arc in world.nearby() {
-      let chunk = chunk_arc.lock().unwrap();
+    let chunks = world.take_nearby(mgr.player_loc.x, mgr.player_loc.z); // need player location
+    for chunk in &chunks {
       for col in &chunk.columns {
         for platform in &col.platforms {
           Self::use_material(&mut mgr, &self.shader, &platform.material);
-          self.prep_instance(platform);
+          self.prep_instance(&world, platform);
           unsafe { DrawElements(TRIANGLES, vc, UNSIGNED_INT, CVOID); }
         }
       }
     }
     Self::unbind();
     self.shader.stop();
+    world.return_chunks(chunks);
+    mgr.return_world(world);
     mgr
   }
-  pub fn prep_instance(&mut self, platform: &Platform) {
-    platform.transformation(&mut self.trans_mat);
+  pub fn prep_instance(&mut self, world: &Box<World>, platform: &Platform) {
+    platform.transformation(world, &mut self.trans_mat);
     self.shader.load_matrix("u_Transform", &self.trans_mat);
     // self.shader.load_float("row_count", 1_f32); // float numOfRows
     // self.shader.load_vec_2f("offset", &Vector2f {x: 0_f32, y: 0_f32}); // vec2 offset;

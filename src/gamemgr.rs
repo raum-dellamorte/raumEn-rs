@@ -10,10 +10,10 @@ use Material;
 use Loader;
 use model::{RawModel};
 use shader::lighting::{Lighting, Lights};
-use terrain::World;
+use terrain::{World, WorldBuilder};
 use text::{TextMgr, }; // RFontType, 
 use texture::Texture;
-use util::rmatrix::Matrix4f;
+use util::{Matrix4f, Vector3f};
 
 //#[derive(Clone)]
 pub struct GameMgr {
@@ -22,7 +22,8 @@ pub struct GameMgr {
   pub lights: Arc<Mutex<Lights>>,
   pub camera: Option<Box<Camera>>,
   pub display: Arc<Mutex<Display>>,
-  pub world: Arc<Mutex<World>>,
+  pub world: Option<Box<World>>,
+  pub world_builder: WorldBuilder,
   pub textmgr: Option<Arc<Mutex<TextMgr>>>,
   pub entities: Arc<Mutex<HashMap<String, Entity>>>,
   pub models: Arc<Mutex<HashMap<String, Arc<RawModel>>>>,
@@ -31,6 +32,7 @@ pub struct GameMgr {
   pub lightings: Arc<Mutex<HashMap<String, Arc<Mutex<Lighting>>>>>,
   // pub fonts: Option<Arc<Mutex<HashMap<String, RFontType>>>>,
   pub view_mat: Matrix4f,
+  pub player_loc: Vector3f,
 }
 
 impl GameMgr {
@@ -45,19 +47,18 @@ impl GameMgr {
     let display = Arc::new(Mutex::new(Display::new()));
     // let ents = Entities::new(loader.clone());
     let textmgr = TextMgr::new();
-    let mut world = World::new();
-    for x_pos in 0..11 {
-      for z_pos in 0..11 {
-        world.new_chunk(x_pos - 5, z_pos - 5);
-      }
-    }
+    let mut world = Box::new(World::new());
+    let mut builder = WorldBuilder::new();
+    builder.set_landscape_weight_and_mult(0.5, 3);
+    builder.gen_world(&mut world, 0.0, 0.0);
     GameMgr {
       handler: handler,
       loader: loader,
       lights: Arc::new(Mutex::new(lights)),
       camera: camera,
       display: display,
-      world: Arc::new(Mutex::new(world)),
+      world: Some(world),
+      world_builder: builder,
       textmgr: Some(Arc::new(Mutex::new(textmgr))),
       entities: Arc::new(Mutex::new(HashMap::new())),
       models: Arc::new(Mutex::new(HashMap::new())),
@@ -66,6 +67,7 @@ impl GameMgr {
       lightings: Arc::new(Mutex::new(HashMap::new())),
       // fonts: Some(Arc::new(Mutex::new(HashMap::new()))),
       view_mat: Matrix4f::new(),
+      player_loc: Vector3f::blank(),
     }
   }
   pub fn update_size(self, dimensions: (u32, u32)) -> Box<Self> {
@@ -133,11 +135,17 @@ impl GameMgr {
   //   f(&mut c, &mut h);
   //   self.return_handler(h);
   // }
-  pub fn world_do<F>(&mut self, f: F)
-    where F: Fn(&mut World) -> ()
-  {
-    let mut h = self.world.lock().unwrap();
-    f(&mut h);
+  pub fn take_world(&mut self) -> Box<World> {
+    let out = self.world.take();
+    Box::new(*out.unwrap())
+  }
+  pub fn return_world(&mut self, world: Box<World>) {
+    self.world = Some(world)
+  }
+  pub fn gen_chunks(&mut self) {
+    let mut world = self.take_world();
+    self.world_builder.gen_world(&mut world, self.player_loc.x, self.player_loc.z);
+    self.return_world(world);
   }
   pub fn entities_do<F>(&mut self, f: F)
     where F: Fn(&mut HashMap<String, Entity>) -> ()
@@ -156,7 +164,7 @@ impl GameMgr {
     if ents.contains_key(name) { panic!("Entity name not unique: {}", name) } // they should prolly have IDs instead
     let entity = Entity::new(name, model, material);
     ents.insert(name.to_string(), entity);
-    println!("new Entity name<{}> model<{}> material<{}>", name, model, material);
+    // println!("new Entity name<{}> model<{}> material<{}>", name, model, material);
   }
   pub fn new_entities(&mut self, names: &[(&str, &str, &str)]) {
     for name in names {

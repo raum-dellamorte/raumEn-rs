@@ -43,8 +43,7 @@ impl PosMarker {
       trans_mat: Matrix4f::new(),
     }
   }
-  pub fn prep(&mut self, world_arc: Arc<Mutex<World>>) {
-    let world = world_arc.lock().unwrap();
+  pub fn prep(&mut self, world: &mut Box<World>) {
     let grav = &mut self.grav;
     let (u, _) = world.bounds_under_v3f(&self.pos);
     grav.new_ground = u;
@@ -55,9 +54,8 @@ impl PosMarker {
     self.calc_fall(rate);
     self.pos.from_v3f(&self.new_pos);
   }
-  pub fn forward(&mut self, speed: f32, rate: f32, world_arc: Arc<Mutex<World>>) {
+  pub fn forward(&mut self, speed: f32, rate: f32, world: &mut Box<World>) {
     let dist = speed * rate;
-    let world = world_arc.lock().unwrap();
     self.new_pos.x = self.pos.x + (dist * self.ry.to_radians().sin());
     self.new_pos.z = self.pos.z + (dist * self.ry.to_radians().cos());
     self.fut_pos.x = self.pos.x + ((dist * 2.0) * self.ry.to_radians().sin());
