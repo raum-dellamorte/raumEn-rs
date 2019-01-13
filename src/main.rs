@@ -79,17 +79,24 @@ fn main() {
     mgr.new_model("spaceship");
     mgr.new_material("spaceship", "spaceship", "metal");
     mgr.new_entity("spaceship", "spaceship", "spaceship");
+    mgr.new_model("player");
+    mgr.new_material("player", "dirt", "metal");
+    mgr.new_entity("player", "player", "player");
     mgr.mod_entity("spaceship", |ships| {
-      ships.new_instance().set_pos(0.0,10.0,0.0);
+      ships.new_instance().set_pos(10.0,10.0,10.0);
       ships.new_instance().set_pos(10.0,0.0,-10.0);
       ships.new_instance().set_pos(-12.0,5.0,-15.0);
     });
+    mgr.mod_entity("player", |player| {
+      player.new_instance().set_pos(0.0,10.0,0.0);
+    });
+    
     mgr.new_material("dirt", "dirt", "flat");
     mgr.new_model("platform");
     // println!("entities loaded");
     let _arc = mgr.entities.clone();
     let hm = _arc.lock().unwrap();
-    hm.get("spaceship").unwrap().first().create_mob("player")
+    hm.get("player").unwrap().first().create_mob("player")
   };
   render_mgr.return_mgr(mgr);
   
