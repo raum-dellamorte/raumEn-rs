@@ -40,13 +40,13 @@ impl Mob {
     };
     let mut marker = self.pos.lock().unwrap();
     marker.prep(world);
-    if handler.read_kb_multi_any_of(KCS::new(&[Up,    W])) { marker.forward( self.speed, rate, world); } // Up
-    if handler.read_kb_multi_any_of(KCS::new(&[Down,  S])) { marker.forward(-self.speed, rate, world); } // Down
-    if handler.read_kb_multi_any_of(KCS::new(&[Left,  A])) { marker.inc_rot(0.0, self.turn * rate, 0.0); } // Left
-    if handler.read_kb_multi_any_of(KCS::new(&[Right, D])) { marker.inc_rot(0.0,-self.turn * rate, 0.0); } // Right
+    if handler.read_kb_multi_any_of(KCS::new(&[Up,    W])) { marker.move_forward( world, true ); } // Up
+    if handler.read_kb_multi_any_of(KCS::new(&[Down,  S])) { marker.move_forward( world, false ); } // Down
+    if handler.read_kb_single_any_of(KCS::new(&[Left,  A])) { marker.turn_left(); } // Left  // marker.inc_rot(0.0, self.turn * rate, 0.0);
+    if handler.read_kb_single_any_of(KCS::new(&[Right, D])) { marker.turn_right(); } // Right // marker.inc_rot(0.0,-self.turn * rate, 0.0);
     if handler.read_kb_single(KC::new(Space))              { marker.jump() } // Jump
     if handler.read_mouse_single(MB::Left)                 { println!("mouse x: {} y: {}", mx, my); } // Fire/Select
-    marker.move_to_new_pos(rate);
+    marker.calc_move_arc(world, rate); // move_to_new_pos(rate)
     self
   }
   pub fn pos_copy(&self, v: &mut Vector3f) {
