@@ -21,6 +21,7 @@ pub struct Camera {
   pub roll_bak: f32,
   pub dist_from_focus_pos: f32,
   pub focus_angle: f32,
+  pub focus_ry: f32,
   pub mouse_rate: f32,
   
   to_pos: Vector3f,
@@ -42,6 +43,7 @@ impl Camera {
       roll_bak: 0_f32,
       dist_from_focus_pos: 40_f32,
       focus_angle: 0_f32,
+      focus_ry: 0_f32,
       mouse_rate: 1.0_f32,
       to_pos: Vector3f {x: 0_f32, y: 0_f32, z: 0_f32},
       to_focus_pos: Vector3f {x: 0_f32, y: 0_f32, z: 0_f32},
@@ -83,25 +85,30 @@ impl Camera {
           _ => ()
         }
       } else {
-        let rate = handler.timer.delta;
-        drop(handler);
-        self.drift_to_origin(rate);
+        self.drift_to_origin(handler.timer.delta);
       }
     }
-    self.calc_cam_pos(follow_arc);
+    self.calc_cam_pos(follow_arc, handler.timer.delta);
   }
 
-  pub fn calc_cam_pos(&mut self, follow_arc: Arc<Mutex<PosMarker>>) {
+  pub fn calc_cam_pos(&mut self, follow_arc: Arc<Mutex<PosMarker>>, rate: f32) {
     let follow = follow_arc.lock().unwrap();
     let h_dist: f32 = self.calc_h_distance();
     let v_dist: f32 = self.calc_v_distance() + 10_f32;
-    let theta = follow.ry + self.focus_angle;
+    
+    let ry_new = follow.ry;
+    let ry_diff = self.focus_ry - ry_new;
+    if ry_diff.abs() > 0.01 {
+      self.focus_ry = drift_to_zero(ry_diff, rate, 0.1) + ry_new;
+    }
+    self.yaw = 180_f32 - (self.focus_ry + self.focus_angle);
+    
+    let theta = self.focus_ry + self.focus_angle;
     let x_offset = h_dist * theta.to_radians().sin();
     let z_offset = h_dist * theta.to_radians().cos();
     self.pos.x = follow.pos.x - x_offset;
     self.pos.z = follow.pos.z - z_offset;
     self.pos.y = follow.pos.y + v_dist;
-    self.yaw = 180_f32 - (follow.ry + self.focus_angle);
   }
 
   fn calc_h_distance(&self) -> f32 {self.dist_from_focus_pos * self.pitch.to_radians().cos()}
