@@ -107,14 +107,12 @@ impl GameMgr {
   //   self.return_handler(h);
   // }
   pub fn loader_do<F>(&mut self, f: F)
-    where F: Fn(&mut Loader) -> ()
-  {
+      where F: Fn(&mut Loader) -> () {
     let mut h = self.loader.lock().unwrap();
     f(&mut h);
   }
   pub fn lights_do<F>(&mut self, f: F)
-    where F: Fn(&mut Lights) -> ()
-  {
+      where F: Fn(&mut Lights) -> () {
     // println!("Lights in");
     let mut h = self.lights.lock().unwrap();
     f(&mut h);
@@ -148,8 +146,7 @@ impl GameMgr {
     self.return_world(world);
   }
   pub fn entities_do<F>(&mut self, f: F)
-    where F: Fn(&mut HashMap<String, Entity>) -> ()
-  {
+      where F: Fn(&mut HashMap<String, Entity>) -> () {
     let mut h = self.entities.lock().unwrap();
     f(&mut h);
   }
@@ -206,8 +203,7 @@ impl GameMgr {
     hm.insert(name.to_string(), Arc::new(Mutex::new(Lighting::new())));
   }
   pub fn mod_entity<F>(&mut self, name: &str, f: F) 
-    where F: Fn(&mut Entity) -> ()
-  {
+      where F: Fn(&mut Entity) -> () {
     let _arc = self.entities.clone();
     let mut hm = _arc.lock().unwrap();
     if hm.contains_key(name) {
@@ -216,8 +212,7 @@ impl GameMgr {
     } else { panic!("No Entity to modify: {}", name) }
   }
   pub fn mod_material<F>(&mut self, name: &str, f: F) 
-    where F: Fn(&mut Material) -> ()
-  {
+      where F: Fn(&mut Material) -> () {
     let _arc = self.materials.clone();
     let mut hm = _arc.lock().unwrap();
     if hm.contains_key(name) {
