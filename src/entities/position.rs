@@ -323,36 +323,27 @@ pub struct JumpArc {
   pub orig: Vector3f,
   pub dest: Vector3f,
   pub current: Vector3f,
-  pub peak: f32,
   pub time: f32,
-  pub start: f32,
   pub fin: bool,
 }
 impl JumpArc {
+  const PEAK: f32 = 3.0;
+  const JUMPTIME: f32 = 1.5;
   pub fn new() -> Self {
     Self {
       orig: Vector3f::blank(),
       dest: Vector3f::blank(),
       current: Vector3f::blank(),
-      peak: 6.25_f32,
       time: 0_f32,
-      start: 0_f32,
       fin: true,
     }
   }
   pub fn init(&mut self, _orig: &Vector3f, _dest: &Vector3f) {
     {
-      let (orig, dest, peak, time, start) = (&mut self.orig, &mut self.dest, &mut self.peak, &mut self.time, &mut self.start);
+      let (orig, dest, time) = (&mut self.orig, &mut self.dest, &mut self.time);
       *time = 0_f32;
       orig.from_v3f(_orig);
       dest.from_v3f(_dest);
-      *start = orig.y - dest.y;
-      if *start < 0.0 {
-        *peak = dest.y + 3.0;
-        //*time -= *start;
-      } else {
-        *peak = orig.y + 3.0;
-      }
       self.fin = false;
     }
     println!("JumpArc\n{:?}", self);
@@ -360,23 +351,18 @@ impl JumpArc {
   pub fn calc_pos(&mut self, delta: f32) -> &Vector3f {
     if !self.fin {
       {
-        let (orig, dest, current, peak, time) = (&self.orig, &self.dest, &mut self.current, &self.peak, &mut self.time);
+        let (orig, dest, current, time) = (&self.orig, &self.dest, &mut self.current, &mut self.time);
         *time += 5_f32 * delta;
-        if *time > 2.0 {
-          *time = 2.0;
+        if *time >= Self::JUMPTIME {
+          *time = Self::JUMPTIME;
           current.from_v3f(dest);
           self.fin = true;
         } else {
-          let percent = *time / 2.0;
+          let percent = *time / Self::JUMPTIME;
           current.x = orig.x + (percent * ( dest.x - orig.x ));
           current.z = orig.z + (percent * ( dest.z - orig.z ));
-          if percent < 0.5 {
-            let t = percent * 2.0;
-            current.y = orig.y + (t * (*peak - orig.y) );
-          } else {
-            let t = (1.0 - percent) * 2.0;
-            current.y = dest.y + (t * (*peak - dest.y) );
-          }
+          let y = orig.y + (percent * ( dest.y - orig.y));
+          current.y = y + (Self::PEAK * if percent < 0.5 { percent * 2.0 } else { (1.0 - percent) * 2.0 });
         }
       }
     }
