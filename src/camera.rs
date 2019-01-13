@@ -7,8 +7,7 @@ use entities::mobs::Mob;
 use entities::position::PosMarker;
 use GameMgr;
 use Handler;
-use util::rmatrix::Matrix4f;
-use util::rvector::{RVec, Vector3f, XVEC, YVEC}; // , ZVEC
+use util::{Matrix4f, RVec, Vector3f, XVEC, YVEC, modulo}; // , ZVEC
 // use util::rvertex::RVertex;
 
 pub struct Camera {

@@ -3,8 +3,7 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
 use terrain::from_world_to_chunk_space;
-use util::rmatrix::Matrix4f;
-use util::rvector::{Vector3f, }; // XVEC, YVEC, ZVEC, 
+use util::{Matrix4f, Vector3f, modulo, }; // XVEC, YVEC, ZVEC, 
 
 const LOWER_BOUNDS: (f32, f32) = (-1000_f32, -1100_f32);
 

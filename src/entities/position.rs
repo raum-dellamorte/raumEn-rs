@@ -2,8 +2,7 @@
 use std::sync::{Arc, Mutex};
 
 use terrain::World;
-use util::rvector::{Vector3f, XVEC, YVEC, ZVEC};
-use util::rmatrix::Matrix4f;
+use util::{Matrix4f, RVec, Vector3f, XVEC, YVEC, ZVEC, modulo};
 
 const GRAVITY: f32 = 9.8;
 
