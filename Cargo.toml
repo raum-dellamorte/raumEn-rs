@@ -1,16 +1,16 @@
 [package]
+authors = ["Raum Dellamorte <elementalsin@gmail.com>"]
 name = "raum-en"
 version = "0.1.0"
-authors = ["Raum Dellamorte <elementalsin@gmail.com>"]
-
 [dependencies]
-env_logger = "0.5"
-log = "0.4"
-image = "0.18"
-nom = "^4.0"
-time = "^0.1.37"
 cgmath = "0.16.1"
-piston = "0.37.0"
+env_logger = "0.5"
 gl = "0.10.0"
 glutin = "0.17.0"
+image = "0.18"
+log = "0.4"
 noise = "0.5.1"
+nom = "^4.0"
+num = "*"
+piston = "0.37.0"
+time = "^0.1.37"
