@@ -6,6 +6,7 @@ extern crate gl;
 extern crate glutin;
 #[macro_use] extern crate nom;
 extern crate image;
+extern crate num;
 extern crate cgmath;
 extern crate time;
 extern crate noise;
