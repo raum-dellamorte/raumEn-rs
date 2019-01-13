@@ -51,7 +51,7 @@ pub use terrain::{World, WorldBuilder};
 pub use timer::Timer;
 
 fn main() {
-  // Test code for parsing fnt files
+  // // Test code for parsing fnt files
   // use text::metafile::test_noms;
   // test_noms();
   
@@ -166,23 +166,28 @@ fn main() {
         
       }
       
-      {
-        let mut handler = mgr.take_handler();
-        let mut camera = mgr.take_camera();
-        let mut world = mgr.take_world();
+      // Borrowing things from mgr
+      let mut handler = mgr.take_handler();
+      let mut camera = mgr.take_camera();
+      let mut world = mgr.take_world();
+      { // Do per frame calculations such as movement
+        
         spaceship.move_mob(&mut handler, &mut world);
         camera.calc_pos(&mut handler, spaceship.pos.clone());
         spaceship.pos_copy(&mut mgr.player_loc);
-        mgr.return_camera(camera);
-        mgr.return_handler(handler);
-        mgr.return_world(world);
-        mgr.gen_chunks();
+        
       }
+      // Returning borrowed things to mgr
+      mgr.return_camera(camera);
+      mgr.return_handler(handler);
+      mgr.return_world(world);
+      mgr.gen_chunks();
     }
+    // Returning mgr to render_mgr
     render_mgr.return_mgr(mgr);
-    
+    // Draw the stuff we keep in the mgr we just returned
     render_mgr.render();
-    
+    // Write the new frame to the screen!
     gl_window.swap_buffers().unwrap();
   }
   render_mgr.clean_up();
