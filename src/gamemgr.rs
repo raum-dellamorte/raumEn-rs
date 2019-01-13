@@ -92,6 +92,13 @@ impl GameMgr {
     let d = self.display.lock().unwrap();
     d.dimensions()
   }
+  pub fn fps_and_delta(&mut self) -> (f32, f32) {
+    let handler = self.take_handler();
+    let fps = handler.timer.fps;
+    let delta = handler.timer.delta;
+    self.return_handler(handler);
+    (fps, delta)
+  }
   pub fn take_handler(&mut self) -> Box<Handler> {
     let out = self.handler.take();
     Box::new(*out.unwrap())

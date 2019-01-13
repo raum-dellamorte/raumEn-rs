@@ -93,7 +93,7 @@ fn main() {
   };
   render_mgr.return_mgr(mgr);
   
-  let mut fps: f32;
+  let mut fps: (f32, f32);
   let mut sec = 0.0;
   
   {
@@ -150,17 +150,15 @@ fn main() {
     let mut mgr = render_mgr.take_mgr();
     {
       {
-        let handler = mgr.take_handler();
-        fps = handler.timer.fps;
-        sec += handler.timer.delta;
-        mgr.return_handler(handler);
+        fps = mgr.fps_and_delta();
+        sec += fps.1;
       }
       if sec >= 1.0 {
         sec -= 1.0;
         let _textmgr = mgr.textmgr.take().unwrap();
         {
           let mut textmgr = _textmgr.lock().unwrap();
-          mgr = textmgr.update_text(mgr, "FPS", &format!("FPS: {:.3}", (fps * 1000.0).round() / 1000.0 ) );
+          mgr = textmgr.update_text(mgr, "FPS", &format!("FPS: {:.3}", (fps.0 * 1000.0).round() / 1000.0 ) );
         }
         mgr.textmgr = Some(_textmgr);
         
