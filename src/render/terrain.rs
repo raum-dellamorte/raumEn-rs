@@ -44,7 +44,7 @@ impl RenderTerrain {
     self.shader.load_vec_3f("sky_color", &Vector3f::new(0.5, 0.6, 0.5));
     let chunks = world.take_nearby(mgr.player_loc.x, mgr.player_loc.z); // need player location
     for chunk in &chunks {
-      for col in &chunk.columns {
+      for (_c_loc, col) in &chunk.columns {
         for platform in &col.platforms {
           Self::use_material(&mut mgr, &self.shader, &platform.material);
           self.prep_instance(&world, platform);

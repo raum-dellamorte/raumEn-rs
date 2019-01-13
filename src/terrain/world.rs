@@ -2,7 +2,7 @@
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
-use terrain::from_world_to_chunk_space;
+use terrain::{from_world_to_chunk_space, world_to_local, local_to_world};
 use util::{Matrix4f, Vector3f, modulo, }; // XVEC, YVEC, ZVEC, 
 
 const LOWER_BOUNDS: (f32, f32) = (-1000_f32, -1100_f32);
@@ -68,11 +68,12 @@ impl World {
     }
   }
   pub fn bounds_under(&self, x: f32, z: f32, ht: f32) -> (f32, f32) {
-    let cx = (x / 16.0).floor() as isize;
-    let cz = (z / 16.0).floor() as isize;
-    let loc = ChunkLoc {x: cx, z: cz};
-    if let Some(Some(chunk)) = self.chunks.get(&loc) {
-      return chunk.bounds_under(self, x, z, ht);
+    // let cx = (x / 16.0).floor() as isize;
+    // let cz = (z / 16.0).floor() as isize;
+    // let loc = ChunkLoc {x: cx, z: cz};
+    let (c_loc, l_loc) = world_to_local(x, z);
+    if let Some(Some(chunk)) = self.chunks.get(&c_loc) {
+      return chunk.bounds_under(self, l_loc, ht );
     } 
     LOWER_BOUNDS
   }
@@ -82,7 +83,7 @@ impl World {
 }
 
 pub struct Chunk {
-  pub columns: Vec<ChunkColumn>,
+  pub columns: HashMap<TerrainCoords, ChunkColumn>,
   pub x: isize,
   pub z: isize,
   pub base: f32,
@@ -90,10 +91,10 @@ pub struct Chunk {
 }
 impl Chunk {
   pub fn new(x: isize, z: isize, base: f32, height: f32) -> Self {
-    let mut columns = Vec::new();
-    for r in 0..8 {
-      for c in 0..8 {
-        columns.push(ChunkColumn::new(r, c));
+    let mut columns = HashMap::new();
+    for cx in 0..8 {
+      for cz in 0..8 {
+        columns.insert(ChunkLoc {x: cx, z: cz}, ChunkColumn::new( cx , cz ));
       }
     }
     Chunk {
@@ -107,40 +108,43 @@ impl Chunk {
   pub fn loc(&self) -> TerrainCoords {
     ChunkLoc {x: self.x, z: self.z}
   }
-  fn bounds_under(&self, world: &World, x: f32, z: f32, ht: f32) -> (f32, f32) {
-    let cx = ((x.abs() / 2.0) % 8.0).floor() as usize;
-    let cz = ((z.abs() / 2.0) % 8.0).floor() as usize;
-    let c = if x >= 0.0 { cx } else { 7 - cx };
-    let r = if z >= 0.0 { cz } else { 7 - cz };
-    let i = (r * 8) + c;
-    let col = &self.columns[i];
-    col.bounds_under(world, ht)
+  fn bounds_under(&self, world: &World, xz: TerrainCoords, ht: f32) -> (f32, f32) {
+    let col = &self.columns.get(&xz).unwrap();
+    col.bounds_under(world, xz, ht)
   }
 }
 
 pub struct ChunkColumn {
   pub platforms: Vec<Platform>,
-  pub x: u8,
-  pub z: u8,
+  pub x: isize,
+  pub z: isize,
 }
 impl ChunkColumn {
-  pub fn new(x: u8, z: u8) -> Self {
+  pub fn new(x: isize, z: isize) -> Self {
     ChunkColumn {
       platforms: Vec::new(),
       x: x,
       z: z,
     }
   }
-  fn bounds_under(&self, world: &World, ht: f32) -> (f32, f32)  {
+  pub fn loc(&self) -> TerrainCoords {
+    ChunkLoc {x: self.x, z: self.z}
+  }
+  fn bounds_under(&self, world: &World, xz: TerrainCoords, _ht: f32) -> (f32, f32)  {
     let mut out = LOWER_BOUNDS;
+    let t_loc = self.loc();
+    if t_loc != xz { panic!("got plat loc {:?} for xz {:?}", t_loc, xz ) }
     for plat in &self.platforms {
-      let (u, l) = plat.world_upper_lower(world);
-      if ht >= l {
-        let (_, tl) = out;
-        if l > tl {
-          out = (u, l);
-        }
-      }
+      let (_chunk, local) = world_to_local(plat.x as f32, plat.z as f32);
+      if local != xz { panic!("got plat loc {:?} for xz {:?}", local, xz ) }
+      out = plat.world_upper_lower(world);
+      break
+      // let (u, l) = plat.world_upper_lower(world);
+      // if ht >= l {
+      //   if l > out.1 {
+      //     out = (u, l);
+      //   }
+      // }
     }
     out
   }
@@ -154,15 +158,15 @@ pub enum TerrainUnit {
 
 pub struct Platform {  // Platform needs to be enum
   pub material: String,
-  pub x: f32,
-  pub z: f32,
+  pub x: isize,
+  pub z: isize,
   pub top: f32,
   pub depth: f32,
   pub color: Vector3f,
   pub trans_mat: Matrix4f,
 }
 impl Platform {
-  pub fn new(x: f32, z: f32, top: f32, depth: f32) -> Self {
+  pub fn new(x: isize, z: isize, top: f32, depth: f32) -> Self {
     Platform {
       material: "dirt".to_string(),
       x: x,
@@ -173,15 +177,24 @@ impl Platform {
       trans_mat: Matrix4f::new(),
     }
   }
+  pub fn x(&self) -> f32 { self.x as f32 }
+  pub fn z(&self) -> f32 { self.z as f32 }
+  pub fn loc(&self) -> TerrainCoords {
+    ChunkLoc {x: self.x, z: self.z}
+  }
   pub fn world_upper_lower(&self, world: &World) -> (f32, f32) {
     let y = (world.height * self.top) + world.base;
     // println!("World height @{},{}: {}", self.x, self.z, y);
     (y, y - (world.height * self.depth))
   }
   pub fn transformation(&self, world: &World, trans_mat: &mut Matrix4f) {
+    //           200            0.5              200           0.05         -100
+    //                  100                              10                 -100
+    //                               90                                     -100
     let y = ((world.height * self.top) - (world.height * self.depth)) + world.base;
-    let pos = Vector3f::new(self.x, y, self.z);
-    let scale = Vector3f::new(1.0, world.height * self.depth, 1.0);
+    // y is -10
+    let pos = Vector3f::new(self.x(), y, self.z()); // so we draw from -10 up
+    let scale = Vector3f::new(1.0, world.height * self.depth, 1.0); // cube dims are 2,1,2
     trans_mat.set_identity();
     trans_mat.translate_v3f(&pos);
     // trans_mat.rotate(0_f32.to_radians(), &XVEC);

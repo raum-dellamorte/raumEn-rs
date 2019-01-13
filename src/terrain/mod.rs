@@ -7,12 +7,85 @@ pub use terrain::builder::*;
 pub use terrain::coords::*;
 pub use terrain::world::*;
 
+use terrain::TerrainCoords::ChunkLoc;
+
 pub fn from_world_to_chunk_space(x: f32, z: f32) -> (isize, isize) {
   ((x / 16.0).floor() as isize, (z / 16.0).floor() as isize)
 }
 
+pub fn local_to_world(cx: isize, cz: isize, lx: isize, lz: isize) -> TerrainCoords {
+  // let lx = if cx < 0 { 7 - lx } else { lx };
+  // let lz = if cz < 0 { 7 - lz } else { lz };
+  ChunkLoc { x: ( cx * 16 ) + ( lx * 2 ), z: ( cz * 16 ) + ( lz * 2 ) }
+}
+
+pub fn world_to_local(wx: f32, wz: f32) -> (TerrainCoords, TerrainCoords) {
+  let wx = wx.floor() as isize;
+  let wz = wz.floor() as isize;
+  let cx = (wx - if wx < 0 { 15 } else { 0 }) / 16;
+  let cz = (wz - if wz < 0 { 15 } else { 0 }) / 16;
+  // let x = (wx - if wx < 0 { 1 } else { 0 }) / 2;
+  // let z = (wz - if wz < 0 { 1 } else { 0 }) / 2;
+  let x = (wx - (cx * 16)) / 2;
+  let z = (wz - (cz * 16)) / 2;
+  
+  ( ChunkLoc { x: cx, z: cz }, ChunkLoc { x: x, z: z } )
+}
+
 #[cfg(test)]
 mod tests {
+  #[test]
+  fn test_world_to_local_and_local_to_world() -> Result<(), String> {
+    use terrain::{world_to_local, local_to_world};
+    use terrain::TerrainCoords::ChunkLoc;
+    {
+      let (x, z) = (0.0, 0.0);
+      let t_chunk = ChunkLoc { x: 0, z: 0 };
+      let t_xz = ChunkLoc { x: 0, z: 0 };
+      let (chunk, xz) = world_to_local(x, z);
+      if chunk != t_chunk { return Err( format!("world_to_local({}, {}) should produce chunk coords {:?}, got {:?}", x, z, t_chunk, chunk) ) }
+      if xz != t_xz { return Err( format!("world_to_local({}, {}) should produce local coords {:?}, got {:?}", x, z, t_xz, xz) ) }
+    }
+    {
+      let (x, z) = (8.5, 9.9);
+      let t_chunk = ChunkLoc { x: 0, z: 0 };
+      let t_xz = ChunkLoc { x: 4, z: 4 };
+      let (chunk, xz) = world_to_local(x, z);
+      if chunk != t_chunk { return Err( format!("world_to_local({}, {}) should produce chunk coords {:?}, got {:?}", x, z, t_chunk, chunk) ) }
+      if xz != t_xz { return Err( format!("world_to_local({}, {}) should produce local coords {:?}, got {:?}", x, z, t_xz, xz) ) }
+    }
+    {
+      let (x, z) = (-8.5, -9.9);
+      let t_chunk = ChunkLoc { x: -1, z: -1 };
+      let t_xz = ChunkLoc { x: 3, z: 3 };
+      let (chunk, xz) = world_to_local(x, z);
+      if chunk != t_chunk { return Err( format!("world_to_local({}, {}) should produce chunk coords {:?}, got {:?}", x, z, t_chunk, chunk) ) }
+      if xz != t_xz { return Err( format!("world_to_local({}, {}) should produce local coords {:?}, got {:?}", x, z, t_xz, xz) ) }
+    }
+    {
+      let (x, z) = (-30.0, 30.0);
+      let t_chunk = ChunkLoc { x: -2, z: 1 };
+      let t_xz = ChunkLoc { x: 1, z: 7 };
+      let (chunk, xz) = world_to_local(x, z);
+      if chunk != t_chunk { return Err( format!("world_to_local({}, {}) should produce chunk coords {:?}, got {:?}", x, z, t_chunk, chunk) ) }
+      if xz != t_xz { return Err( format!("world_to_local({}, {}) should produce local coords {:?}, got {:?}", x, z, t_xz, xz) ) }
+    }
+    {
+      let (x, z) = (-40.1, 40.1);
+      let t_chunk = ChunkLoc { x: -3, z: 2 };
+      let t_xz = ChunkLoc { x: 3, z: 4 };
+      let (chunk, xz) = world_to_local(x, z);
+      if chunk != t_chunk { return Err( format!("world_to_local({}, {}) should produce chunk coords {:?}, got {:?}", x, z, t_chunk, chunk) ) }
+      if xz != t_xz { return Err( format!("world_to_local({}, {}) should produce local coords {:?}, got {:?}", x, z, t_xz, xz) ) }
+    }
+    {
+      let (cx, cz, lx, lz) = (-1, 1, 1, 7 );
+      let t_xz = ChunkLoc { x: -14, z: 30 };
+      let xz = local_to_world(cx, cz, lx, lz);
+      if xz != t_xz { return Err( format!("local_to_world({}, {}, {}, {}) should produce local coords {:?}, got {:?}", cx, cz, lx, lz, t_xz, xz) ) }
+    }
+    Ok(())
+  }
   #[test]
   fn test_from_world_to_chunk_space() {
     use terrain::from_world_to_chunk_space;

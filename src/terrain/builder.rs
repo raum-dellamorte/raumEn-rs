@@ -1,5 +1,5 @@
 
-use terrain::{Chunk, Platform, World, from_world_to_chunk_space};
+use terrain::{Chunk, Platform, World, from_world_to_chunk_space, local_to_world};
 
 use terrain::TerrainCoords;
 use terrain::TerrainCoords::ChunkLoc;
@@ -36,20 +36,20 @@ impl WorldBuilder {
       for z_pos in 0..11 {
         let (x, z) = (x_chunk + x_pos - 5, z_chunk + z_pos - 5);
         if world.chunks.get(&ChunkLoc {x, z}).is_some() { continue }
-        println!("Creating Chunk at {:?} from {:?}", ChunkLoc {x,z}, ChunkLoc {x: x_chunk, z: z_chunk} );
+        // println!("Creating Chunk at {:?} from {:?}", ChunkLoc {x,z}, ChunkLoc {x: x_chunk, z: z_chunk} );
         let chunk = Box::new(Chunk::new(x, z, -100_f32, 200_f32));
         let loc = world.add_chunk(chunk, x, z);
         if let Some(Some(ref mut chunk)) = world.chunks.get_mut(&loc) {
-          for column in &mut chunk.columns {
-            let px = ((x * 16) + ((column.x * 2) as isize)) as f32;
-            let pz = ((z * 16) + ((column.z * 2) as isize)) as f32;
-            let hpt = point(px, pz, 6);
+          for (_c_loc, column) in &mut chunk.columns {
+            let p_loc = local_to_world(x, z, column.x, column.z);
+            let ChunkLoc { x: px, z: pz } = p_loc;
+            let hpt = point(px as f32, pz as f32, 6);
             let hole: bool = self.holes.get(hpt) < -0.2_f64;
             if !hole {
-              let pt = point(px, pz, 7);
+              let pt = point(px as f32, pz as f32, 8);
               let mut top: f64 = self.landscape.get(pt);
               top = (top + 1.0) / 2.0;
-              top = (top + (self.l_weight * self.l_mult as f32) as f64) / (self.l_mult + 1) as f64;
+              // top = (top + (self.l_weight * self.l_mult as f32) as f64) / (self.l_mult + 1) as f64;
               // print!("h<{}>", top);
               let pform = Platform::new(px, pz, top as f32, 0.05);
               column.platforms.push(pform);
