@@ -102,8 +102,9 @@ impl SubAssign for Vector2f {
 
 impl Vector3f {
   //#[derive_keyword_argument_macro("new", x=0.0, y=0.0, z=0.0)]
-  pub fn new(x: f32, y: f32, z: f32) -> Self { Vector3f {x: x, y: y, z: z} }
-  pub fn new_isize(x: isize, y: isize, z: isize) -> Self { Vector3f {x: x as f32, y: y as f32, z: z as f32} }
+  pub fn new(x: f32, y: f32, z: f32) -> Self { Self {x: x, y: y, z: z} }
+  pub fn new_from_v3f(other: &Vector3f) -> Self { Self { x: other.x, y: other.y, z: other.z, } }
+  pub fn new_isize(x: isize, y: isize, z: isize) -> Self { Self {x: x as f32, y: y as f32, z: z as f32} }
   pub fn blank() -> Self { Vector3f::new_isize(0,0,0) }
   pub fn from_isize(&mut self, x: isize, y: isize, z: isize) {
     self.x = x as f32;
@@ -119,6 +120,31 @@ impl Vector3f {
     self.x = other.x;
     self.y = other.y;
     self.z = other.z;
+  }
+  // pub fn xy_from_v3f(&mut self, other: &Vector3f) {
+  //   self.x = other.x;
+  //   self.y = other.y;
+  // }
+  pub fn xz_from_v3f(&mut self, other: &Vector3f) {
+    self.x = other.x;
+    self.z = other.z;
+  }
+  // pub fn yz_from_v3f(&mut self, other: &Vector3f) {
+  //   self.y = other.y;
+  //   self.z = other.z;
+  // }
+  pub fn xz_from_dist_rot_offset(&mut self, other: &Self, dist: f32, rot: f32) {
+    let ry = rot.to_radians();
+    self.x = other.x + (dist * ry.sin());
+    self.z = other.z + (dist * ry.cos());
+  }
+  pub fn dist_rot_offset(&self, dist: f32, rot: f32) -> Self {
+    let ry = rot.to_radians();
+    Self {
+      x: self.x + (dist * ry.sin()),
+      y: self.y,
+      z: self.z + (dist * ry.cos()),
+    }
   }
   pub fn to_slice(&self) -> [f32; 3] { [self.x, self.y, self.z] }
   pub fn sub_to(&self, other: &Self, dest: &mut Self) {
