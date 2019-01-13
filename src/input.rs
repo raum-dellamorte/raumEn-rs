@@ -77,6 +77,13 @@ impl Handler {
       None      => { return false; },
     }
   }
+  pub fn read_kb_single_any_of(&mut self, kcs: KeyCodes) -> bool {
+    let mut out = false;
+    for kc in kcs.keys {
+      if self.read_kb_single(kc) && !out { out = true; }
+    }
+    out
+  }
   pub fn read_kb_multi_any_of(&self, kcs: KeyCodes) -> bool {
     for kc in kcs.keys {
       if self.read_kb_multi(kc) { return true; }
