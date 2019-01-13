@@ -2,6 +2,17 @@
 use util::rmatrix::Matrix4f;
 use util::rvector::{Vector2f, Vector3f, XVEC, YVEC, ZVEC};
 
+use num::{Float, NumCast};
+
+pub fn modulo<F: Float>(x: F, m: F) -> F {
+  let zero = NumCast::from(0).unwrap();
+  if x == zero || m == zero {
+    return zero;
+  }
+  let out = x - ((x / m).floor() * m);
+  if out == m { zero } else { out }
+}
+
 pub fn barry_centric(p1: &Vector3f, p2: &Vector3f, p3: &Vector3f, pos: &Vector2f) -> f32 {
   let det: f32 = ((p2.z - p3.z) * (p1.x - p3.x)) + ((p3.x - p2.x) * (p1.z - p3.z));
   let l1: f32 = (((p2.z - p3.z) * (pos.x - p3.x)) + ((p3.x - p2.x) * (pos.y - p3.z))) / det;
