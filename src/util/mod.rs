@@ -3,8 +3,9 @@ pub mod rvector;
 pub mod rmatrix;
 pub mod rvertex;
 
+pub use util::maths::*;
 pub use util::rmatrix::Matrix4f;
-pub use util::rvector::{Vector2f, Vector3f};
+pub use util::rvector::{RVec, Vector2f, Vector3f, XVEC, YVEC, ZVEC};
 
 // #[derive(Debug, Copy, Clone)]
 // pub struct TransMat {
