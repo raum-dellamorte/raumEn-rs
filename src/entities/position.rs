@@ -350,20 +350,18 @@ impl JumpArc {
   }
   pub fn calc_pos(&mut self, delta: f32) -> &Vector3f {
     if !self.fin {
-      {
-        let (orig, dest, current, time) = (&self.orig, &self.dest, &mut self.current, &mut self.time);
-        *time += 5_f32 * delta;
-        if *time >= Self::JUMPTIME {
-          *time = Self::JUMPTIME;
-          current.from_v3f(dest);
-          self.fin = true;
-        } else {
-          let percent = *time / Self::JUMPTIME;
-          current.x = orig.x + (percent * ( dest.x - orig.x ));
-          current.z = orig.z + (percent * ( dest.z - orig.z ));
-          let y = orig.y + (percent * ( dest.y - orig.y));
-          current.y = y + (Self::PEAK * if percent < 0.5 { percent * 2.0 } else { (1.0 - percent) * 2.0 });
-        }
+      let (orig, dest, current, time) = (&self.orig, &self.dest, &mut self.current, &mut self.time);
+      *time += 5_f32 * delta;
+      if *time >= Self::JUMPTIME {
+        *time = Self::JUMPTIME;
+        current.from_v3f(dest);
+        self.fin = true;
+      } else {
+        let percent = *time / Self::JUMPTIME;
+        current.x = orig.x + (percent * ( dest.x - orig.x ));
+        current.z = orig.z + (percent * ( dest.z - orig.z ));
+        let y = orig.y + (percent * ( dest.y - orig.y));
+        current.y = y + (Self::PEAK * if percent < 0.5 { percent * 2.0 } else { (1.0 - percent) * 2.0 });
       }
     }
     &self.current
