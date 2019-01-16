@@ -6,9 +6,7 @@ use num::{Float, NumCast};
 
 pub fn modulo<F: Float>(x: F, m: F) -> F {
   let zero = NumCast::from(0).unwrap();
-  if x == zero || m == zero {
-    return zero;
-  }
+  if x == zero || m == zero { return zero }
   let out = x - ((x / m).floor() * m);
   if out == m { zero } else { out }
 }
