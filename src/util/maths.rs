@@ -11,6 +11,15 @@ pub fn modulo<F: Float>(x: F, m: F) -> F {
   if out == m { zero } else { out }
 }
 
+pub fn round_to<F: Float>(f: F, places: i32) -> F {
+  let zero = NumCast::from(0).unwrap();
+  if f == zero { return zero }
+  let ten: F = NumCast::from(10).unwrap();
+  let p: F = ten.powi(places);
+  let out = (f * p).round() / p;
+  out
+}
+
 pub fn barry_centric(p1: &Vector3f, p2: &Vector3f, p3: &Vector3f, pos: &Vector2f) -> f32 {
   let det: f32 = ((p2.z - p3.z) * (p1.x - p3.x)) + ((p3.x - p2.x) * (p1.z - p3.z));
   let l1: f32 = (((p2.z - p3.z) * (pos.x - p3.x)) + ((p3.x - p2.x) * (pos.y - p3.z))) / det;
