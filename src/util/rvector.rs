@@ -180,6 +180,12 @@ impl Vector3f {
     (*dest).y = -self.y;
     (*dest).z = -self.z;
   }
+  pub fn round_to(&self, dest: &mut Self, places: i32) {
+    use util::RFloat;
+    (*dest).x = self.x.round_to(places);
+    (*dest).y = self.y.round_to(places);
+    (*dest).z = self.z.round_to(places);
+  }
 }
 
 impl RVec for Vector3f {
