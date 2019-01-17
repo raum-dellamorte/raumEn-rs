@@ -4,6 +4,19 @@ use util::rvector::{Vector2f, Vector3f, XVEC, YVEC, ZVEC};
 
 use num::{Float, NumCast};
 
+pub trait RFloat {
+  fn modulo<F>(&self, m: F) -> F where F: Float;
+  fn round_to<F>(&self, places: i32) -> F where F: Float;
+}
+impl RFloat for f32 {
+  fn modulo<F>(&self, m: F) -> F where F: Float {
+    modulo(NumCast::from(*self).unwrap(), m)
+  }
+  fn round_to<F>(&self, places: i32) -> F where F: Float {
+    round_to(NumCast::from(*self).unwrap(), places)
+  }
+}
+
 pub fn modulo<F: Float>(x: F, m: F) -> F {
   let zero = NumCast::from(0).unwrap();
   if x == zero || m == zero { return zero }
