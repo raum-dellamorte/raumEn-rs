@@ -1,5 +1,8 @@
 
+use std::rc::Rc;
+use std::cell::RefCell;
 
+use Display;
 use render::model::RenderTexModel;
 use render::terrain::RenderTerrain;
 use render::font::RenderFont;
@@ -70,7 +73,7 @@ impl RenderMgr {
     let mut mgr = self.take_mgr();
     {
       mgr = mgr.update_size(dimensions);
-      let mut d = mgr.display.lock().unwrap();
+      let mut d = mgr.display.borrow_mut();
       let proj_mat = d.projection();
       {
         let shader = &self.ren_tex_model.shader;
@@ -86,6 +89,18 @@ impl RenderMgr {
       }
     }
     self.return_mgr(mgr);
+  }
+  pub fn display_clone(&self) -> Rc<RefCell<Display>> {
+    match &self.mgr {
+      Some(mgr) => { mgr.display_clone() }
+      None => { panic!("Tried to get display_clone from GameMgr through RenderMgr without first returning GameMgr to RenderMgr") }
+    }
+  }
+  pub fn dimensions(&self) -> (u32, u32) {
+    match &self.mgr {
+      Some(mgr) => { mgr.dimensions() }
+      None => { panic!("Tried to get dimensions from GameMgr through RenderMgr without first returning GameMgr to RenderMgr") }
+    }
   }
   pub fn clean_up(&mut self) {
     self.mgr.as_mut().unwrap().clean_up();

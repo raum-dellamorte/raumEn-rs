@@ -1,5 +1,7 @@
 
 use std::collections::HashMap;
+use std::rc::Rc;
+use std::cell::RefCell;
 use std::sync::{Arc, Mutex};
 
 use Camera;
@@ -21,7 +23,7 @@ pub struct GameMgr {
   pub loader: Arc<Mutex<Loader>>,
   pub lights: Arc<Mutex<Lights>>,
   pub camera: Option<Box<Camera>>,
-  pub display: Arc<Mutex<Display>>,
+  pub display: Rc<RefCell<Display>>,
   pub world: Option<Box<World>>,
   pub world_builder: WorldBuilder,
   pub textmgr: Option<Arc<Mutex<TextMgr>>>,
@@ -44,7 +46,7 @@ impl GameMgr {
     // let handler = Arc::new(Mutex::new(Handler::new()));
     let handler = Some(Box::new(Handler::new()));
     let camera = Some(Box::new(Camera::new()));
-    let display = Arc::new(Mutex::new(Display::new()));
+    let display = Rc::new(RefCell::new(Display::new()));
     // let ents = Entities::new(loader.clone());
     let textmgr = TextMgr::new();
     let mut world = Box::new(World::new());
@@ -73,8 +75,7 @@ impl GameMgr {
   pub fn update_size(self, dimensions: (u32, u32)) -> Box<Self> {
     let mut _self = Box::new(self);
     {
-      let mut d = (&mut _self).display.lock().unwrap();
-      d.update_size(dimensions);
+      (&mut _self).display.borrow_mut().update_size(dimensions);
     }
     let _textmgr = (&mut _self).textmgr.take().unwrap();
     {
@@ -85,11 +86,13 @@ impl GameMgr {
     _self
   }
   pub fn aspect_ratio(&self) -> f32 {
-    let d = self.display.lock().unwrap();
-    d.aspect_ratio
+    self.display.borrow().aspect_ratio
+  }
+  pub fn display_clone(&self) -> Rc<RefCell<Display>> {
+    self.display.clone()
   }
   pub fn dimensions(&self) -> (u32, u32) {
-    let d = self.display.lock().unwrap();
+    let d = self.display.borrow();
     d.dimensions()
   }
   pub fn fps_and_delta(&mut self) -> (f32, f32) {

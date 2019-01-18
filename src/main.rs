@@ -52,6 +52,8 @@ pub use shader::Shader;
 pub use terrain::{World, WorldBuilder};
 pub use timer::Timer;
 
+use fbo::DepthType::{DepthRenderBuffer, DepthTexture, NoDepth};
+
 fn main() {
   // // Test code for parsing fnt files
   // use text::metafile::test_noms;
@@ -123,6 +125,10 @@ fn main() {
     mgr.textmgr = Some(_textmgr);
   }
   render_mgr.return_mgr(mgr);
+  
+  let mut _fbo = Fbo::new(render_mgr.display_clone(), 640, 480, DepthTexture);
+  
+  // Game loop!
   println!("Starting game loop.");
   let mut running = true;
   while running {

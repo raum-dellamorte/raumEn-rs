@@ -1,9 +1,12 @@
 
+use std::rc::Rc;
+use std::cell::RefCell;
+
 use gl::*;
 // use gl::types::{GLuint, }; // GLfloat, GLenum, GLint, GLchar, GLsizeiptr, GLboolean, 
 use CVOID;
 
-use Camera;
+use Display;
 
 pub enum DepthType {
   DepthTexture,
@@ -12,6 +15,7 @@ pub enum DepthType {
 }
 
 pub struct Fbo {
+  pub display: Rc<RefCell<Display>>,
   pub width: i32,
   pub height: i32,
   pub frame_buffer_id: u32,
@@ -23,8 +27,9 @@ pub struct Fbo {
 }
 
 impl Fbo {
-  pub fn new(width: i32, height: i32, depth_buffer_type: DepthType) -> Self {
+  pub fn new(display: Rc<RefCell<Display>>, width: i32, height: i32, depth_buffer_type: DepthType) -> Self {
     let out = Fbo {
+      display: display,
       width: width,
       height: height,
       frame_buffer_id: 0,
@@ -66,8 +71,9 @@ impl Fbo {
     Viewport(0, 0, self.width, self.height);
   }}
   pub fn unbind(&self) { unsafe {
+    let (w, h) = self.display.borrow().dimensions();
     BindFramebuffer(FRAMEBUFFER, 0);
-    Viewport(0, 0, 1024, 768);
+    Viewport(0, 0, w as i32, h as i32);
   }}
   pub fn bind_to_read(&self) { unsafe {
     BindTexture(TEXTURE_2D, 0);
