@@ -269,7 +269,7 @@ impl Shader {
       println!("Linker log (length: {}):\n{}", length,
         from_utf8(CStr::from_ptr(transmute(&buffer)).to_bytes()).unwrap());
     } else {
-      println!("Model shader linked. Program: {}", program);
+      println!("{} shader linked. Program: {}", self.name, program);
     }
     self.done = true;
     self
