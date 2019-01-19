@@ -70,14 +70,13 @@ impl RenderTerrain {
   }
   fn use_material(mgr: &mut GameMgr, shader: &Shader, material: &str) {
     let (lighting, texture) = {
-      let _arc = mgr.material(material);
-      let material = _arc.lock().unwrap();
+      let _mat = mgr.material(material);
+      let material = _mat.borrow_mut();
       (&material.lighting.clone(), &material.texture.clone())
     };
     {
-      let _arc = mgr.lighting(lighting);
-      let lighting = _arc.lock().unwrap();
-      lighting.load_to_shader(shader);
+      let lighting = mgr.lighting(lighting);
+      lighting.borrow_mut().load_to_shader(shader);
     }
     {
       let texture = mgr.texture(texture);

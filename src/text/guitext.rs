@@ -50,11 +50,7 @@ impl GuiText {
     }
     // println!("  stage 2");
     let data = data.unwrap();
-    let vao = {
-      let _arc = mgr.loader.clone();
-      let mut loader = _arc.lock().unwrap();
-      loader.load_to_vao_2d(&data.verts, &data.tex_coords)
-    };
+    let vao = mgr.loader.borrow_mut().load_to_vao_2d(&data.verts, &data.tex_coords);
     // println!("  vao: {:?}", vao);
     self.set_mesh_info(vao, data.vert_count);
     self.loaded = true;
@@ -66,10 +62,7 @@ impl GuiText {
   }
   pub fn update_size(&mut self, textmgr: &mut TextMgr, mgr: Box<GameMgr>) -> Box<GameMgr> {
     if self.text_mesh_vao == 0 { return mgr }
-    {
-      let mut loader = mgr.loader.lock().unwrap();
-      loader.rm_vao(self.text_mesh_vao);
-    }
+    mgr.loader.borrow_mut().rm_vao(self.text_mesh_vao);
     self.loaded = false;
     // println!("Reloading GuiText");
     self.load(textmgr, mgr)

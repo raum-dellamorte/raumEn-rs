@@ -98,8 +98,7 @@ fn main() {
     mgr.new_material("dirt", "dirt", "flat");
     mgr.new_model("platform");
     // println!("entities loaded");
-    let _arc = mgr.entities.clone();
-    let hm = _arc.lock().unwrap();
+    let hm = mgr.entities.borrow_mut();
     hm.get("player").unwrap().first().create_mob("player")
   };
   render_mgr.return_mgr(mgr);
@@ -116,7 +115,7 @@ fn main() {
   {
     let _textmgr = mgr.textmgr.take().unwrap();
     {
-      let mut textmgr = _textmgr.lock().unwrap();
+      let mut textmgr = _textmgr.borrow_mut();
       mgr = textmgr.add_font(mgr, "pirate");
       mgr = textmgr.add_font(mgr, "sans");
       mgr = textmgr.new_text(mgr, "Title", "The Never", "pirate", 4.0, 0.0, 0.0, 1.0, true, true);
@@ -124,9 +123,9 @@ fn main() {
     }
     mgr.textmgr = Some(_textmgr);
   }
-  render_mgr.return_mgr(mgr);
   
-  let mut _fbo = Fbo::new(render_mgr.display_clone(), 640, 480, DepthTexture);
+  // Return the GameMgr to the RenderMgr
+  render_mgr.return_mgr(mgr);
   
   // Game loop!
   println!("Starting game loop.");
@@ -172,7 +171,7 @@ fn main() {
         sec -= 1.0;
         let _textmgr = mgr.textmgr.take().unwrap();
         {
-          let mut textmgr = _textmgr.lock().unwrap();
+          let mut textmgr = _textmgr.borrow_mut();
           mgr = textmgr.update_text(mgr, "FPS", &format!("FPS: {:.3}", (fps.0 * 1000.0).round() / 1000.0 ) );
         }
         mgr.textmgr = Some(_textmgr);

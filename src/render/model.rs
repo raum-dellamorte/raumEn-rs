@@ -34,8 +34,8 @@ impl RenderTexModel {
     // self.shader.load_vec_4f("plane", &Vector4f {x: 0_f32, y: 10000_f32, z: 0_f32, w: 1_f32, }); // vec4 plane;
     // self.shader.load_bool("use_clip_plane", false); // float useClipPlane;
     self.shader.load_vec_3f("sky_color", &Vector3f::new(0.5, 0.6, 0.5));
-    let _arc = mgr.entities.clone();
-    let entities = _arc.lock().unwrap();
+    let _ents = mgr.entities.clone();
+    let entities = _ents.borrow_mut();
     for entity in entities.values() {
       let model = mgr.model(&entity.model);
       Self::bind_model(&model);
@@ -59,16 +59,15 @@ impl RenderTexModel {
   }
   fn use_material(mgr: &mut GameMgr, shader: &Shader, material: &str) {
     let (lighting, texture) = {
-      let _arc = mgr.material(material);
-      let material = _arc.lock().unwrap();
+      let _mat = mgr.material(material);
+      let material = _mat.borrow_mut();
       shader.load_float("row_count", material.row_count as f32); // float numOfRows
       shader.load_vec_2f("offset", &material.offset); // vec2 offset;
       (&material.lighting.clone(), &material.texture.clone())
     };
     {
-      let _arc = mgr.lighting(lighting);
-      let lighting = _arc.lock().unwrap();
-      lighting.load_to_shader(shader);
+      let lighting = mgr.lighting(lighting);
+      lighting.borrow_mut().load_to_shader(shader);
     }
     {
       let texture = mgr.texture(texture);

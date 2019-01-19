@@ -37,14 +37,14 @@ impl RenderFont {
     // println!("Running Text Render Pass");
     let _textmgr = mgr.textmgr.take().unwrap();
     {
-      let mut textmgr = _textmgr.lock().unwrap();
+      let mut textmgr = _textmgr.borrow_mut();
       self.shader.start();
       let _tmp: HashMap<String, HashSet<String>> = (*textmgr).active_text.clone();
       let fonts: Vec<&String> = _tmp.keys().clone().into_iter().collect();
       for font in fonts {
         let tex_id = match textmgr.fonts.get_mut(font) {
           Some(x) => {
-            let texs = mgr.textures.lock().unwrap();
+            let texs = mgr.textures.borrow_mut();
             match texs.get(&x.tex_atlas) {
               Some(tid) => { tid.tex_id }
               _ => { println!("No font atlas texture {}", &x.tex_atlas); continue }
