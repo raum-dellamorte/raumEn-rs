@@ -25,6 +25,7 @@ pub mod display;
 pub mod entities;
 pub mod fbo;
 pub mod gamemgr;
+pub mod hud;
 pub mod input;
 pub mod loader;
 pub mod material;
@@ -43,6 +44,7 @@ pub use entities::Entity;
 pub use entities::mobs::Mob;
 pub use fbo::Fbo;
 pub use gamemgr::GameMgr;
+pub use hud::{HUD, GuiObj};
 pub use input::Handler;
 pub use loader::Loader;
 pub use material::Material;
@@ -124,6 +126,14 @@ fn main() {
     }
     mgr.textmgr = Some(_textmgr);
   }
+  let mut _fbo = Fbo::new(mgr.display_clone(), 640, 480, DepthTexture);
+  {
+    let mut _hud = mgr.hud.borrow_mut();
+    _hud.elements.push(GuiObj::new());
+    let _gui = _hud.elements.get_mut(0).unwrap();
+    _gui.tex_id = _fbo.color_tex_id;
+    _gui.depth_tex_id = _fbo.depth_tex_id;
+  }
   
   // Return the GameMgr to the RenderMgr
   render_mgr.return_mgr(mgr);
@@ -199,7 +209,12 @@ fn main() {
     // Returning mgr to render_mgr
     render_mgr.return_mgr(mgr);
     // Draw the stuff we keep in the mgr we just returned
+    _fbo.bind();
     render_mgr.render();
+    _fbo.unbind();
+    
+    render_mgr.render();
+    render_mgr.render_gui();
     // Write the new frame to the screen!
     gl_window.swap_buffers().unwrap();
   }

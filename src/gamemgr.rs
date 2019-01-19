@@ -7,6 +7,7 @@ use Camera;
 use Display;
 use Entity;
 use Handler;
+use HUD;
 use Material;
 use Loader;
 use model::{RawModel};
@@ -26,6 +27,7 @@ pub struct GameMgr {
   pub world: Option<Box<World>>,
   pub world_builder: WorldBuilder,
   pub textmgr: Option<Rc<RefCell<TextMgr>>>,
+  pub hud: Rc<RefCell<HUD>>,
   pub entities: Rc<RefCell<HashMap<String, Entity>>>,
   pub models: Rc<RefCell<HashMap<String, Rc<RawModel>>>>,
   pub materials: Rc<RefCell<HashMap<String, Rc<RefCell<Material>>>>>,
@@ -52,6 +54,8 @@ impl GameMgr {
     let mut builder = WorldBuilder::new();
     builder.set_landscape_weight_and_mult(0.5, 3);
     builder.gen_world(&mut world, 0.0, 0.0);
+    let quad = vec![-1.0,1.0, -1.0,-1.0, 1.0,1.0, 1.0,-1.0];
+    let hud = HUD::new(loader.borrow_mut().load_to_vao_gui(&quad));
     GameMgr {
       handler: handler,
       loader: loader,
@@ -61,6 +65,7 @@ impl GameMgr {
       world: Some(world),
       world_builder: builder,
       textmgr: Some(Rc::new(RefCell::new(textmgr))),
+      hud: Rc::new(RefCell::new(hud)),
       entities: Rc::new(RefCell::new(HashMap::new())),
       models: Rc::new(RefCell::new(HashMap::new())),
       materials: Rc::new(RefCell::new(HashMap::new())),

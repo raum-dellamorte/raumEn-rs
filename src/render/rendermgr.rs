@@ -6,6 +6,7 @@ use Display;
 use render::RenderTexModel;
 use render::RenderTerrain;
 use render::RenderFont;
+use render::RenderHUD;
 
 use gl::*;
 // use gl::types::{GLuint, }; // GLfloat, GLenum, GLint, GLchar, GLsizeiptr, GLboolean, 
@@ -41,6 +42,7 @@ pub struct RenderMgr {
   pub ren_tex_model: RenderTexModel,
   pub ren_terrain: RenderTerrain,
   pub ren_font: RenderFont,
+  pub ren_hud: RenderHUD,
 }
 
 impl RenderMgr {
@@ -50,6 +52,7 @@ impl RenderMgr {
       ren_tex_model: RenderTexModel::new(),
       ren_terrain: RenderTerrain::new(),
       ren_font: RenderFont::new(),
+      ren_hud: RenderHUD::new(),
     }
   }
   pub fn take_mgr(&mut self) -> Box<GameMgr> {
@@ -66,6 +69,12 @@ impl RenderMgr {
     mgr = self.ren_tex_model.render(mgr);
     mgr = self.ren_terrain.render(mgr);
     mgr = self.ren_font.render(mgr);
+    self.return_mgr(mgr);
+    unsafe { BindVertexArray(0); }
+  }
+  pub fn render_gui(&mut self) { 
+    let mut mgr = self.take_mgr();
+    mgr = self.ren_hud.render(mgr);
     self.return_mgr(mgr);
     unsafe { BindVertexArray(0); }
   }
@@ -107,5 +116,6 @@ impl RenderMgr {
     self.ren_tex_model.clean_up();
     self.ren_terrain.clean_up();
     self.ren_font.clean_up();
+    self.ren_hud.clean_up();
   }
 }
