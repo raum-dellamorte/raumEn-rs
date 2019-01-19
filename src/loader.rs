@@ -123,6 +123,12 @@ impl Loader {
     self.textures.push(tex_id);
     Texture::new(tex_name, tex_id)
   }
+  pub fn load_to_vao_gui(&mut self, verts: &[f32]) -> u32 {
+    let vao_id = self.create_vao();
+    self.bind_attrib(0, 2, &verts);
+    self.unbind_vao();
+    vao_id
+  }
   pub fn load_to_vao_2d(&mut self, verts: &[f32], tex_coords: &[f32]) -> u32 {
     let vao_id = self.create_vao();
     self.bind_attrib(0, 2, &verts);
