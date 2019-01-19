@@ -50,6 +50,7 @@ pub use render::{RenderMgr, };
 pub use shader::lighting::Lights;
 pub use shader::Shader;
 pub use terrain::{World, WorldBuilder};
+pub use texture::Texture;
 pub use timer::Timer;
 
 use fbo::DepthType::{DepthRenderBuffer, DepthTexture, NoDepth};

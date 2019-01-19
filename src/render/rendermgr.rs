@@ -3,9 +3,9 @@ use std::rc::Rc;
 use std::cell::RefCell;
 
 use Display;
-use render::model::RenderTexModel;
-use render::terrain::RenderTerrain;
-use render::font::RenderFont;
+use render::RenderTexModel;
+use render::RenderTerrain;
+use render::RenderFont;
 
 use gl::*;
 // use gl::types::{GLuint, }; // GLfloat, GLenum, GLint, GLchar, GLsizeiptr, GLboolean, 

@@ -5,17 +5,16 @@ use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, Mutex};
 use CVOID;
 
-// use camera::Camera;
-use entities::position::PosMarker;
-use gamemgr::GameMgr;
+// use Camera;
+use entities::PosMarker;
+use GameMgr;
 use model::RawModel;
-// use shader::lighting::Lights;
+// use Lights;
 use shader::gen_font_shader;
-use shader::Shader;
+use Shader;
 use text::{TextMgr, RFontType};
-use texture::Texture;
-use util::rvector::{Vector3f, }; // Vector2f, Vector4f, 
-// use util::rvertex::{RVertex, RVertex2D};
+use Texture;
+use util::{Vector3f, }; // Vector2f, Vector4f, RVertex, RVertex2D
 
 pub struct RenderFont {
   pub shader: Shader,
