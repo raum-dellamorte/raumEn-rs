@@ -3,8 +3,8 @@ pub mod position;
 
 use std::sync::{Arc, Mutex};
 
-use entities::mobs::Mob;
-use entities::position::PosMarker;
+pub use entities::mobs::Mob;
+pub use entities::position::PosMarker;
 
 pub struct Entity {
   pub name: String,
