@@ -105,5 +105,7 @@ impl RenderMgr {
   pub fn clean_up(&mut self) {
     self.mgr.as_mut().unwrap().clean_up();
     self.ren_tex_model.clean_up();
+    self.ren_terrain.clean_up();
+    self.ren_font.clean_up();
   }
 }
