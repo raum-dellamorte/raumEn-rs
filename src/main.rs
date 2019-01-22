@@ -55,6 +55,7 @@ pub use terrain::{World, WorldBuilder};
 pub use texture::Texture;
 pub use timer::Timer;
 
+use fbo::ColorType::{ColorMultisampleRenderBuffer, ColorMultisampleRenderBuffers2, ColorTexture, NoColor};
 use fbo::DepthType::{DepthRenderBuffer, DepthTexture, NoDepth};
 
 fn main() {
@@ -126,13 +127,14 @@ fn main() {
     }
     mgr.textmgr = Some(_textmgr);
   }
-  let mut _fbo = Fbo::new(mgr.display_clone(), 640, 480, DepthTexture);
+  let mut _fbo = Fbo::new(mgr.display_clone(), 0, 0, ColorMultisampleRenderBuffers2, DepthRenderBuffer);
+  let mut _fbo_final = Fbo::new(mgr.display_clone(), 0, 0, ColorTexture, DepthTexture);
   {
     let mut _hud = mgr.hud.borrow_mut();
     _hud.elements.push(GuiObj::new());
     let _gui = _hud.elements.get_mut(0).unwrap();
-    _gui.tex_id = _fbo.color_tex_id;
-    _gui.depth_tex_id = _fbo.depth_tex_id;
+    _gui.tex_id = _fbo_final.color_tex_id;
+    _gui.depth_tex_id = _fbo_final.depth_tex_id;
   }
   
   // Return the GameMgr to the RenderMgr
@@ -212,8 +214,10 @@ fn main() {
     _fbo.bind();
     render_mgr.render();
     _fbo.unbind();
+    _fbo.blit_to_fbo(&_fbo_final);
     
-    render_mgr.render();
+    // render_mgr.render();
+    _fbo_final.blit_to_screen();
     render_mgr.render_gui();
     // Write the new frame to the screen!
     gl_window.swap_buffers().unwrap();
