@@ -1,9 +1,11 @@
 pub mod maths;
+pub mod rgl;
 pub mod rvector;
 pub mod rmatrix;
 pub mod rvertex;
 
 pub use util::maths::*;
+pub use util::rgl::*;
 pub use util::rmatrix::Matrix4f;
 pub use util::rvector::{RVec, Vector2f, Vector3f, XVEC, YVEC, ZVEC};
 

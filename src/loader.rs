@@ -11,6 +11,7 @@ use model::import::load_obj;
 use model::RawModel;
 use model::mesh::Mesh;
 use texture::Texture;
+use util::{r_gen_textures,r_gen_vertex_arrays,r_gen_buffers};
 use util::rvertex::{RVertex, RVertex2D};
 
 pub struct Loader {
@@ -53,16 +54,14 @@ impl Loader {
     self.meshes.get(name)
   }
   pub fn create_vao(&mut self) -> GLuint { unsafe {
-    let mut vao_id: GLuint = 0;
-    GenVertexArrays(1, &mut vao_id);
+    let vao_id: GLuint = r_gen_vertex_arrays();
     assert!(vao_id != 0);
     self.vaos.push(vao_id);
     BindVertexArray(vao_id);
     vao_id
   }}
   pub fn bind_attrib(&mut self, attrib: u32, step: GLint, data: &[GLfloat]) { unsafe {
-    let mut vbo_id: GLuint = 0;
-    GenBuffers(1, &mut vbo_id);
+    let vbo_id: GLuint = r_gen_buffers();
     assert!(vbo_id != 0);
     self.vbos.push(vbo_id);
     BindBuffer(ARRAY_BUFFER, vbo_id);
@@ -75,8 +74,7 @@ impl Loader {
     BindBuffer(ARRAY_BUFFER, 0_u32);
   }}
   pub fn bind_indices(&mut self, idxs: &[u16]) { unsafe {
-    let mut vbo_id = 0_u32;
-    GenBuffers(1, &mut vbo_id);
+    let vbo_id = r_gen_buffers();
     self.vbos.push(vbo_id);
     BindBuffer(ELEMENT_ARRAY_BUFFER, vbo_id);
     use std::mem;
@@ -102,11 +100,10 @@ impl Loader {
     };
     let (width, height) = img.dimensions();
     let img_raw = img.into_raw();
-    let mut tex_id: GLuint = 0;
+    let tex_id: GLuint = r_gen_textures();
+    // println!("texture: image<{}> tex_id<{}>", tex_name, tex_id);
+    assert!(tex_id != 0, "tex_id should not be 0");
     unsafe {
-      GenTextures(1, &mut tex_id);
-      // println!("texture: image<{}> tex_id<{}>", tex_name, tex_id);
-      assert!(tex_id != 0, "tex_id should not be 0");
       BindTexture(TEXTURE_2D, tex_id);
       TexImage2D(
         TEXTURE_2D, 0, RGBA as i32, width as i32, height as i32, 0, RGBA, UNSIGNED_BYTE, 
