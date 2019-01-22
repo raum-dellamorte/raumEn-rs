@@ -68,12 +68,12 @@ impl RenderMgr {
     mgr.create_view_matrix();
     mgr = self.ren_tex_model.render(mgr);
     mgr = self.ren_terrain.render(mgr);
-    mgr = self.ren_font.render(mgr);
     self.return_mgr(mgr);
     unsafe { BindVertexArray(0); }
   }
   pub fn render_gui(&mut self) { 
     let mut mgr = self.take_mgr();
+    mgr = self.ren_font.render(mgr);
     mgr = self.ren_hud.render(mgr);
     self.return_mgr(mgr);
     unsafe { BindVertexArray(0); }
