@@ -65,7 +65,7 @@ fn main() {
   let mut events_loop = glutin::EventsLoop::new();
   let window = glutin::WindowBuilder::new()
     .with_title("RaumEn")
-    .with_dimensions(LogicalSize::new(640.0, 480.0));
+    .with_dimensions(LogicalSize::new(640.0, 360.0));
   let context = glutin::ContextBuilder::new()
     .with_vsync(true);
   let gl_window = glutin::GlWindow::new(window, context, &events_loop).unwrap();
