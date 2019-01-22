@@ -46,6 +46,7 @@ impl ShaderVar {
 pub struct ShaderUni {
     var_name: String,
     var_id: GLint,
+    texture: GLint,
 }
 
 impl ShaderUni {
@@ -53,6 +54,7 @@ impl ShaderUni {
     ShaderUni {
       var_name: format!("{}", name),
       var_id: -1 as GLint,
+      texture: -1 as GLint,
     }
   }
 }
@@ -98,7 +100,11 @@ impl Shader {
     .load_frag_shader()
     .compile_shaders()
     .link()
-    .gen_uniforms()
+    .gen_uniforms();
+    self.start();
+    self.connect_sampler_uniforms();
+    self.stop();
+    self
   }
   pub fn add_attributes(&mut self, names: Vec<&str>) -> &mut Self {
     for name in names {
@@ -116,6 +122,12 @@ impl Shader {
     }
     self
   }
+  pub fn add_sampler_uniforms(&mut self, names: Vec<(&str, GLint)>) -> &mut Self {
+    for (name, num) in names {
+      self.add_texture_uniform(name, num);
+    }
+    self
+  }
   pub fn add_uniforms_array(&mut self, names: Vec<&str>, count: usize) -> &mut Self {
     for name in names {
       let mut i = 0;
@@ -130,6 +142,12 @@ impl Shader {
     self.unis.push(ShaderUni::new(name));
     self
   }
+  pub fn add_texture_uniform(&mut self, name: &str, texture: GLint) -> &mut Self {
+    let mut shuni = ShaderUni::new(name);
+    shuni.texture = texture;
+    self.unis.push(shuni);
+    self
+  }
   pub fn bind_attributes(&mut self) -> &mut Self { unsafe {
     let mut count = 0 as GLint;
     let mut cname;
@@ -141,6 +159,11 @@ impl Shader {
     }
     self
   }}
+  pub fn connect_sampler_uniforms(&self) {
+    for uni in &self.unis {
+      if uni.texture >= 0 { self.load_int(&uni.var_name, uni.texture); }
+    }
+  }
   pub fn gen_uniforms(&mut self) -> &mut Self {
     self.start();
     for uniform in &mut self.unis {
