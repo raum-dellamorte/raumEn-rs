@@ -9,7 +9,7 @@ pub mod terrain;
 pub use shader::model::gen_model_shader;
 pub use shader::terrain::gen_terrain_shader;
 pub use shader::font::gen_font_shader;
-pub use shader::postproc::gen_postproc_shader;
+pub use shader::postproc::gen_fog_shader;
 pub use shader::hud::gen_hud_shader;
 
 use gl::*;
