@@ -221,7 +221,7 @@ fn main() {
     _fbo.bind();
     render_mgr.render();
     _fbo.unbind();
-    _fbo.blit_to_fbo(&_fbo_final);
+    _fbo.blit_to_fbo(0, &_fbo_final);
     
     // render_mgr.render();
     // _fbo_final.blit_to_screen();

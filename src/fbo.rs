@@ -101,9 +101,10 @@ impl Fbo {
     BindFramebuffer(READ_FRAMEBUFFER, self.frame_buffer_id);
     ReadBuffer(COLOR_ATTACHMENT0);
   }}
-  pub fn blit_to_fbo(&self, other: &Self) { unsafe {
+  pub fn blit_to_fbo(&self, color_attachment: u32, other: &Self) { unsafe {
     BindFramebuffer(DRAW_FRAMEBUFFER, other.frame_buffer_id);
     BindFramebuffer(READ_FRAMEBUFFER, self.frame_buffer_id);
+    ReadBuffer(COLOR_ATTACHMENT0 + color_attachment);
     BlitFramebuffer(0, 0, self.width, self.height, 0, 0, other.width, other.height, 
         COLOR_BUFFER_BIT | DEPTH_BUFFER_BIT, NEAREST);
     self.unbind();
@@ -120,7 +121,13 @@ impl Fbo {
     if id == 0_u32 { panic!("GenFramebuffers failed in Fbo::create_frame_buffer") }
     self.frame_buffer_id = id;
     BindFramebuffer(FRAMEBUFFER, id);
-    DrawBuffer(COLOR_ATTACHMENT0);
+    let mut buffers = vec![COLOR_ATTACHMENT0];
+    match self.color_type {
+      ColorMultisampleRenderBuffers2 => { buffers.push(COLOR_ATTACHMENT1); }
+      _ => {}
+    }
+    use std::mem;
+    DrawBuffers(buffers.len() as i32, mem::transmute(&buffers[0]));
   }}
   fn create_color_texture_attachment(&mut self) { unsafe {
     let id = r_gen_textures();
