@@ -48,7 +48,7 @@ pub use hud::{HUD, GuiObj};
 pub use input::Handler;
 pub use loader::Loader;
 pub use material::Material;
-pub use render::{RenderMgr, };
+pub use render::{RenderMgr, RenderPostProc, };
 pub use shader::lighting::Lights;
 pub use shader::Shader;
 pub use terrain::{World, WorldBuilder};
@@ -127,8 +127,15 @@ fn main() {
     }
     mgr.textmgr = Some(_textmgr);
   }
+  
+  
   let mut _fbo = Fbo::new(mgr.display_clone(), 0, 0, ColorMultisampleRenderBuffers2, DepthRenderBuffer);
   let mut _fbo_final = Fbo::new(mgr.display_clone(), 0, 0, ColorTexture, DepthTexture);
+  let render_post = RenderPostProc::new("fog", mgr.quad_id, 
+      vec![
+        Texture::new("fbo color", _fbo_final.color_tex_id).assign_tex_unit(0_i32),
+        Texture::new("fbo depth", _fbo_final.depth_tex_id).assign_tex_unit(1_i32),
+      ]);
   {
     let mut _hud = mgr.hud.borrow_mut();
     _hud.elements.push(GuiObj::new());
@@ -217,12 +224,14 @@ fn main() {
     _fbo.blit_to_fbo(&_fbo_final);
     
     // render_mgr.render();
-    _fbo_final.blit_to_screen();
+    // _fbo_final.blit_to_screen();
+    render_post.render();
     render_mgr.render_gui();
     // Write the new frame to the screen!
     gl_window.swap_buffers().unwrap();
   }
   render_mgr.clean_up();
+  render_post.clean_up();
 }
 
 pub const EOF: &str = "\04";

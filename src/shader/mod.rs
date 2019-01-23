@@ -219,7 +219,7 @@ impl Shader {
   pub fn stop(&self) { unsafe {
     UseProgram(0);
   }}
-  pub fn clean_up(&mut self) { unsafe {
+  pub fn clean_up(&self) { unsafe {
     self.stop();
     for shader in &self.shaders {
       DetachShader(self.program, shader.id);

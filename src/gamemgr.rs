@@ -36,6 +36,7 @@ pub struct GameMgr {
   // pub fonts: Option<Rc<RefCell<HashMap<String, RFontType>>>>,
   pub view_mat: Matrix4f,
   pub player_loc: Vector3f,
+  pub quad_id: u32,
 }
 
 impl GameMgr {
@@ -54,8 +55,9 @@ impl GameMgr {
     let mut builder = WorldBuilder::new();
     builder.set_landscape_weight_and_mult(0.5, 3);
     builder.gen_world(&mut world, 0.0, 0.0);
-    let quad = vec![-1.0,1.0, -1.0,-1.0, 1.0,1.0, 1.0,-1.0];
-    let hud = HUD::new(loader.borrow_mut().load_to_vao_gui(&quad));
+    let quad_vec = vec![-1.0,1.0, -1.0,-1.0, 1.0,1.0, 1.0,-1.0];
+    let quad = loader.borrow_mut().load_to_vao_gui(&quad_vec);
+    let hud = HUD::new(quad);
     GameMgr {
       handler: handler,
       loader: loader,
@@ -74,6 +76,7 @@ impl GameMgr {
       // fonts: Some(Rc::new(RefCell::new(HashMap::new()))),
       view_mat: Matrix4f::new(),
       player_loc: Vector3f::blank(),
+      quad_id: quad,
     }
   }
   pub fn update_size(self, dimensions: (u32, u32)) -> Box<Self> {
