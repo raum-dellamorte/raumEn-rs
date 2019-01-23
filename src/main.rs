@@ -230,6 +230,8 @@ fn main() {
     // Write the new frame to the screen!
     gl_window.swap_buffers().unwrap();
   }
+  _fbo.clean_up();
+  _fbo_final.clean_up();
   render_mgr.clean_up();
   render_post.clean_up();
 }
