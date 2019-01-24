@@ -1,5 +1,7 @@
 
 
+use std::hash::Hash;
+
 #[derive(Debug)]
 pub enum TerrainCoords {
   ChunkLoc { x: isize, z: isize }
