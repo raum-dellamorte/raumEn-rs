@@ -22,7 +22,6 @@ pub struct ShaderVar {
     var_name: String,
     var_id: GLint,
 }
-
 impl ShaderVar {
   pub fn new(name: &str) -> Self {
     ShaderVar {
@@ -37,13 +36,27 @@ pub struct ShaderUni {
     var_id: GLint,
     texture: GLint,
 }
-
 impl ShaderUni {
   pub fn new(name: &str) -> Self {
     ShaderUni {
       var_name: format!("{}", name),
       var_id: -1 as GLint,
       texture: -1 as GLint,
+    }
+  }
+}
+
+pub struct ShaderOutputVar {
+    var_name: CString,
+    var_loc: u32,
+}
+impl ShaderOutputVar {
+  pub fn new(name: &str, loc: u32) -> Self {
+    let name = format!("{}", name);
+    let cname = CString::new(name.as_bytes()).unwrap();
+    ShaderOutputVar {
+      var_name: cname,
+      var_loc: loc,
     }
   }
 }
@@ -145,6 +158,13 @@ impl Shader {
       BindAttribLocation(self.program, count as GLuint, cname.as_ptr());
       attrib.var_id = count;
       count += 1;
+    }
+    self
+  }}
+  pub fn bind_frag_data_locations(&mut self, outputs: &mut Vec<ShaderOutputVar>) -> &mut Self { unsafe {
+    // Use this for multiple render targets if you can't use layout (location) in glsl
+    for output in outputs {
+      BindFragDataLocation(self.program, output.var_loc, output.var_name.as_ptr());
     }
     self
   }}
