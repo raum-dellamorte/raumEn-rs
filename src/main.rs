@@ -51,10 +51,12 @@ fn main() {
   let mut events_loop = glutin::EventsLoop::new();
   let window = glutin::WindowBuilder::new()
     .with_title("RaumEn")
-    .with_dimensions(LogicalSize::new(640.0, 360.0));
+    .with_dimensions(LogicalSize::new(640.0, 360.0))
+    .with_maximized(false);
   let context = glutin::ContextBuilder::new()
     .with_vsync(true);
   let gl_window = glutin::GlWindow::new(window, context, &events_loop).unwrap();
+  gl_window.set_maximized(false);
   
   unsafe {
     gl_window.make_current().unwrap();
