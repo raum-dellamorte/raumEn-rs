@@ -71,6 +71,20 @@ impl PosMarker {
     
     self.moving = true;
   }
+  pub fn strafe(&mut self, world: &mut Box<World>, right: bool) {
+    if self.moving { return }
+    
+    // store orig pos final pos and height
+    let dist = if right { 2.0 } else { -2.0 };
+    let mut dest = self.pos.dist_rot_offset(dist, (self.ry - 90.0).round() );
+    dest.y = world.bounds_under_v3f(&dest).0;
+    if (self.pos.y - dest.y).abs() > 5.0 { return }
+    self.jump_arc.init(&self.pos, &dest);
+    
+    self.moving = true;
+  }
+  pub fn strafe_left(&mut self, world: &mut Box<World>) { self.strafe(world, false); }
+  pub fn strafe_right(&mut self, world: &mut Box<World>) { self.strafe(world, true); }
   pub fn calc_move_arc(&mut self, world: &mut Box<World>, rate: f32) {
     if self.moving {
       // get orig pos final pos and height and add rate to percent of arc completion

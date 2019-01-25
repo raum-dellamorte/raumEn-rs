@@ -40,12 +40,14 @@ impl Mob {
     };
     let mut marker = self.pos.lock().unwrap();
     marker.prep(world);
-    if handler.read_kb_multi_any_of(KCS::new(&[Up,    W])) { marker.move_forward( world, true ); } // Up
-    if handler.read_kb_multi_any_of(KCS::new(&[Down,  S])) { marker.move_forward( world, false ); } // Down
-    if handler.read_kb_single_any_of(KCS::new(&[Left,  A])) { marker.turn_left(); } // Left  // marker.inc_rot(0.0, self.turn * rate, 0.0);
-    if handler.read_kb_single_any_of(KCS::new(&[Right, D])) { marker.turn_right(); } // Right // marker.inc_rot(0.0,-self.turn * rate, 0.0);
-    if handler.read_kb_single(KC::new(Space))              { marker.jump() } // Jump
-    if handler.read_mouse_single(MB::Left)                 { println!("mouse x: {} y: {}", mx, my); } // Fire/Select
+    if handler.read_kb_multi_any_of(KCS::new(&[Up,    W])) { marker.move_forward( world, true ); }  // Move Forward
+    if handler.read_kb_multi_any_of(KCS::new(&[Down,  S])) { marker.move_forward( world, false ); } // Move Backward
+    if handler.read_kb_multi_any_of(KCS::new(&[Left,  A])) { marker.strafe_left( world ); }         // Strafe Left
+    if handler.read_kb_multi_any_of(KCS::new(&[Right, D])) { marker.strafe_right( world ); }        // Strafe Right
+    if handler.read_kb_single_any_of(KCS::new(&[Q]))       { marker.turn_left(); }                  // Turn Left
+    if handler.read_kb_single_any_of(KCS::new(&[E]))       { marker.turn_right(); }                 // Turn Right
+    if handler.read_kb_single(KC::new(Space))              { marker.jump() }                        // Jumping... is useless
+    // if handler.read_mouse_single(MB::Left)                 { println!("mouse x: {} y: {}", mx, my); } // Fire/Select
     marker.calc_move_arc(world, rate); // move_to_new_pos(rate)
     self
   }
