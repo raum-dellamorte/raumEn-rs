@@ -6,9 +6,9 @@ use glutin::VirtualKeyCode::*;
 use glutin::MouseButton as MB;
 
 use entities::position::PosMarker;
-use input::Handler;
-use input::KeyCode as KC;
-use input::KeyCodes as KCS;
+use Handler;
+use engine::input::KeyCode as KC;
+use engine::input::KeyCodes as KCS;
 use terrain::World;
 
 pub struct Mob {

@@ -1,7 +1,7 @@
 
 
 
-use gamemgr::GameMgr;
+use GameMgr;
 use text::{TextMgr, RTextMesh, }; // RFontType, 
 use util::rvector::{Vector2f, Vector3f, };
 

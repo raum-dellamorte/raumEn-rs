@@ -7,7 +7,7 @@ use CVOID;
 
 // use camera::Camera;
 use entities::position::PosMarker;
-use gamemgr::GameMgr;
+use GameMgr;
 use model::RawModel;
 // use shader::lighting::Lights;
 use shader::gen_model_shader;

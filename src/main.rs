@@ -1,7 +1,5 @@
 #![recursion_limit="128"]
-#![allow(unused_imports)]
-#![allow(dead_code)]
-#![feature(extern_prelude)]
+#![allow(unused_imports,dead_code)]
 
 extern crate gl;
 extern crate glutin;
@@ -21,14 +19,8 @@ use glutin::GlContext;
 const CVOID: *const c_void = 0 as *const c_void;
 
 // in project stuff
-pub mod camera;
-pub mod display;
+pub mod engine;
 pub mod entities;
-pub mod fbo;
-pub mod gamemgr;
-pub mod hud;
-pub mod input;
-pub mod loader;
 pub mod material;
 pub mod model;
 pub mod render;
@@ -36,28 +28,20 @@ pub mod shader;
 pub mod terrain;
 pub mod text;
 pub mod texture;
-pub mod timer;
 pub mod util;
 
-pub use camera::Camera;
-pub use display::Display;
+pub use engine::{Camera, Display, Fbo, GameMgr, HUD, GuiObj, Handler, Loader, Timer};
 pub use entities::Entity;
 pub use entities::mobs::Mob;
-pub use fbo::Fbo;
-pub use gamemgr::GameMgr;
-pub use hud::{HUD, GuiObj};
-pub use input::Handler;
-pub use loader::Loader;
 pub use material::Material;
 pub use render::{RenderMgr, RenderPostProc, };
 pub use shader::lighting::Lights;
 pub use shader::Shader;
 pub use terrain::{World, WorldBuilder};
 pub use texture::Texture;
-pub use timer::Timer;
 
-use fbo::ColorType::{ColorMultisampleRenderBuffer, ColorMultisampleRenderBuffers2, ColorTexture, NoColor};
-use fbo::DepthType::{DepthRenderBuffer, DepthTexture, NoDepth};
+use engine::fbo::ColorType::{ColorMultisampleRenderBuffer, ColorMultisampleRenderBuffers2, ColorTexture, NoColor};
+use engine::fbo::DepthType::{DepthRenderBuffer, DepthTexture, NoDepth};
 
 fn main() {
   // // Test code for parsing fnt files

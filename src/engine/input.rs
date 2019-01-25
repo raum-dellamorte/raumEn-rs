@@ -7,7 +7,7 @@ use glutin::ElementState::{Pressed, Released};
 use glutin::VirtualKeyCode as VKC;
 use glutin::ModifiersState as MKS;
 
-use timer::Timer;
+use Timer;
 
 pub struct Handler {
   pub timer: Timer,

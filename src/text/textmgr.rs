@@ -1,7 +1,7 @@
 
 use std::collections::{HashMap, HashSet};
 
-use gamemgr::GameMgr;
+use GameMgr;
 use text::guitext::GuiText;
 use text::RFontType;
 use util::Vector2f;

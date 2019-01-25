@@ -1,7 +1,7 @@
 
 
 
-use gamemgr::GameMgr;
+use GameMgr;
 use text::{RChar, RLine, RWord, RTextMesh, NEWLINE_ASCII, SPACE_ASCII, LINE_HEIGHT, }; // RFontType, 
 use text::guitext::GuiTextVals;
 use text::metafile::MetaFile;

@@ -21,8 +21,8 @@ pub enum DepthType {
   NoDepth,
 }
 
-use fbo::ColorType::{ColorTexture, ColorMultisampleRenderBuffer, ColorMultisampleRenderBuffers2, NoColor};
-use fbo::DepthType::{DepthTexture, DepthRenderBuffer, NoDepth};
+use engine::fbo::ColorType::{ColorTexture, ColorMultisampleRenderBuffer, ColorMultisampleRenderBuffers2, NoColor};
+use engine::fbo::DepthType::{DepthTexture, DepthRenderBuffer, NoDepth};
 
 pub struct Fbo {
   pub display: Rc<RefCell<Display>>,

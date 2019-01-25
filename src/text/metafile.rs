@@ -10,7 +10,7 @@ use std::str::FromStr;
 
 use nom::{space, digit, float_s, }; // alpha, alphanumeric, 
 
-use gamemgr::GameMgr;
+use GameMgr;
 use text::{RChar, }; // RLine, RWord, RFontType, SPACE_ASCII, LINE_HEIGHT, 
 use text::{LINE_HEIGHT, SPACE_ASCII};
 use eof;
