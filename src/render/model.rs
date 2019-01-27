@@ -33,7 +33,7 @@ impl RenderTexModel {
     mgr.lights_do(|lights| { lights.load_to_shader(&self.shader); });
     // self.shader.load_vec_4f("plane", &Vector4f {x: 0_f32, y: 10000_f32, z: 0_f32, w: 1_f32, }); // vec4 plane;
     // self.shader.load_bool("use_clip_plane", false); // float useClipPlane;
-    self.shader.load_vec_3f("sky_color", &Vector3f::new(0.5, 0.6, 0.5));
+    // self.shader.load_vec_3f("sky_color", &Vector3f::new(0.5, 0.6, 0.5));
     let _ents = mgr.entities.clone();
     let entities = _ents.borrow_mut();
     for entity in entities.values() {

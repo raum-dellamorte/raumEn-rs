@@ -8,7 +8,6 @@ out vec2 v_TexCoord;
 out vec3 v_SurfaceNorm;
 out vec3 v_toLight;
 out vec3 v_toCam;
-out float v_vis;
 
 uniform mat4 u_Transform;
 uniform mat4 u_Projection;
@@ -26,8 +25,7 @@ const float gradient = 1.5;
 void main(void) {
   vec4 worldPos = u_Transform * vec4(a_Pos, 1.0);
   
-  vec4 posRelToCam = u_View * worldPos; // for fog from cam perspective
-  gl_Position = u_Projection * posRelToCam;
+  gl_Position = u_Projection * u_View * worldPos;
   v_TexCoord = (a_TexCoord / row_count) + offset;
   
   // vec3 actualNormal = a_Norm;
@@ -39,9 +37,5 @@ void main(void) {
   v_toLight = light_pos - worldPos.xyz;
   
   v_toCam = (inverse(u_View) * vec4(0.0,0.0,0.0,1.0)).xyz - worldPos.xyz;
-  
-  // vec4 posRelToPlayer = player_loc * worldPos; // for fog from player perspective
-  float dist = length(posRelToCam.xyz);
-  v_vis = clamp(exp(-pow((dist * density), gradient)),0.5,1.0);
   
 }

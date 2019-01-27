@@ -4,12 +4,10 @@ in vec2 v_TexCoord;
 in vec3 v_SurfaceNorm;
 in vec3 v_toLight;
 in vec3 v_toCam;
-in float v_vis;
 
 out vec4 out_Color;
 
 uniform sampler2D t_Texture;
-uniform vec3 sky_color;
 uniform float shine_damper;
 uniform float reflectivity;
 
@@ -41,7 +39,7 @@ void main(void) {
   // }
   
   // vec4 diffuseAndSpecular = textureColour; // vec4(totalDiffuse, 1.0) * textureColour + vec4(totalSpecular, 1.0);
-  out_Color = mix(vec4(sky_color,1.0),textureColour,v_vis);
+  out_Color = textureColour;
   // out_Color = textureColour;
   
 }
