@@ -34,7 +34,7 @@ impl Mob {
   pub fn move_mob(&mut self, handler: &mut Handler, world: &mut Box<World>) -> &Self {
     let rate = handler.timer.delta;
     if rate > 0.07 { return self; }
-    let (mx, my) = match handler.cursor_pos {
+    let (_mx, _my) = match handler.cursor_pos {
       Some(xy) => xy,
       None     => (0_f64, 0_f64),
     };
@@ -47,7 +47,7 @@ impl Mob {
     if handler.read_kb_single_any_of(KCS::new(&[Q]))       { marker.turn_left(); }                  // Turn Left
     if handler.read_kb_single_any_of(KCS::new(&[E]))       { marker.turn_right(); }                 // Turn Right
     if handler.read_kb_single(KC::new(Space))              { marker.jump() }                        // Jumping... is useless
-    // if handler.read_mouse_single(MB::Left)                 { println!("mouse x: {} y: {}", mx, my); } // Fire/Select
+    // if handler.read_mouse_single(MB::Left)                 { println!("mouse x: {} y: {}", _mx, _my); } // Fire/Select
     marker.calc_move_arc(world, rate); // move_to_new_pos(rate)
     self
   }
