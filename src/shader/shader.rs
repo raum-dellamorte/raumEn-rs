@@ -14,6 +14,9 @@ use std::fs::File;
 use std::io::BufReader;
 use std::io::prelude::*;
 use std::path::Path;
+use std::collections::HashSet;
+// use std::rc::Rc;
+use std::cell::RefCell;
 
 use util::rmatrix::Matrix4f;
 use util::rvector::{ Vector2f, Vector3f, Vector4f };
@@ -87,13 +90,15 @@ pub struct Shader {
   pub shaders: Vec<ShaderSrc>,
   pub vars: Vec<ShaderVar>,
   pub unis: Vec<ShaderUni>,
+  pub unis_unavailable: RefCell<HashSet<String>>,
 }
 
 impl Shader {
   pub fn new(name: &str) -> Self {
     Shader { 
       name: format!("{}", name), program: 0, done: false,
-      shaders: Vec::new(), vars: Vec::new(), unis: Vec::new() 
+      shaders: Vec::new(), vars: Vec::new(), unis: Vec::new(), 
+      unis_unavailable: RefCell::new(HashSet::new()),
     }
   }
   pub fn load_defaults(&mut self) -> &mut Self {
@@ -194,25 +199,39 @@ impl Shader {
     self.load_matrix("u_Projection", matrix);
   }
   pub fn load_int(&self, name: &str, value: GLint) { unsafe {
-    Uniform1i(self.get_uniform_id(name), value);
+    let id = self.get_uniform_id(name);
+    if self.check_id(id, name, "load_int") { return }
+    Uniform1i(id, value);
   }}
   pub fn load_float(&self, name: &str, value: GLfloat) { unsafe {
-    Uniform1f(self.get_uniform_id(name), value);
-  }}
-  pub fn load_vec_4f(&self, name: &str, vector: &Vector4f) { unsafe {
-    Uniform4f(self.get_uniform_id(name), vector.x, vector.y, vector.z, vector.w);
-  }}
-  pub fn load_vec_3f(&self, name: &str, vector: &Vector3f) { unsafe {
-    Uniform3f(self.get_uniform_id(name), vector.x, vector.y, vector.z);
-  }}
-  pub fn load_vec_2f(&self, name: &str, vector: &Vector2f) { unsafe {
-    Uniform2f(self.get_uniform_id(name), vector.x, vector.y);
+    let id = self.get_uniform_id(name);
+    if self.check_id(id, name, "load_float") { return }
+    Uniform1f(id, value);
   }}
   pub fn load_bool(&self, name: &str, value: bool) { unsafe {
-    Uniform1f(self.get_uniform_id(name), if value { 1.0 as GLfloat } else { 0.0 as GLfloat })
+    let id = self.get_uniform_id(name);
+    if self.check_id(id, name, "load_bool") { return }
+    Uniform1f(id, if value { 1.0 as GLfloat } else { 0.0 as GLfloat })
+  }}
+  pub fn load_vec_4f(&self, name: &str, vector: &Vector4f) { unsafe {
+    let id = self.get_uniform_id(name);
+    if self.check_id(id, name, "load_vec_4f") { return }
+    Uniform4f(id, vector.x, vector.y, vector.z, vector.w);
+  }}
+  pub fn load_vec_3f(&self, name: &str, vector: &Vector3f) { unsafe {
+    let id = self.get_uniform_id(name);
+    if self.check_id(id, name, "load_vec_3f") { return }
+    Uniform3f(id, vector.x, vector.y, vector.z);
+  }}
+  pub fn load_vec_2f(&self, name: &str, vector: &Vector2f) { unsafe {
+    let id = self.get_uniform_id(name);
+    if self.check_id(id, name, "load_vec_2f") { return }
+    Uniform2f(id, vector.x, vector.y);
   }}
   pub fn load_matrix(&self, name: &str, matrix: &Matrix4f) { unsafe {
-    UniformMatrix4fv(self.get_uniform_id(name), 1, 0, transmute(&matrix.matrix[0]) );
+    let id = self.get_uniform_id(name);
+    if self.check_id(id, name, "load_matrix") { return }
+    UniformMatrix4fv(id, 1, 0, transmute(&matrix.matrix[0]) );
   }}
   pub fn load_vert_shader(&mut self) -> &mut Self {
     self.add_shader(VERTEX_SHADER)
@@ -226,6 +245,14 @@ impl Shader {
   pub fn stop(&self) { unsafe {
     UseProgram(0);
   }}
+  fn check_id(&self, id: GLint, name: &str, caller: &str) -> bool {
+    let test = self.unis_unavailable.borrow().contains(name);
+    if test { return true } else {
+      self.unis_unavailable.borrow_mut().insert(name.to_string());
+      if id < 0 { println!("{}(): Uniform {} not available for shader {}", caller, name, self.name); }
+    }
+    false
+  }
   pub fn clean_up(&self) { unsafe {
     self.stop();
     for shader in &self.shaders {
@@ -321,9 +348,9 @@ pub fn get_attrib_location(program: GLuint, name: &str) -> GLint {
 pub fn get_uniform_location(program: GLuint, name: &str) -> GLint {
   let cname = CString::new(name.as_bytes()).unwrap();
   let location = unsafe { GetUniformLocation(program, cname.as_ptr()) };
-  if location < 0 {
-    panic!("Failed to get uniform location: {}", name);
-  }
+  // if location < 0 {
+  //   println!("Failed to get uniform location: {}", name);
+  // }
   location
 }
 pub fn get_ext(kind: GLenum) -> String {
