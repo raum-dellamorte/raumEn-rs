@@ -248,8 +248,10 @@ impl Shader {
   fn check_id(&self, id: GLint, name: &str, caller: &str) -> bool {
     let test = self.unis_unavailable.borrow().contains(name);
     if test { return true } else {
-      self.unis_unavailable.borrow_mut().insert(name.to_string());
-      if id < 0 { println!("{}(): Uniform {} not available for shader {}", caller, name, self.name); }
+      if id < 0 { 
+        self.unis_unavailable.borrow_mut().insert(name.to_string());
+        println!("{}(): Uniform {} not available for shader {}", caller, name, self.name); 
+      }
     }
     false
   }
