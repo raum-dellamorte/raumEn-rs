@@ -251,6 +251,7 @@ impl Shader {
       if id < 0 { 
         self.unis_unavailable.borrow_mut().insert(name.to_string());
         println!("{}(): Uniform {} not available for shader {}", caller, name, self.name); 
+        return true;
       }
     }
     false
