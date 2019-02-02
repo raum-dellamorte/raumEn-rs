@@ -1,5 +1,3 @@
-#[allow(non_snake_case)]
-#[allow(unused_imports)]
 
 use gl::*;
 use gl::types::{GLfloat, GLint, GLuint, GLsizeiptr, }; // GLenum, GLchar, GLboolean, 
@@ -9,8 +7,8 @@ use std::ptr;
 
 use model::import::load_obj;
 use model::RawModel;
-use model::mesh::Mesh;
-use texture::Texture;
+use model::Mesh;
+use Texture;
 use util::{r_gen_textures,r_gen_vertex_arrays,r_gen_buffers};
 use util::rvertex::{RVertex, RVertex2D};
 

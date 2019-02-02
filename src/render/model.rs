@@ -5,15 +5,11 @@ use gl::*;
 use std::sync::{Arc, Mutex};
 use CVOID;
 
-// use camera::Camera;
 use entities::position::PosMarker;
-use GameMgr;
+use {GameMgr, Shader, Texture, }; // Camera, 
 use model::RawModel;
-// use shader::lighting::Lights;
 use shader::gen_model_shader;
-use shader::Shader;
-use texture::Texture;
-use util::rvector::{Vector3f, }; // Vector2f, Vector4f, 
+use util::{Vector3f, }; // Vector2f, Vector4f, 
 // use util::rvertex::{RVertex, RVertex2D};
 
 pub struct RenderTexModel {

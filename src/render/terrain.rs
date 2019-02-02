@@ -6,12 +6,10 @@ use gl::*;
 use CVOID;
 
 // use entities::position::PosMarker;
-use GameMgr;
+use {GameMgr, Shader, Texture};
 use model::RawModel;
 use shader::gen_terrain_shader;
-use shader::Shader;
 use terrain::{World, Platform, from_world_to_chunk_space}; // Chunk, ChunkColumn, 
-use texture::Texture;
 use util::rmatrix::Matrix4f;
 use util::rvector::{Vector3f, }; // Vector2f, Vector4f, 
 // use util::rvertex::{RVertex, RVertex2D};

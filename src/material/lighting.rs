@@ -1,6 +1,6 @@
 
-use shader::Shader;
-use util::rvector::Vector3f;
+use Shader;
+use util::Vector3f;
 
 #[derive (Debug, PartialEq)]
 pub struct Lighting {
@@ -8,7 +8,6 @@ pub struct Lighting {
   pub reflectivity: f32,
   pub use_fake_lighting: bool,
 }
-
 impl Lighting {
   pub fn new() -> Self {
     Lighting {
@@ -42,7 +41,6 @@ pub struct Light {
   pub color: Vector3f,
   pub atten: Vector3f,
 }
-
 impl Light {
   pub fn new() -> Self {
     Light {
@@ -80,7 +78,6 @@ impl Light {
 pub struct Lights {
   pub lights: Vec<Light>,
 }
-
 impl Lights {
   pub fn new() -> Self {
     Lights { lights: Vec::new() }

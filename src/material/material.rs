@@ -1,6 +1,6 @@
 
 
-use util::rvector::Vector2f;
+use util::Vector2f;
 
 pub struct Material {
   pub name: String,

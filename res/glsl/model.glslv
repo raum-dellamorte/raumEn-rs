@@ -19,9 +19,6 @@ uniform vec3 light_pos;
 uniform float row_count;
 uniform vec2 offset;
 
-const float density = 0.007;
-const float gradient = 1.5;
-
 void main(void) {
   vec4 worldPos = u_Transform * vec4(a_Pos, 1.0);
   

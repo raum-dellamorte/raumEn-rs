@@ -3,21 +3,11 @@ use std::collections::HashMap;
 use std::rc::Rc;
 use std::cell::RefCell;
 
-use Camera;
-use Display;
-use Entity;
-use Handler;
-use HUD;
-use Material;
-use Loader;
+use {Camera, Display, Entity, Handler, HUD, Lighting, Lights, Loader, Material, Texture, World, WorldBuilder, };
 use model::{RawModel};
-use shader::lighting::{Lighting, Lights};
-use terrain::{World, WorldBuilder};
 use text::{TextMgr, }; // RFontType, 
-use texture::Texture;
 use util::{Matrix4f, Vector3f};
 
-//#[derive(Clone)]
 pub struct GameMgr {
   pub handler: Option<Box<Handler>>,
   pub loader: Rc<RefCell<Loader>>,
@@ -38,7 +28,6 @@ pub struct GameMgr {
   pub player_loc: Vector3f,
   pub quad_id: u32,
 }
-
 impl GameMgr {
   pub fn new() -> Self {
     let loader = Rc::new(RefCell::new(Loader::new()));

@@ -22,8 +22,7 @@ uniform vec3 light_pos;
 void main(void) {
   vec4 worldPos = u_Transform * vec4(a_Pos, 1.0);
   
-  vec4 posRelToCam = u_View * worldPos; // for fog from cam perspective
-  gl_Position = u_Projection * posRelToCam;
+  gl_Position = u_Projection * u_View * worldPos;
   v_TexCoord = a_TexCoord; // (a_TexCoord / row_count) + offset;
   
   // vec3 actualNormal = a_Norm;

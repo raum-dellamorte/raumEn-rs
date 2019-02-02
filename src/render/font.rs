@@ -5,15 +5,11 @@ use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, Mutex};
 use CVOID;
 
-// use Camera;
+use {GameMgr, Shader, Texture}; // Lights, Camera, 
 use entities::PosMarker;
-use GameMgr;
 use model::RawModel;
-// use Lights;
 use shader::gen_font_shader;
-use Shader;
 use text::{TextMgr, RFontType};
-use Texture;
 use util::{Vector3f, }; // Vector2f, Vector4f, RVertex, RVertex2D
 
 pub struct RenderFont {

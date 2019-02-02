@@ -4,6 +4,8 @@
 pub mod mesh;
 pub mod import;
 
+pub use model::mesh::Mesh;
+
 #[derive (Debug, Eq, Hash, PartialEq)]
 pub struct RawModel {
     pub vao_id: u32,

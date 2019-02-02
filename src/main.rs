@@ -27,18 +27,15 @@ pub mod render;
 pub mod shader;
 pub mod terrain;
 pub mod text;
-pub mod texture;
 pub mod util;
 
 pub use engine::{Camera, Display, Fbo, GameMgr, HUD, GuiObj, Handler, Loader, Timer};
 pub use entities::Entity;
 pub use entities::mobs::Mob;
-pub use material::Material;
+pub use material::{Material, Texture, Lights, Lighting};
 pub use render::{RenderMgr, RenderPostProc, };
-pub use shader::lighting::Lights;
 pub use shader::Shader;
 pub use terrain::{World, WorldBuilder};
-pub use texture::Texture;
 
 use engine::fbo::ColorType::{ColorMultisampleRenderBuffer, ColorMultisampleRenderBuffers2, ColorTexture, NoColor};
 use engine::fbo::DepthType::{DepthRenderBuffer, DepthTexture, NoDepth};

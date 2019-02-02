@@ -7,13 +7,11 @@ use CVOID;
 
 // use Camera;
 use entities::PosMarker;
-use GameMgr;
+use {GameMgr, Shader, Texture};
 use model::RawModel;
 // use Lights;
 use shader::gen_fog_shader;
-use Shader;
 use text::{TextMgr, RFontType};
-use Texture;
 use util::{Vector3f, Vector2f}; // Vector2f, Vector4f, RVertex, RVertex2D
 
 pub struct RenderPostProc {
