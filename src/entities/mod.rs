@@ -40,12 +40,14 @@ impl Entity {
 pub struct EntityInstance {
   pub id: u32,
   pub marker: Rc<RefCell<PosMarker>>,
+  pub color_id: RefCell<Vector3f>,
 }
 impl EntityInstance {
   pub fn new(id: u32) -> Self {
     EntityInstance {
       id: id,
       marker: Rc::new(RefCell::new(PosMarker::new())),
+      color_id: RefCell::new(Vector3f::blank()),
     }
   }
   pub fn create_mob(&self, name: &str) -> Mob {

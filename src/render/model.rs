@@ -41,6 +41,7 @@ impl RenderTexModel {
           let trans_mat = marker.transformation();
           shader.load_matrix("u_Transform", trans_mat);
         }
+        shader.load_vec_3f("color_id", &ent.color_id.borrow()); // add color id to entities to use here.
         unsafe { DrawElements(TRIANGLES, model.vertex_count, UNSIGNED_INT, CVOID); }
       }
       Self::unbind();

@@ -9,7 +9,7 @@ layout (location = 0) out vec4 out_Color;
 layout (location = 1) out vec4 out_AltColor;
 
 uniform sampler2D t_Texture;
-uniform vec3 sky_color;
+uniform vec3 color_id;
 uniform float shine_damper;
 uniform float reflectivity;
 
@@ -43,6 +43,6 @@ void main(void) {
   // vec4 diffuseAndSpecular = textureColour; // vec4(totalDiffuse, 1.0) * textureColour + vec4(totalSpecular, 1.0);
   // out_Color = mix(vec4(sky_color,1.0),textureColour,v_vis);
   out_Color = textureColour;
-  out_AltColor = vec4(1.0,0.0,0.0,1.0);
+  out_AltColor = vec4(color_id,1.0);
   
 }

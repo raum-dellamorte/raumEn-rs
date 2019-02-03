@@ -10,7 +10,7 @@ pub fn gen_model_shader() -> Shader {
     "row_count", 
     "offset", 
     // "player_loc", 
-    // "sky_color", 
+    "color_id", 
     "shine_damper", 
     "reflectivity", 
     // "plane", 
