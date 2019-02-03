@@ -1,15 +1,13 @@
 
-use util::rvector::Vector3f;
-use std::collections::HashMap;
-use std::sync::{Arc, Mutex};
 use glutin::VirtualKeyCode::*;
 use glutin::MouseButton as MB;
 
-use entities::position::PosMarker;
+use entities::PosMarker;
 use Handler;
 use engine::input::KeyCode as KC;
 use engine::input::KeyCodes as KCS;
 use terrain::World;
+use util::{Vector3f, HashMap, Arc, Mutex};
 
 pub struct Mob {
   pub name: String,

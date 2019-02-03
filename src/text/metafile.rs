@@ -1,5 +1,4 @@
 
-use std::collections::HashMap;
 use std::error::Error;
 use std::fs::File;
 use std::io::prelude::*;
@@ -10,10 +9,11 @@ use std::str::FromStr;
 
 use nom::{space, digit, float_s, }; // alpha, alphanumeric, 
 
+use eof;
 use GameMgr;
 use text::{RChar, }; // RLine, RWord, RFontType, SPACE_ASCII, LINE_HEIGHT, 
 use text::{LINE_HEIGHT, SPACE_ASCII};
-use eof;
+use util::HashMap;
 
 pub fn test_noms() {
   test_get_info();

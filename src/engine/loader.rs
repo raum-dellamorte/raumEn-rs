@@ -1,7 +1,6 @@
 
 use gl::*;
 use gl::types::{GLfloat, GLint, GLuint, GLsizeiptr, }; // GLenum, GLchar, GLboolean, 
-use std::collections::HashMap;
 use std::mem;
 use std::ptr;
 
@@ -9,7 +8,7 @@ use model::import::load_obj;
 use model::RawModel;
 use model::Mesh;
 use Texture;
-use util::{r_gen_textures,r_gen_vertex_arrays,r_gen_buffers};
+use util::{r_gen_textures,r_gen_vertex_arrays,r_gen_buffers, HashMap};
 use util::rvertex::{RVertex, RVertex2D};
 
 pub struct Loader {

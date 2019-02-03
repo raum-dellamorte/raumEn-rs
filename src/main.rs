@@ -31,7 +31,7 @@ pub mod util;
 
 pub use engine::{Camera, Display, Fbo, GameMgr, HUD, GuiObj, Handler, Loader, Timer};
 pub use entities::Entity;
-pub use entities::mobs::Mob;
+pub use entities::Mob;
 pub use material::{Material, Texture, Lights, Lighting};
 pub use render::{RenderMgr, RenderPostProc, };
 pub use shader::Shader;

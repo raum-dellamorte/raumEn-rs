@@ -1,10 +1,8 @@
 
-use std::collections::{HashMap, HashSet};
-
 use GameMgr;
 use text::guitext::GuiText;
 use text::RFontType;
-use util::Vector2f;
+use util::{Vector2f, HashMap, HashSet};
 
 pub struct TextMgr {
   pub active_text: HashMap<String, HashSet<String>>,

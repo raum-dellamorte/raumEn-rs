@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+
 use glutin::WindowEvent as WEvent;
 use glutin::DeviceEvent as DEvent;
 use glutin::KeyboardInput as KB;
@@ -8,6 +8,7 @@ use glutin::VirtualKeyCode as VKC;
 use glutin::ModifiersState as MKS;
 
 use Timer;
+use util::HashMap;
 
 pub struct Handler {
   pub timer: Timer,

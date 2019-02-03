@@ -1,6 +1,5 @@
 
-use std::rc::Rc;
-use std::cell::RefCell;
+use util::{Rc, RefCell};
 
 use gl::*;
 // use gl::types::{GLuint, }; // GLfloat, GLenum, GLint, GLchar, GLsizeiptr, GLboolean, 

@@ -1,32 +1,26 @@
 
-use std::rc::Rc;
-use std::cell::RefCell;
+use util::{Rc, RefCell};
 
 use Display;
-use render::RenderTexModel;
-use render::RenderTerrain;
-use render::RenderFont;
-use render::RenderHUD;
+use render::{RenderTexModel, RenderTerrain, RenderFont, RenderHUD };
 
 use gl::*;
 // use gl::types::{GLuint, }; // GLfloat, GLenum, GLint, GLchar, GLsizeiptr, GLboolean, 
 use glutin::dpi::PhysicalSize;
-// use std::collections::HashMap;
 // use std::ffi::CString;
 // use std::mem;
 // use std::ptr;
 // use std::str;
-// use std::sync::{Arc, Mutex};
 // use CVOID;
 
-// use camera::Camera;
-// use entities::position::PosMarker;
+// use Camera;
+// use entities::PosMarker;
 use GameMgr;
+// use material::Lights;
 // use model::Model;
-// use shader::lighting::Lights;
-// use shader::model::gen_model_shader;
-// use shader::Shader;
-// use util::rvector::{Vector3f, }; // Vector2f, Vector4f, 
+// use shader::gen_model_shader;
+// use Shader;
+// use util::{Vector3f, }; // Vector2f, Vector4f, HashMap, Arc, Mutex, 
 // use util::rvertex::{RVertex, RVertex2D};
 
 pub fn prepare() { unsafe {

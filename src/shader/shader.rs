@@ -14,12 +14,9 @@ use std::fs::File;
 use std::io::BufReader;
 use std::io::prelude::*;
 use std::path::Path;
-use std::collections::HashSet;
-// use std::rc::Rc;
-use std::cell::RefCell;
 
 use util::rmatrix::Matrix4f;
-use util::rvector::{ Vector2f, Vector3f, Vector4f };
+use util::{ Vector2f, Vector3f, Vector4f, RefCell, HashSet };
 
 pub struct ShaderVar {
     var_name: String,

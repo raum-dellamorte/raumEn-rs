@@ -1,8 +1,6 @@
 
 use gl::*;
 // use gl::types::{GLuint, }; // GLfloat, GLenum, GLint, GLchar, GLsizeiptr, GLboolean, 
-use std::collections::{HashMap, HashSet};
-use std::sync::{Arc, Mutex};
 use CVOID;
 
 use {GameMgr, Shader, Texture}; // Lights, Camera, 
@@ -10,7 +8,7 @@ use entities::PosMarker;
 use model::RawModel;
 use shader::gen_font_shader;
 use text::{TextMgr, RFontType};
-use util::{Vector3f, }; // Vector2f, Vector4f, RVertex, RVertex2D
+use util::{Vector3f, HashMap, HashSet, Arc, Mutex, }; // Vector2f, Vector4f, RVertex, RVertex2D
 
 pub struct RenderFont {
   pub shader: Shader,

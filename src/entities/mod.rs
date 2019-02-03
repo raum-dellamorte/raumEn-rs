@@ -1,10 +1,10 @@
 pub mod mobs;
 pub mod position;
 
-use std::sync::{Arc, Mutex};
-
 pub use entities::mobs::Mob;
 pub use entities::position::PosMarker;
+
+use std::sync::{Arc, Mutex};
 
 pub struct Entity {
   pub name: String,

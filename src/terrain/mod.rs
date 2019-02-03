@@ -121,7 +121,7 @@ mod tests {
     use terrain::coords::TerrainCoords;
     use terrain::coords::TerrainCoords::ChunkLoc;
     use terrain::from_world_to_chunk_space;
-    use std::collections::HashMap;
+    use util::HashMap;
 
     {
       let a = ChunkLoc {x: 0, z: 0};

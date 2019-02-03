@@ -1,8 +1,6 @@
 
 use gl::*;
 // use gl::types::{GLuint, }; // GLfloat, GLenum, GLint, GLchar, GLsizeiptr, GLboolean, 
-use std::collections::{HashMap, HashSet};
-use std::sync::{Arc, Mutex};
 use CVOID;
 
 // use Camera;
@@ -12,7 +10,7 @@ use model::RawModel;
 // use Lights;
 use shader::gen_fog_shader;
 use text::{TextMgr, RFontType};
-use util::{Vector3f, Vector2f}; // Vector2f, Vector4f, RVertex, RVertex2D
+use util::{Vector3f, Vector2f, HashMap, HashSet, Arc, Mutex}; // Vector2f, Vector4f, RVertex, RVertex2D
 
 pub struct RenderPostProc {
   pub shader: Shader,

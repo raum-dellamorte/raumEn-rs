@@ -1,12 +1,8 @@
 
-use std::collections::HashMap;
-use std::rc::Rc;
-use std::cell::RefCell;
-
 use {Camera, Display, Entity, Handler, HUD, Lighting, Lights, Loader, Material, Texture, World, WorldBuilder, };
 use model::{RawModel};
 use text::{TextMgr, }; // RFontType, 
-use util::{Matrix4f, Vector3f};
+use util::{Matrix4f, Vector3f, Rc, RefCell, HashMap, };
 
 pub struct GameMgr {
   pub handler: Option<Box<Handler>>,

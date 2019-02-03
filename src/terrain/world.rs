@@ -1,9 +1,6 @@
 
-use std::collections::HashMap;
-use std::sync::{Arc, Mutex};
-
 use terrain::{from_world_to_chunk_space, world_to_local, local_to_world};
-use util::{Matrix4f, Vector3f, modulo, }; // XVEC, YVEC, ZVEC, 
+use util::{Matrix4f, Vector3f, modulo, HashMap, Arc, Mutex, }; // XVEC, YVEC, ZVEC, 
 
 const LOWER_BOUNDS: (f32, f32) = (-1000_f32, -1100_f32);
 
