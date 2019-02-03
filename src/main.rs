@@ -189,7 +189,7 @@ fn main() {
       { // Do per frame calculations such as movement
         
         spaceship.move_mob(&mut handler, &mut world);
-        camera.calc_pos(&mut handler, spaceship.pos.clone());
+        camera.calc_pos(&mut handler, &spaceship.pos.borrow());
         spaceship.pos_copy(&mut mgr.player_loc);
         
       }

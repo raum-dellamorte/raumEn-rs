@@ -1,5 +1,4 @@
 
-use std::sync::{Arc, Mutex};
 // use glutin::VirtualKeyCode::*;
 use glutin::MouseButton as MB;
 
@@ -7,7 +6,7 @@ use entities::mobs::Mob;
 use entities::position::PosMarker;
 use GameMgr;
 use Handler;
-use util::{Matrix4f, RVec, Vector3f, XVEC, YVEC, modulo}; // , ZVEC
+use util::{Matrix4f, RVec, Vector3f, XVEC, YVEC, modulo, Rc, RefCell, }; // ZVEC, 
 // use util::rvertex::RVertex;
 
 pub struct Camera {
@@ -74,7 +73,7 @@ impl Camera {
     }
   }
 
-  pub fn calc_pos(&mut self, handler: &mut Handler, follow_arc: Arc<Mutex<PosMarker>>) {
+  pub fn calc_pos(&mut self, handler: &mut Handler, follow: &PosMarker) {
     {
       if handler.read_mouse_multi(MB::Right) {
         match handler.cursor_delta {
@@ -88,11 +87,10 @@ impl Camera {
         self.drift_to_origin(handler.timer.delta);
       }
     }
-    self.calc_cam_pos(follow_arc, handler.timer.delta);
+    self.calc_cam_pos(follow, handler.timer.delta);
   }
 
-  pub fn calc_cam_pos(&mut self, follow_arc: Arc<Mutex<PosMarker>>, rate: f32) {
-    let follow = follow_arc.lock().unwrap();
+  pub fn calc_cam_pos(&mut self, follow: &PosMarker, rate: f32) {
     let h_dist: f32 = self.calc_h_distance();
     let v_dist: f32 = self.calc_v_distance() + 10_f32;
     
@@ -130,7 +128,7 @@ impl Camera {
   }
 
   pub fn angle_to_entity(&mut self, focus_pos: &Vector3f, mob: &mut Mob) -> f32 {
-    let mut marker = mob.pos.lock().unwrap();
+    let mut marker = mob.pos.borrow_mut();
     marker.distance = self.dist_to_pos(&marker.pos);
     self.to_pos.normalize();
     focus_pos.sub_to(&self.pos, &mut self.to_focus_pos);

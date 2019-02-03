@@ -7,19 +7,19 @@ use Handler;
 use engine::input::KeyCode as KC;
 use engine::input::KeyCodes as KCS;
 use terrain::World;
-use util::{Vector3f, HashMap, Arc, Mutex};
+use util::{Vector3f, HashMap, Rc, RefCell, };
 
 pub struct Mob {
   pub name: String,
   pub entity: String,
-  pub pos: Arc<Mutex<PosMarker>>,
+  pub pos: Rc<RefCell<PosMarker>>,
   pub speed: f32,
   pub turn: f32,
   pub stats: HashMap<String, f32>,
 }
 
 impl Mob {
-  pub fn new(entity: &str, pos: Arc<Mutex<PosMarker>>) -> Self {
+  pub fn new(entity: &str, pos: Rc<RefCell<PosMarker>>) -> Self {
     Mob {
       name: "".to_string(),
       entity: entity.to_string(),
@@ -36,7 +36,7 @@ impl Mob {
       Some(xy) => xy,
       None     => (0_f64, 0_f64),
     };
-    let mut marker = self.pos.lock().unwrap();
+    let mut marker = self.pos.borrow_mut();
     marker.prep(world);
     if handler.read_kb_multi_any_of(KCS::new(&[Up,    W])) { marker.move_forward( world, true ); }  // Move Forward
     if handler.read_kb_multi_any_of(KCS::new(&[Down,  S])) { marker.move_forward( world, false ); } // Move Backward
@@ -50,7 +50,7 @@ impl Mob {
     self
   }
   pub fn pos_copy(&self, v: &mut Vector3f) {
-    let marker = self.pos.lock().unwrap();
+    let marker = self.pos.borrow();
     let x = marker.pos.x;
     let y = marker.pos.y;
     let z = marker.pos.z;

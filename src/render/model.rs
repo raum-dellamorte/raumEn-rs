@@ -2,20 +2,18 @@
 
 use gl::*;
 // use gl::types::{GLuint, }; // GLfloat, GLenum, GLint, GLchar, GLsizeiptr, GLboolean, 
-use std::sync::{Arc, Mutex};
 use CVOID;
 
 use entities::position::PosMarker;
 use {GameMgr, Shader, Texture, }; // Camera, 
 use model::RawModel;
 use shader::gen_model_shader;
-use util::{Vector3f, }; // Vector2f, Vector4f, 
+use util::{Vector3f, Rc, RefCell, }; // Vector2f, Vector4f, 
 // use util::rvertex::{RVertex, RVertex2D};
 
 pub struct RenderTexModel {
   pub shader: Shader,
 }
-
 impl RenderTexModel {
   pub fn new() -> Self {
     RenderTexModel {
@@ -24,12 +22,13 @@ impl RenderTexModel {
   }
   pub fn render(&mut self, mgr: Box<GameMgr>) -> Box<GameMgr> {
     let mut mgr = mgr;
-    self.shader.start();
-    self.shader.load_matrix("u_View", &mgr.view_mat);
-    mgr.lights_do(|lights| { lights.load_to_shader(&self.shader); });
-    // self.shader.load_vec_4f("plane", &Vector4f {x: 0_f32, y: 10000_f32, z: 0_f32, w: 1_f32, }); // vec4 plane;
-    // self.shader.load_bool("use_clip_plane", false); // float useClipPlane;
-    // self.shader.load_vec_3f("sky_color", &Vector3f::new(0.5, 0.6, 0.5));
+    let shader = &self.shader;
+    shader.start();
+    shader.load_matrix("u_View", &mgr.view_mat);
+    mgr.lights_do(|lights| { lights.load_to_shader(shader); });
+    // shader.load_vec_4f("plane", &Vector4f {x: 0_f32, y: 10000_f32, z: 0_f32, w: 1_f32, }); // vec4 plane;
+    // shader.load_bool("use_clip_plane", false); // float useClipPlane;
+    // shader.load_vec_3f("sky_color", &Vector3f::new(0.5, 0.6, 0.5));
     let _ents = mgr.entities.clone();
     let entities = _ents.borrow_mut();
     for entity in entities.values() {
@@ -37,18 +36,17 @@ impl RenderTexModel {
       Self::bind_model(&model);
       Self::use_material(&mut mgr, &self.shader, &entity.material);
       for ent in &entity.instances {
-        self.prep_instance(ent.marker.clone());
+        {
+          let mut marker = ent.marker.borrow_mut();
+          let trans_mat = marker.transformation();
+          shader.load_matrix("u_Transform", trans_mat);
+        }
         unsafe { DrawElements(TRIANGLES, model.vertex_count, UNSIGNED_INT, CVOID); }
       }
       Self::unbind();
     }
-    self.shader.stop();
+    shader.stop();
     mgr
-  }
-  pub fn prep_instance(&mut self, pos: Arc<Mutex<PosMarker>>) {
-    let mut marker = pos.lock().unwrap();
-    let trans_mat = marker.transformation();
-    self.shader.load_matrix("u_Transform", trans_mat);
   }
   pub fn clean_up(&mut self) {
     self.shader.clean_up();

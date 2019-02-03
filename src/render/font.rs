@@ -77,11 +77,6 @@ impl RenderFont {
     mgr.textmgr = Some(_textmgr);
     mgr
   }
-  pub fn prep_instance(&mut self, pos: Arc<Mutex<PosMarker>>) {
-    let mut marker = pos.lock().unwrap();
-    let trans_mat = marker.transformation();
-    self.shader.load_matrix("u_Transform", trans_mat);
-  }
   pub fn clean_up(&mut self) {
     self.shader.clean_up();
   }

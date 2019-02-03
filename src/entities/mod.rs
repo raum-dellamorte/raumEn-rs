@@ -4,7 +4,7 @@ pub mod position;
 pub use entities::mobs::Mob;
 pub use entities::position::PosMarker;
 
-use std::sync::{Arc, Mutex};
+use util::{Vector3f, Rc, RefCell, };
 
 pub struct Entity {
   pub name: String,
@@ -39,13 +39,13 @@ impl Entity {
 
 pub struct EntityInstance {
   pub id: u32,
-  pub marker: Arc<Mutex<PosMarker>>,
+  pub marker: Rc<RefCell<PosMarker>>,
 }
 impl EntityInstance {
   pub fn new(id: u32) -> Self {
     EntityInstance {
       id: id,
-      marker: Arc::new(Mutex::new(PosMarker::new())),
+      marker: Rc::new(RefCell::new(PosMarker::new())),
     }
   }
   pub fn create_mob(&self, name: &str) -> Mob {
@@ -53,8 +53,6 @@ impl EntityInstance {
     Mob::new(name, self.marker.clone())
   }
   pub fn set_pos(&self, x: f32, y: f32, z: f32) {
-    let marker = self.marker.clone();
-    let mut marker = marker.lock().unwrap();
-    marker.pos.from_f32(x, y, z);
+    self.marker.borrow_mut().pos.from_f32(x, y, z);
   }
 }
