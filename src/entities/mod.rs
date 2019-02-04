@@ -10,7 +10,7 @@ pub struct Entity {
   pub name: String,
   pub model: String,
   pub material: String,
-  pub instances: Vec<EntityInstance>,
+  pub instances: Vec<Rc<RefCell<EntityInstance>>>,
 }
 
 impl Entity {
@@ -22,18 +22,22 @@ impl Entity {
       instances: Vec::new(),
     }
   }
-  pub fn new_instance(&mut self) -> &mut EntityInstance {
+  // pub fn handler_do<F>(&mut self, f: F)
+  //   where F: Fn(&mut Handler) -> ()
+  // {
+  //   let mut h = self.take_handler();
+  //   f(&mut h);
+  //   self.return_handler(h);
+  // }
+  pub fn new_instance_do<F>(&mut self, f: F) where F: Fn(&mut EntityInstance) {
     let id = self.instances.len() as u32;
-    self.instances.push(EntityInstance::new(id));
-    self.instances.get_mut(id as usize).unwrap()
+    let out = Rc::new(RefCell::new(EntityInstance::new(id)));
+    self.instances.push(out.clone());
+    f(&mut out.borrow_mut());
   }
-  pub fn first(&self) -> &EntityInstance {
+  pub fn first(&self) -> Rc<RefCell<EntityInstance>> {
     if self.instances.len() == 0 { panic!("No instances of Entity<{}>", &self.name) }
-    &self.instances[0]
-  }
-  pub fn first_mut(&mut self) -> &mut EntityInstance {
-    if self.instances.len() == 0 { panic!("No instances of Entity<{}>", &self.name) }
-    self.instances.get_mut(0).unwrap()
+    self.instances[0].clone()
   }
 }
 

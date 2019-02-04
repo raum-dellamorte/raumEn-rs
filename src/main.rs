@@ -67,7 +67,8 @@ fn main() {
   let mut render_mgr = RenderMgr::new();
   let mut mgr = render_mgr.take_mgr();
   
-  let mut spaceship = {
+  let mut player_mob;
+  {
     mgr.new_model("spaceship");
     mgr.new_material("spaceship", "spaceship", "metal");
     mgr.new_entity("spaceship", "spaceship", "spaceship");
@@ -75,19 +76,20 @@ fn main() {
     mgr.new_material("player", "dirt", "metal");
     mgr.new_entity("player", "player", "player");
     mgr.mod_entity("spaceship", |ships| {
-      ships.new_instance().set_pos(10.0,10.0,10.0);
-      ships.new_instance().set_pos(10.0,0.0,-10.0);
-      ships.new_instance().set_pos(-12.0,5.0,-15.0);
+      ships.new_instance_do({|ent| ent.set_pos(10.0,10.0,10.0) });
+      ships.new_instance_do({|ent| ent.set_pos(10.0,0.0,-10.0) });
+      ships.new_instance_do({|ent| ent.set_pos(-12.0,5.0,-15.0) });
     });
     mgr.mod_entity("player", |player| {
-      player.new_instance().set_pos(0.0,10.0,0.0);
+      player.new_instance_do({|ent| ent.set_pos(0.0,10.0,0.0) });
     });
     
     mgr.new_material("dirt", "dirt", "flat");
     mgr.new_model("platform");
     // println!("entities loaded");
     let hm = mgr.entities.borrow_mut();
-    hm.get("player").unwrap().first().create_mob("player")
+    let player = hm.get("player").unwrap().first();
+    player_mob = player.borrow().create_mob("player");
   };
   render_mgr.return_mgr(mgr);
   
@@ -188,9 +190,9 @@ fn main() {
       let mut world = mgr.take_world();
       { // Do per frame calculations such as movement
         
-        spaceship.move_mob(&mut handler, &mut world);
-        camera.calc_pos(&mut handler, &spaceship.pos.borrow());
-        spaceship.pos_copy(&mut mgr.player_loc);
+        player_mob.move_mob(&mut handler, &mut world);
+        camera.calc_pos(&mut handler, &player_mob.pos.borrow());
+        player_mob.pos_copy(&mut mgr.player_loc);
         
       }
       // Returning borrowed things to mgr
