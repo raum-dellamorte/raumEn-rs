@@ -29,25 +29,29 @@ impl RenderTexModel {
     // shader.load_vec_4f("plane", &Vector4f {x: 0_f32, y: 10000_f32, z: 0_f32, w: 1_f32, }); // vec4 plane;
     // shader.load_bool("use_clip_plane", false); // float useClipPlane;
     // shader.load_vec_3f("sky_color", &Vector3f::new(0.5, 0.6, 0.5));
-    let _ents = mgr.entities.clone();
-    let entities = _ents.borrow_mut();
-    for entity in entities.values() {
-      let model = mgr.model(&entity.model);
-      Self::bind_model(&model);
-      Self::use_material(&mut mgr, &self.shader, &entity.material);
-      for ent_inst in &entity.instances {
-        let ent = ent_inst.borrow();
-        {
-          {
-            let mut marker = ent.marker.borrow_mut();
-            let trans_mat = marker.transformation();
-            shader.load_matrix("u_Transform", trans_mat);
+    {
+      let emgr = &mgr.entity_mgr;
+      let entities = emgr.entities.borrow_mut();
+      let instances = emgr.instances.borrow();
+      for _entity in entities.values() {
+        let entity = _entity.borrow_mut();
+        let model = mgr.model(&entity.model);
+        Self::bind_model(&model);
+        Self::use_material(&mgr, &self.shader, &entity.material);
+        if let Some(_instances) = instances.get(&entity.name) {
+          for ent_inst in _instances {
+            let ent = ent_inst.borrow();
+            {
+              let mut marker = ent.marker.borrow_mut();
+              let trans_mat = marker.transformation();
+              shader.load_matrix("u_Transform", trans_mat);
+            }
+            shader.load_vec_3f("color_id", &ent.color_id.borrow()); // add color id to entities to use here.
+            unsafe { DrawElements(TRIANGLES, model.vertex_count, UNSIGNED_INT, CVOID); }
           }
-          shader.load_vec_3f("color_id", &ent.color_id.borrow()); // add color id to entities to use here.
-          unsafe { DrawElements(TRIANGLES, model.vertex_count, UNSIGNED_INT, CVOID); }
         }
+        Self::unbind();
       }
-      Self::unbind();
     }
     shader.stop();
     mgr
@@ -55,7 +59,7 @@ impl RenderTexModel {
   pub fn clean_up(&mut self) {
     self.shader.clean_up();
   }
-  fn use_material(mgr: &mut GameMgr, shader: &Shader, material: &str) {
+  fn use_material(mgr: &GameMgr, shader: &Shader, material: &str) {
     let (lighting, texture) = {
       let _mat = mgr.material(material);
       let material = _mat.borrow_mut();

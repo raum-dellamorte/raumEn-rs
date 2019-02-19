@@ -30,7 +30,7 @@ pub mod text;
 pub mod util;
 
 pub use engine::{Camera, Display, Fbo, GameMgr, HUD, GuiObj, Handler, Loader, Timer};
-pub use entities::Entity;
+pub use entities::EntityMgr;
 pub use entities::Mob;
 pub use material::{Material, Texture, Lights, Lighting};
 pub use render::{RenderMgr, RenderPostProc, };
@@ -69,26 +69,24 @@ fn main() {
   
   let mut player_mob;
   {
+    // Models
     mgr.new_model("spaceship");
-    mgr.new_material("spaceship", "spaceship", "metal");
-    mgr.new_entity("spaceship", "spaceship", "spaceship");
     mgr.new_model("player");
-    mgr.new_material("player", "dirt", "metal");
-    mgr.new_entity("player", "player", "player");
-    mgr.mod_entity("spaceship", |ships| {
-      ships.new_instance_do({|ent| ent.set_pos(10.0,10.0,10.0) });
-      ships.new_instance_do({|ent| ent.set_pos(10.0,0.0,-10.0) });
-      ships.new_instance_do({|ent| ent.set_pos(-12.0,5.0,-15.0) });
-    });
-    mgr.mod_entity("player", |player| {
-      player.new_instance_do({|ent| ent.set_pos(0.0,10.0,0.0) });
-    });
-    
-    mgr.new_material("dirt", "dirt", "flat");
     mgr.new_model("platform");
+    // Materials
+    mgr.new_material("spaceship", "spaceship", "metal");
+    mgr.new_material("player", "dirt", "metal");
+    mgr.new_material("dirt", "dirt", "flat");
+    // Entities
+    let emgr = &mgr.entity_mgr;
+    emgr.new_entity("spaceship", "spaceship", "spaceship");
+    emgr.new_entity("player", "player", "player");
+    emgr.new_instance_at("spaceship", 10.0,10.0,10.0);
+    emgr.new_instance_at("spaceship", 10.0,0.0,-10.0);
+    emgr.new_instance_at("spaceship", -12.0,5.0,-15.0);
+    emgr.new_instance_at("player", 0.0,10.0,0.0);
     // println!("entities loaded");
-    let hm = mgr.entities.borrow_mut();
-    let player = hm.get("player").unwrap().first();
+    let player = emgr.first("player");
     player_mob = player.borrow().create_mob("player");
   };
   render_mgr.return_mgr(mgr);

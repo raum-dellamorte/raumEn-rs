@@ -1,5 +1,5 @@
 
-use {Camera, Display, Entity, Handler, HUD, Lighting, Lights, Loader, Material, Texture, World, WorldBuilder, };
+use {Camera, Display, EntityMgr, Handler, HUD, Lighting, Lights, Loader, Material, Texture, World, WorldBuilder, };
 use model::{RawModel};
 use text::{TextMgr, }; // RFontType, 
 use util::{Matrix4f, Vector3f, Rc, RefCell, HashMap, };
@@ -14,7 +14,7 @@ pub struct GameMgr {
   pub world_builder: WorldBuilder,
   pub textmgr: Option<Rc<RefCell<TextMgr>>>,
   pub hud: Rc<RefCell<HUD>>,
-  pub entities: Rc<RefCell<HashMap<String, Entity>>>,
+  pub entity_mgr: Rc<EntityMgr>,
   pub models: Rc<RefCell<HashMap<String, Rc<RawModel>>>>,
   pub materials: Rc<RefCell<HashMap<String, Rc<RefCell<Material>>>>>,
   pub textures: Rc<RefCell<HashMap<String, Rc<Texture>>>>,
@@ -53,7 +53,7 @@ impl GameMgr {
       world_builder: builder,
       textmgr: Some(Rc::new(RefCell::new(textmgr))),
       hud: Rc::new(RefCell::new(hud)),
-      entities: Rc::new(RefCell::new(HashMap::new())),
+      entity_mgr: Rc::new(EntityMgr::new()),
       models: Rc::new(RefCell::new(HashMap::new())),
       materials: Rc::new(RefCell::new(HashMap::new())),
       textures: Rc::new(RefCell::new(HashMap::new())),
@@ -142,22 +142,18 @@ impl GameMgr {
     self.world_builder.gen_world(&mut world, self.player_loc.x, self.player_loc.z);
     self.return_world(world);
   }
-  pub fn entities_do<F>(&mut self, f: F)
-      where F: Fn(&mut HashMap<String, Entity>) -> () {
-    let mut h = self.entities.borrow_mut();
-    f(&mut h);
-  }
+  // pub fn entities_do<F>(&mut self, f: F)
+  //     where F: Fn(&mut HashMap<String, Entity>) -> () {
+  //   let mut h = self.entities.borrow_mut();
+  //   f(&mut h);
+  // }
   pub fn create_view_matrix(&mut self) {
     let mut cam = self.take_camera();
     cam.create_view_matrix(&mut self.view_mat);
     self.return_camera(cam);
   }
   pub fn new_entity(&mut self, name: &str, model: &str, material: &str) {
-    let mut ents = self.entities.borrow_mut();
-    if ents.contains_key(name) { panic!("Entity name not unique: {}", name) } // they should prolly have IDs instead
-    let entity = Entity::new(name, model, material);
-    ents.insert(name.to_string(), entity);
-    // println!("new Entity name<{}> model<{}> material<{}>", name, model, material);
+    self.entity_mgr.new_entity(name, model, material);
   }
   pub fn new_entities(&mut self, names: &[(&str, &str, &str)]) {
     for name in names {
@@ -186,14 +182,14 @@ impl GameMgr {
   pub fn new_lighting(&mut self, name: &str) {
     self.lightings.borrow_mut().insert(name.to_string(), Rc::new(RefCell::new(Lighting::new())));
   }
-  pub fn mod_entity<F>(&mut self, name: &str, f: F) 
-      where F: Fn(&mut Entity) -> () {
-    let mut hm = self.entities.borrow_mut();
-    if hm.contains_key(name) {
-      let mut ent = hm.get_mut(name).unwrap();
-      f(&mut ent);
-    } else { panic!("No Entity to modify: {}", name) }
-  }
+  // pub fn mod_entity<F>(&mut self, name: &str, f: F) 
+  //     where F: Fn(&mut Entity) -> () {
+  //   let mut hm = self.entities.borrow_mut();
+  //   if hm.contains_key(name) {
+  //     let mut ent = hm.get_mut(name).unwrap();
+  //     f(&mut ent);
+  //   } else { panic!("No Entity to modify: {}", name) }
+  // }
   pub fn mod_material<F>(&mut self, name: &str, f: F) 
       where F: Fn(&mut Material) -> () {
     let mut hm = self.materials.borrow_mut();
