@@ -1,6 +1,8 @@
 
-use time::SteadyTime;
+use specs::{Component, DenseVecStorage};
+use time::{Duration, SteadyTime};
 
+#[derive(Debug)]
 pub struct Timer {
   pub delta: f32,
   pub fps: f32,
@@ -8,14 +10,28 @@ pub struct Timer {
   pub now: SteadyTime,
 }
 
+impl Default for Timer {
+  fn default() -> Self {
+    let tmp = SteadyTime::now();
+    let tmp2 = tmp + Duration::milliseconds(50_i64);
+    Self {
+      delta: 0.0667_f32,
+      fps: 60.0,
+      last: tmp,
+      now: tmp2,
+    }
+  }
+}
+
 impl Timer {
   pub fn new() -> Self {
     let tmp = SteadyTime::now();
+    let tmp2 = tmp + Duration::milliseconds(50_i64);
     Timer {
       delta: 0.0667_f32,
-      fps: 0_f32,
+      fps: 60_f32,
       last: tmp,
-      now: SteadyTime::now(),
+      now: tmp2,
     }
   }
   

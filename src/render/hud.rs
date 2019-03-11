@@ -5,7 +5,7 @@ use CVOID;
 
 use entities::PosMarker;
 use {GameMgr, Shader, Texture}; // Lights, Camera, 
-use model::RawModel;
+use model::Model;
 use shader::gen_hud_shader;
 use text::{TextMgr, RFontType};
 use util::{Vector3f, Vector2f, HashMap, HashSet, Arc, Mutex}; // Vector2f, Vector4f, RVertex, RVertex2D

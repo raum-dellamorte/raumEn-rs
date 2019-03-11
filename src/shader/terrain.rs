@@ -1,6 +1,14 @@
 
 
 use shader::Shader;
+
+pub struct TerrainShader{pub shader: Shader}
+impl Default for TerrainShader {
+  fn default() -> Self {
+    TerrainShader{ shader: gen_terrain_shader() }
+  }
+}
+
 pub fn gen_terrain_shader() -> Shader {
   let mut out = Shader::new("terrain");
   out.add_attributes(vec!("a_Pos", "a_TexCoord", "a_Norm"))

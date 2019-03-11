@@ -9,11 +9,26 @@ extern crate num;
 extern crate cgmath;
 extern crate time;
 extern crate noise;
+extern crate specs;
+#[macro_use] extern crate specs_derive;
+extern crate shred;
+#[macro_use] extern crate shred_derive;
 
 use gl::*;
 use std::os::raw::c_void;
 use glutin::dpi::*;
 use glutin::GlContext;
+use specs::{
+  Builder, 
+  Component, 
+  DispatcherBuilder, 
+  ReadStorage, 
+  WriteStorage,
+  System, 
+  VecStorage, 
+  World, 
+  RunNow
+};
 // use cgmath::{Matrix4, Point3, Vector3}; // Deg, 
 
 const CVOID: *const c_void = 0 as *const c_void;
@@ -34,8 +49,12 @@ pub use entities::EntityMgr;
 pub use entities::Mob;
 pub use material::{Material, Texture, Lights, Lighting};
 pub use render::{RenderMgr, RenderPostProc, };
-pub use shader::Shader;
-pub use terrain::{World, WorldBuilder};
+pub use shader::{
+  Shader,
+  terrain::TerrainShader,
+};
+pub use terrain::{Platform, DrawPlatform, PlatformData};
+// pub use terrain::{SpecsWorld, World, WorldBuilder};
 
 use engine::fbo::ColorType::{ColorMultisampleRenderBuffer, ColorMultisampleRenderBuffers2, ColorTexture, NoColor};
 use engine::fbo::DepthType::{DepthRenderBuffer, DepthTexture, NoDepth};
@@ -67,7 +86,7 @@ fn main() {
   let mut render_mgr = RenderMgr::new();
   let mut mgr = render_mgr.take_mgr();
   
-  let mut player_mob;
+  let mut _player_mob;
   {
     // Models
     mgr.new_model("spaceship");
@@ -87,7 +106,7 @@ fn main() {
     emgr.new_instance_at("player", 0.0,10.0,0.0);
     // println!("entities loaded");
     let player = emgr.first("player");
-    player_mob = player.borrow().create_mob("player");
+    _player_mob = player.borrow().create_mob("player");
   };
   render_mgr.return_mgr(mgr);
   
@@ -130,6 +149,47 @@ fn main() {
   
   // Return the GameMgr to the RenderMgr
   render_mgr.return_mgr(mgr);
+  
+  // ECS experiment
+  use entities::position::{Position, Velocity, UpdatePos};
+  use material::{
+    lighting::Lightings, 
+    texture::Textures, 
+  };
+  use model::Models;
+  use util::rgl::*;
+  let mut world = World::new();
+  world.register::<Position>();
+  world.register::<Velocity>();
+  
+  world.add_resource(Timer::default());
+  world.add_resource(TerrainShader::default());
+  world.add_resource(Models::default());
+  world.add_resource(Textures::default());
+  world.add_resource(Lightings::default());
+  world.add_resource(DrawModelsWithTextures::default());
+  
+  world.create_entity()
+      .with(Position { x: 4.0, y: 7.0, z: 0.0, w: 0.0 })
+      .with(Velocity { x: 0.2, y: 0.1, z: 0.3 })
+      .build();
+  world.create_entity()
+      .with(Position { x: 7.0, y: 0.0, z: 4.0, w: 0.0 })
+      .with(Velocity { x: 0.1, y: 0.3, z: 0.2 })
+      .build();
+  
+  // let mut specs_world = SpecsWorld;
+  // specs_world.run_now(&sworld.res);
+  
+  // let mut dispatcher = DispatcherBuilder::new()
+  //     .with(SpecsWorld, "specs_world", &[])
+  //     .with(UpdatePos, "update_pos", &["specs_world"])
+  //     .with(SpecsWorld, "specs_updated", &["update_pos"])
+  //     .build();
+  
+  // dispatcher.dispatch(&mut sworld.res);
+  
+  world.maintain();
   
   // Game loop!
   println!("Starting game loop.");
@@ -185,19 +245,19 @@ fn main() {
       // Borrowing things from mgr
       let mut handler = mgr.take_handler();
       let mut camera = mgr.take_camera();
-      let mut world = mgr.take_world();
+      // let mut world = mgr.take_world();
       { // Do per frame calculations such as movement
         
-        player_mob.move_mob(&mut handler, &mut world);
-        camera.calc_pos(&mut handler, &player_mob.pos.borrow());
-        player_mob.pos_copy(&mut mgr.player_loc);
+        // player_mob.move_mob(&mut handler, &mut world);
+        camera.calc_pos(&mut handler, &_player_mob.pos.borrow());
+        _player_mob.pos_copy(&mut mgr.player_loc);
         
       }
       // Returning borrowed things to mgr
       mgr.return_camera(camera);
       mgr.return_handler(handler);
-      mgr.return_world(world);
-      mgr.gen_chunks();
+      // mgr.return_world(world);
+      // mgr.gen_chunks();
     }
     // Returning mgr to render_mgr
     render_mgr.return_mgr(mgr);

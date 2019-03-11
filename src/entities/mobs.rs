@@ -6,7 +6,7 @@ use entities::PosMarker;
 use Handler;
 use engine::input::KeyCode as KC;
 use engine::input::KeyCodes as KCS;
-use terrain::World;
+// use terrain::World;
 use util::{Vector3f, HashMap, Rc, RefCell, };
 
 pub struct Mob {
@@ -29,24 +29,24 @@ impl Mob {
       stats: HashMap::new(),
     }
   }
-  pub fn move_mob(&mut self, handler: &mut Handler, world: &mut Box<World>) -> &Self {
+  pub fn move_mob(&mut self, handler: &mut Handler) -> &Self { // , world: &mut Box<World>
     let rate = handler.timer.delta;
     if rate > 0.07 { return self; }
     let (_mx, _my) = match handler.cursor_pos {
       Some(xy) => xy,
       None     => (0_f64, 0_f64),
     };
-    let mut marker = self.pos.borrow_mut();
-    marker.prep(world);
-    if handler.read_kb_multi_any_of(KCS::new(&[Up,    W])) { marker.move_forward( world, true ); }  // Move Forward
-    if handler.read_kb_multi_any_of(KCS::new(&[Down,  S])) { marker.move_forward( world, false ); } // Move Backward
-    if handler.read_kb_multi_any_of(KCS::new(&[Left,  A])) { marker.strafe_left( world ); }         // Strafe Left
-    if handler.read_kb_multi_any_of(KCS::new(&[Right, D])) { marker.strafe_right( world ); }        // Strafe Right
-    if handler.read_kb_single_any_of(KCS::new(&[Q]))       { marker.turn_left(); }                  // Turn Left
-    if handler.read_kb_single_any_of(KCS::new(&[E]))       { marker.turn_right(); }                 // Turn Right
-    if handler.read_kb_single(KC::new(Space))              { marker.jump() }                        // Jumping... is useless
-    // if handler.read_mouse_single(MB::Left)                 { println!("mouse x: {} y: {}", _mx, _my); } // Fire/Select
-    marker.calc_move_arc(world, rate); // move_to_new_pos(rate)
+    // let mut marker = self.pos.borrow_mut();
+    // marker.prep(world);
+    // if handler.read_kb_multi_any_of(KCS::new(&[Up,    W])) { marker.move_forward( world, true ); }  // Move Forward
+    // if handler.read_kb_multi_any_of(KCS::new(&[Down,  S])) { marker.move_forward( world, false ); } // Move Backward
+    // if handler.read_kb_multi_any_of(KCS::new(&[Left,  A])) { marker.strafe_left( world ); }         // Strafe Left
+    // if handler.read_kb_multi_any_of(KCS::new(&[Right, D])) { marker.strafe_right( world ); }        // Strafe Right
+    // if handler.read_kb_single_any_of(KCS::new(&[Q]))       { marker.turn_left(); }                  // Turn Left
+    // if handler.read_kb_single_any_of(KCS::new(&[E]))       { marker.turn_right(); }                 // Turn Right
+    // if handler.read_kb_single(KC::new(Space))              { marker.jump() }                        // Jumping... is useless
+    // // if handler.read_mouse_single(MB::Left)                 { println!("mouse x: {} y: {}", _mx, _my); } // Fire/Select
+    // marker.calc_move_arc(world, rate); // move_to_new_pos(rate)
     self
   }
   pub fn pos_copy(&self, v: &mut Vector3f) {

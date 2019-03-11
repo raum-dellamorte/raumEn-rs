@@ -5,10 +5,13 @@ use std::mem;
 use std::ptr;
 
 use model::import::load_obj;
-use model::RawModel;
+use model::Model;
 use model::Mesh;
 use Texture;
-use util::{r_gen_textures,r_gen_vertex_arrays,r_gen_buffers, HashMap};
+use util::{
+  HashMap, 
+  rgl::*, 
+};
 use util::rvertex::{RVertex, RVertex2D};
 
 pub struct Loader {
@@ -27,7 +30,7 @@ impl Loader {
       textures: Vec::new(),
     }
   }
-  pub fn load_to_vao(&mut self, mesh_name: &str) -> RawModel {
+  pub fn load_to_vao(&mut self, mesh_name: &str) -> Model {
     let (indcs, verts) = match self.load_mesh(mesh_name) {
       Some(mesh) => { (mesh.indcs.clone(), mesh.verts.clone()) }
       _ => panic!("Can't load Mesh: {}", mesh_name)
@@ -38,7 +41,7 @@ impl Loader {
     let tdata = verts_tex_coords_to_glfloats(&verts) ; self.bind_attrib(1, 2_i32, &tdata);
     let ndata = verts_norms_to_glfloats(&verts); self.bind_attrib(2, 3_i32, &ndata);
     self.unbind_vao();
-    RawModel::new(vao_id, indcs.len() as i32)
+    Model::new(vao_id, indcs.len() as i32)
   }
   pub fn load_mesh(&mut self, name: &str) -> Option<&Mesh> {
     if self.meshes.get(name).is_none() {

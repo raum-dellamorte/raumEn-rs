@@ -16,7 +16,7 @@ use std::io::prelude::*;
 use std::path::Path;
 
 use util::rmatrix::Matrix4f;
-use util::{ Vector2f, Vector3f, Vector4f, RefCell, HashSet };
+use util::{ Vector2f, Vector3f, Vector4f, Arc, Mutex, HashSet };
 
 pub struct ShaderVar {
     var_name: String,
@@ -87,7 +87,7 @@ pub struct Shader {
   pub shaders: Vec<ShaderSrc>,
   pub vars: Vec<ShaderVar>,
   pub unis: Vec<ShaderUni>,
-  pub unis_unavailable: RefCell<HashSet<String>>,
+  unis_unavailable: Arc<Mutex<HashSet<String>>>,
 }
 
 impl Shader {
@@ -95,7 +95,7 @@ impl Shader {
     Shader { 
       name: format!("{}", name), program: 0, done: false,
       shaders: Vec::new(), vars: Vec::new(), unis: Vec::new(), 
-      unis_unavailable: RefCell::new(HashSet::new()),
+      unis_unavailable: Arc::new(Mutex::new(HashSet::new())),
     }
   }
   pub fn load_defaults(&mut self) -> &mut Self {
@@ -243,10 +243,11 @@ impl Shader {
     UseProgram(0);
   }}
   fn check_id(&self, id: GLint, name: &str, caller: &str) -> bool {
-    let test = self.unis_unavailable.borrow().contains(name);
+    let mut unis_unavailable = self.unis_unavailable.lock().unwrap();
+    let test = unis_unavailable.contains(name);
     if test { return true } else {
       if id < 0 { 
-        self.unis_unavailable.borrow_mut().insert(name.to_string());
+        unis_unavailable.insert(name.to_string());
         println!("{}(): Uniform {} not available for shader {}", caller, name, self.name); 
         return true;
       }

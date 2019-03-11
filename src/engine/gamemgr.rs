@@ -1,8 +1,28 @@
 
-use {Camera, Display, EntityMgr, Handler, HUD, Lighting, Lights, Loader, Material, Texture, World, WorldBuilder, };
-use model::{RawModel};
-use text::{TextMgr, }; // RFontType, 
-use util::{Matrix4f, Vector3f, Rc, RefCell, HashMap, };
+use {
+  Camera, 
+  Display, 
+  EntityMgr, 
+  Handler, 
+  HUD, 
+  Lighting, 
+  Lights, 
+  Loader, 
+  Material, 
+  Texture, 
+  // WorldBuilder, 
+  model::{Model, },
+  text::{
+    TextMgr, 
+    // RFontType, 
+  },
+  util::{
+    Matrix4f, 
+    Vector3f, 
+    Rc, RefCell, 
+    HashMap, 
+  },
+};
 
 pub struct GameMgr {
   pub handler: Option<Box<Handler>>,
@@ -10,12 +30,12 @@ pub struct GameMgr {
   pub lights: Rc<RefCell<Lights>>,
   pub camera: Option<Box<Camera>>,
   pub display: Rc<RefCell<Display>>,
-  pub world: Option<Box<World>>,
-  pub world_builder: WorldBuilder,
+  // pub world: Option<Box<World>>,
+  // pub world_builder: WorldBuilder,
   pub textmgr: Option<Rc<RefCell<TextMgr>>>,
   pub hud: Rc<RefCell<HUD>>,
   pub entity_mgr: Rc<EntityMgr>,
-  pub models: Rc<RefCell<HashMap<String, Rc<RawModel>>>>,
+  pub models: Rc<RefCell<HashMap<String, Rc<Model>>>>,
   pub materials: Rc<RefCell<HashMap<String, Rc<RefCell<Material>>>>>,
   pub textures: Rc<RefCell<HashMap<String, Rc<Texture>>>>,
   pub lightings: Rc<RefCell<HashMap<String, Rc<RefCell<Lighting>>>>>,
@@ -36,10 +56,10 @@ impl GameMgr {
     let display = Rc::new(RefCell::new(Display::new()));
     // let ents = Entities::new(loader.clone());
     let textmgr = TextMgr::new();
-    let mut world = Box::new(World::new());
-    let mut builder = WorldBuilder::new();
-    builder.set_landscape_weight_and_mult(0.5, 3);
-    builder.gen_world(&mut world, 0.0, 0.0);
+    // let mut world = Box::new(World::new());
+    // let mut builder = WorldBuilder::new();
+    // builder.set_landscape_weight_and_mult(0.5, 3);
+    // builder.gen_world(&mut world, 0.0, 0.0);
     let quad_vec = vec![-1.0,1.0, -1.0,-1.0, 1.0,1.0, 1.0,-1.0];
     let quad = loader.borrow_mut().load_to_vao_gui(&quad_vec);
     let hud = HUD::new(quad);
@@ -49,8 +69,8 @@ impl GameMgr {
       lights: Rc::new(RefCell::new(lights)),
       camera: camera,
       display: display,
-      world: Some(world),
-      world_builder: builder,
+      // world: Some(world),
+      // world_builder: builder,
       textmgr: Some(Rc::new(RefCell::new(textmgr))),
       hud: Rc::new(RefCell::new(hud)),
       entity_mgr: Rc::new(EntityMgr::new()),
@@ -130,18 +150,18 @@ impl GameMgr {
   //   f(&mut c, &mut h);
   //   self.return_handler(h);
   // }
-  pub fn take_world(&mut self) -> Box<World> {
-    let out = self.world.take();
-    Box::new(*out.unwrap())
-  }
-  pub fn return_world(&mut self, world: Box<World>) {
-    self.world = Some(world)
-  }
-  pub fn gen_chunks(&mut self) {
-    let mut world = self.take_world();
-    self.world_builder.gen_world(&mut world, self.player_loc.x, self.player_loc.z);
-    self.return_world(world);
-  }
+  // pub fn take_world(&mut self) -> Box<World> {
+  //   let out = self.world.take();
+  //   Box::new(*out.unwrap())
+  // }
+  // pub fn return_world(&mut self, world: Box<World>) {
+  //   self.world = Some(world)
+  // }
+  // pub fn gen_chunks(&mut self) {
+  //   let mut world = self.take_world();
+  //   self.world_builder.gen_world(&mut world, self.player_loc.x, self.player_loc.z);
+  //   self.return_world(world);
+  // }
   // pub fn entities_do<F>(&mut self, f: F)
   //     where F: Fn(&mut HashMap<String, Entity>) -> () {
   //   let mut h = self.entities.borrow_mut();
@@ -198,7 +218,7 @@ impl GameMgr {
       f(&mut ent);
     } else { panic!("No Entity to modify: {}", name) }
   }
-  pub fn model(&self, name: &str) -> Rc<RawModel> {
+  pub fn model(&self, name: &str) -> Rc<Model> {
     let mut hm = self.models.borrow_mut();
     if hm.contains_key(name) {
       let out = hm.get_mut(name).unwrap();

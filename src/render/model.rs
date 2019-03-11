@@ -6,9 +6,14 @@ use CVOID;
 
 use entities::position::PosMarker;
 use {GameMgr, Shader, Texture, }; // Camera, 
-use model::RawModel;
+use model::Model;
 use shader::gen_model_shader;
-use util::{Vector3f, Rc, RefCell, }; // Vector2f, Vector4f, 
+use util::{
+  rgl::*,
+  Vector3f, 
+  Rc, RefCell, 
+  // Vector2f, Vector4f, 
+}; 
 // use util::rvertex::{RVertex, RVertex2D};
 
 pub struct RenderTexModel {
@@ -36,7 +41,7 @@ impl RenderTexModel {
       for _entity in entities.values() {
         let entity = _entity.borrow_mut();
         let model = mgr.model(&entity.model);
-        Self::bind_model(&model);
+        r_bind_vaa_3(&model);
         Self::use_material(&mgr, &self.shader, &entity.material);
         if let Some(_instances) = instances.get(&entity.name) {
           for ent_inst in _instances {
@@ -47,10 +52,10 @@ impl RenderTexModel {
               shader.load_matrix("u_Transform", trans_mat);
             }
             shader.load_vec_3f("color_id", &ent.color_id.borrow()); // add color id to entities to use here.
-            unsafe { DrawElements(TRIANGLES, model.vertex_count, UNSIGNED_INT, CVOID); }
+            r_draw_triangles(&model);
           }
         }
-        Self::unbind();
+        r_unbind_vaa_3();
       }
     }
     shader.stop();
@@ -73,22 +78,8 @@ impl RenderTexModel {
     }
     {
       let texture = mgr.texture(texture);
-      Self::bind_texture(&texture);
+      use util::rgl::r_bind_texture;
+      r_bind_texture(&texture);
     }
   }
-  fn bind_model(model: &RawModel) { unsafe {
-    BindVertexArray(model.vao_id);
-    EnableVertexAttribArray(0);
-    EnableVertexAttribArray(1);
-    EnableVertexAttribArray(2);
-  }}
-  fn bind_texture(texture: &Texture) { unsafe {
-    ActiveTexture(TEXTURE0);
-    BindTexture(TEXTURE_2D, texture.tex_id);
-  }}
-  fn unbind() { unsafe {
-    DisableVertexAttribArray(2);
-    DisableVertexAttribArray(1);
-    DisableVertexAttribArray(0);
-  }}
 }

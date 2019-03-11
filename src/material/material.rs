@@ -1,6 +1,54 @@
 
 
-use util::Vector2f;
+use material::{
+  texture::Textures, 
+  lighting::Lightings, 
+};
+use util::{
+  rgl::*, 
+  Vector2f, 
+};
+
+// ECS
+use specs::*;
+
+#[derive(SystemData)]
+pub struct MaterialData<'a> {
+  textures: Read<'a, Textures>, 
+  lightings: Read<'a, Lightings>, 
+}
+
+#[derive(SystemData)]
+pub struct WriteMaterialData<'a> {
+  vao_ids: Write<'a, Textures>, 
+  lightings: Write<'a, Lightings>, 
+}
+
+#[derive(Component, Debug)]
+#[storage(VecStorage)]
+pub struct TextureComponent(pub String);
+
+#[derive(Component, Debug)]
+#[storage(VecStorage)]
+pub struct LightingComponent(pub String);
+
+#[derive(Component, Debug)]
+#[storage(VecStorage)]
+pub struct TexIndexComponent(pub u32);
+
+#[derive(Component, Debug)]
+#[storage(VecStorage)]
+pub struct RowCountComponent(pub u32);
+
+#[derive(Component, Debug)]
+#[storage(VecStorage)]
+pub struct OffsetComponent(pub Vector2f);
+
+#[derive(Component, Default)]
+#[storage(NullStorage)]
+pub struct MultiTexComponent;
+
+// !ECS
 
 pub struct Material {
   pub name: String,

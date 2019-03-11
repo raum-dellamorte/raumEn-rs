@@ -5,7 +5,7 @@ use CVOID;
 
 use {GameMgr, Shader, Texture}; // Lights, Camera, 
 use entities::PosMarker;
-use model::RawModel;
+use model::Model;
 use shader::gen_font_shader;
 use text::{TextMgr, RFontType};
 use util::{Vector3f, HashMap, HashSet, Arc, Mutex, }; // Vector2f, Vector4f, RVertex, RVertex2D
@@ -34,22 +34,21 @@ impl RenderFont {
       self.shader.start();
       let _tmp: HashMap<String, HashSet<String>> = (*textmgr).active_text.clone();
       let fonts: Vec<&String> = _tmp.keys().clone().into_iter().collect();
+      use util::rgl::r_bind_texture;
       for font in fonts {
-        let tex_id = match textmgr.fonts.get_mut(font) {
+        match textmgr.fonts.get_mut(font) {
           Some(x) => {
             let texs = mgr.textures.borrow_mut();
             match texs.get(&x.tex_atlas) {
-              Some(tid) => { tid.tex_id }
+              Some(tid) => { 
+                // println!("tex_id: {}", tex_id);
+                r_bind_texture(&tid); 
+              }
               _ => { println!("No font atlas texture {}", &x.tex_atlas); continue }
             }
           }
           _ => { println!("No ftype {}", font); continue }
         };
-        // println!("tex_id: {}", tex_id);
-        unsafe {
-          ActiveTexture(TEXTURE0);
-          BindTexture(TEXTURE_2D, tex_id);
-        }
         for gtexts in textmgr.active_text.get(font) {
           for gtstr in gtexts {
             for gtext in textmgr.texts.get(gtstr) {

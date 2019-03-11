@@ -6,7 +6,7 @@ use CVOID;
 // use Camera;
 use entities::PosMarker;
 use {GameMgr, Shader, Texture};
-use model::RawModel;
+use model::Model;
 // use Lights;
 use shader::gen_fog_shader;
 use text::{TextMgr, RFontType};
@@ -55,10 +55,9 @@ impl RenderPostProc {
         // all the glsl variable connections I need.
         
         // Texture!
+        use util::rgl::r_bind_texture;
         for tex in &self.textures {
-          let unit = if tex.tex_unit < 0 { 0_u32 } else { tex.tex_unit as u32 };
-          ActiveTexture(TEXTURE0 + unit);
-          BindTexture(TEXTURE_2D, tex.tex_id);
+          r_bind_texture(tex);
         }
         
         // // Shader Vars!

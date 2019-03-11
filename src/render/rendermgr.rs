@@ -2,7 +2,12 @@
 use util::{Rc, RefCell};
 
 use Display;
-use render::{RenderTexModel, RenderTerrain, RenderFont, RenderHUD };
+use render::{
+  RenderTexModel, 
+  // RenderTerrain, 
+  RenderFont, 
+  RenderHUD 
+};
 
 use gl::*;
 // use gl::types::{GLuint, }; // GLfloat, GLenum, GLint, GLchar, GLsizeiptr, GLboolean, 
@@ -34,7 +39,7 @@ pub fn prepare() { unsafe {
 pub struct RenderMgr {
   pub mgr: Option<Box<GameMgr>>,
   pub ren_tex_model: RenderTexModel,
-  pub ren_terrain: RenderTerrain,
+  // pub ren_terrain: RenderTerrain,
   pub ren_font: RenderFont,
   pub ren_hud: RenderHUD,
 }
@@ -44,7 +49,7 @@ impl RenderMgr {
     RenderMgr {
       mgr: Some(Box::new(GameMgr::new())),
       ren_tex_model: RenderTexModel::new(),
-      ren_terrain: RenderTerrain::new(),
+      // ren_terrain: RenderTerrain::new(),
       ren_font: RenderFont::new(),
       ren_hud: RenderHUD::new(),
     }
@@ -61,7 +66,7 @@ impl RenderMgr {
     let mut mgr = self.take_mgr();
     mgr.create_view_matrix();
     mgr = self.ren_tex_model.render(mgr);
-    mgr = self.ren_terrain.render(mgr);
+    // mgr = self.ren_terrain.render(mgr);
     self.return_mgr(mgr);
     unsafe { BindVertexArray(0); }
   }
@@ -84,12 +89,12 @@ impl RenderMgr {
         shader.load_matrix("u_Projection", &proj_mat); // Maybe move this to Shader
         shader.stop();
       }
-      {
-        let shader = &self.ren_terrain.shader;
-        shader.start();
-        shader.load_matrix("u_Projection", &proj_mat); // Maybe move this to Shader
-        shader.stop();
-      }
+      // {
+      //   let shader = &self.ren_terrain.shader;
+      //   shader.start();
+      //   shader.load_matrix("u_Projection", &proj_mat); // Maybe move this to Shader
+      //   shader.stop();
+      // }
     }
     self.return_mgr(mgr);
   }
@@ -108,7 +113,7 @@ impl RenderMgr {
   pub fn clean_up(&mut self) {
     self.mgr.as_mut().unwrap().clean_up();
     self.ren_tex_model.clean_up();
-    self.ren_terrain.clean_up();
+    // self.ren_terrain.clean_up();
     self.ren_font.clean_up();
     self.ren_hud.clean_up();
   }
