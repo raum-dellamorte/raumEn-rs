@@ -1,32 +1,23 @@
 
-use util::{Rc, RefCell};
-
-use Display;
-use render::{
-  RenderTexModel, 
-  // RenderTerrain, 
-  RenderFont, 
-  RenderHUD 
+use {
+  gl::{
+    *,
+    // types::{ // GLuint, GLfloat, GLenum, GLint, GLchar, GLsizeiptr, GLboolean, 
+    // },
+  },
+  util::{
+    Rc, RefCell,
+  },
+  Display,
+  GameMgr,
+  render::{
+    RenderTexModel, 
+    // RenderTerrain, 
+    RenderFont, 
+    RenderHUD 
+  },
+  // glutin::dpi::PhysicalSize,
 };
-
-use gl::*;
-// use gl::types::{GLuint, }; // GLfloat, GLenum, GLint, GLchar, GLsizeiptr, GLboolean, 
-use glutin::dpi::PhysicalSize;
-// use std::ffi::CString;
-// use std::mem;
-// use std::ptr;
-// use std::str;
-// use CVOID;
-
-// use Camera;
-// use entities::PosMarker;
-use GameMgr;
-// use material::Lights;
-// use model::Model;
-// use shader::gen_model_shader;
-// use Shader;
-// use util::{Vector3f, }; // Vector2f, Vector4f, HashMap, Arc, Mutex, 
-// use util::rvertex::{RVertex, RVertex2D};
 
 pub fn prepare() { unsafe {
   Enable(CULL_FACE);

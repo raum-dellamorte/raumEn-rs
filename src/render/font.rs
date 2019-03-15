@@ -1,14 +1,33 @@
 
 use gl::*;
 // use gl::types::{GLuint, }; // GLfloat, GLenum, GLint, GLchar, GLsizeiptr, GLboolean, 
-use CVOID;
+// use CVOID;
 
-use {GameMgr, Shader, Texture}; // Lights, Camera, 
-use entities::PosMarker;
-use model::Model;
-use shader::gen_font_shader;
-use text::{TextMgr, RFontType};
-use util::{Vector3f, HashMap, HashSet, Arc, Mutex, }; // Vector2f, Vector4f, RVertex, RVertex2D
+use {
+  // Camera, 
+  GameMgr, 
+  // Lights, 
+  Shader, 
+  // Texture, 
+  // entities::PosMarker,
+  // model::Model,
+  shader::gen_font_shader,
+  // text::{
+  //   // TextMgr, 
+  //   // RFontType,
+  // },
+  util::{
+    HashMap, 
+    HashSet, 
+    // Arc, 
+    // Mutex,
+    // Vector3f, 
+    // Vector2f, 
+    // Vector4f, 
+    // RVertex, 
+    // RVertex2D
+  }, 
+};
 
 pub struct RenderFont {
   pub shader: Shader,

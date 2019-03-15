@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 
 
 use material::{
@@ -5,7 +6,7 @@ use material::{
   lighting::Lightings, 
 };
 use util::{
-  rgl::*, 
+  // rgl::*, 
   Vector2f, 
 };
 

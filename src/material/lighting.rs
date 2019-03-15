@@ -1,6 +1,11 @@
 
-use Shader;
-use util::{HashMap, Vector3f};
+use {
+  Shader,
+  util::{
+    HashMap, 
+    Vector3f
+  },
+};
 
 #[derive(Default)]
 pub struct Lightings(pub HashMap<String,Lighting>);

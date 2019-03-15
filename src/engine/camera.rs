@@ -1,3 +1,4 @@
+#![allow(unused_imports,dead_code)]
 
 // use glutin::VirtualKeyCode::*;
 use glutin::MouseButton as MB;

@@ -1,14 +1,39 @@
 
-use gl::*;
-// use gl::types::{GLuint, }; // GLfloat, GLenum, GLint, GLchar, GLsizeiptr, GLboolean, 
-use CVOID;
-
-use entities::PosMarker;
-use {GameMgr, Shader, Texture}; // Lights, Camera, 
-use model::Model;
-use shader::gen_hud_shader;
-use text::{TextMgr, RFontType};
-use util::{Vector3f, Vector2f, HashMap, HashSet, Arc, Mutex}; // Vector2f, Vector4f, RVertex, RVertex2D
+use {
+  gl::{
+    *,
+    // types::{
+    //   // GLuint,
+    //   // GLfloat, 
+    //   // GLenum, 
+    //   // GLint, 
+    //   // GLchar, 
+    //   // GLsizeiptr, 
+    //   // GLboolean, 
+    // }, 
+  },
+  // CVOID,
+  // entities::PosMarker,
+  GameMgr, 
+  // Texture,
+  // model::Model,
+  shader::{
+    Shader,
+    gen_hud_shader,
+  },
+  // text::{
+  //   // TextMgr, 
+  //   // RFontType,
+  // },
+  util::{
+    // Vector3f, 
+    Vector2f, 
+    // HashMap, 
+    // HashSet, 
+    // Arc, Mutex,
+    // Vector2f, Vector4f, RVertex, RVertex2D,
+  }, 
+};
 
 pub struct RenderHUD {
   pub shader: Shader,

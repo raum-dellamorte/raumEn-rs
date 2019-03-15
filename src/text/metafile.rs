@@ -1,19 +1,33 @@
 
-use std::error::Error;
-use std::fs::File;
-use std::io::prelude::*;
-use std::io::BufReader;
-use std::path::Path;
-use std::str;
-use std::str::FromStr;
-
-use nom::{space, digit, float_s, }; // alpha, alphanumeric, 
-
-use eof;
-use GameMgr;
-use text::{RChar, }; // RLine, RWord, RFontType, SPACE_ASCII, LINE_HEIGHT, 
-use text::{LINE_HEIGHT, SPACE_ASCII};
-use util::HashMap;
+use {
+  std::{
+    error::Error,
+    fs::File,
+    io::{
+      prelude::*,
+      BufReader,
+    },
+    path::Path,
+    str,
+    str::FromStr,
+  },
+  nom::{
+    space, 
+    digit, 
+    float_s, 
+    // alpha, 
+    // alphanumeric, 
+  },
+  eof,
+  // GameMgr,
+  text::{
+    RChar, 
+    LINE_HEIGHT, 
+    SPACE_ASCII, 
+    // RLine, RWord, RFontType, 
+  },
+  util::HashMap,
+};
 
 pub fn test_noms() {
   test_get_info();

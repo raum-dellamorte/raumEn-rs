@@ -1,3 +1,4 @@
+#![allow(unused_imports,dead_code)]
 
 use GameMgr;
 use util::{Matrix4f, Vector2f, Vector3f};

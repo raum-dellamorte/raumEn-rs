@@ -1,16 +1,14 @@
 
-use gl::*;
-// use gl::types::{GLuint, }; // GLfloat, GLenum, GLint, GLchar, GLsizeiptr, GLboolean, 
-use CVOID;
-
-// use Camera;
-use entities::PosMarker;
-use {GameMgr, Shader, Texture};
-use model::Model;
-// use Lights;
-use shader::gen_fog_shader;
-use text::{TextMgr, RFontType};
-use util::{Vector3f, Vector2f, HashMap, HashSet, Arc, Mutex}; // Vector2f, Vector4f, RVertex, RVertex2D
+use {
+  gl::*,
+  shader::{
+    Shader,
+    gen_fog_shader,
+  }, 
+  material::{
+    Texture,
+  },
+};
 
 pub struct RenderPostProc {
   pub shader: Shader,

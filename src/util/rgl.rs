@@ -1,9 +1,16 @@
 
-use gl::*;
-// use gl::types::{GLuint, }; // GLfloat, GLenum, GLint, GLchar, GLsizeiptr, GLboolean, 
-use CVOID;
-
-use util::{Matrix4f, HashMap};
+use {
+  gl::{
+    *,
+    // types::{ // GLuint, GLfloat, GLenum, GLint, GLchar, GLsizeiptr, GLboolean, 
+    // },
+  },
+  CVOID,
+  util::{
+    Matrix4f, 
+    // HashMap,
+  },
+};
 
 pub fn r_gen_textures() -> u32 { unsafe {
   let mut id = 0;

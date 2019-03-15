@@ -1,20 +1,44 @@
 
 
-use gl::*;
-// use gl::types::{GLuint, }; // GLfloat, GLenum, GLint, GLchar, GLsizeiptr, GLboolean, 
-use CVOID;
-
-use entities::position::PosMarker;
-use {GameMgr, Shader, Texture, }; // Camera, 
-use model::Model;
-use shader::gen_model_shader;
-use util::{
-  rgl::*,
-  Vector3f, 
-  Rc, RefCell, 
-  // Vector2f, Vector4f, 
-}; 
-// use util::rvertex::{RVertex, RVertex2D};
+use {
+  // gl::{
+  //   *,
+  //   // types::{
+  //   //   // GLuint,
+  //   //   // GLfloat, 
+  //   //   // GLenum, 
+  //   //   // GLint, 
+  //   //   // GLchar, 
+  //   //   // GLsizeiptr, 
+  //   //   // GLboolean, 
+  //   // }, 
+  // },
+  // CVOID,
+  // entities::PosMarker,
+  // Camera, 
+  GameMgr, 
+  // Texture,
+  // model::Model,
+  shader::{
+    Shader,
+    gen_model_shader,
+  },
+  // text::{
+  //   // TextMgr, 
+  //   // RFontType,
+  // },
+  util::{
+    rgl::*,
+    // Vector3f, 
+    // Rc, RefCell, 
+    // Vector3f, 
+    // Vector2f, 
+    // HashMap, 
+    // HashSet, 
+    // Arc, Mutex,
+    // Vector2f, Vector4f, RVertex, RVertex2D,
+  }, 
+};
 
 pub struct RenderTexModel {
   pub shader: Shader,

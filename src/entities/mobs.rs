@@ -1,11 +1,11 @@
 
-use glutin::VirtualKeyCode::*;
-use glutin::MouseButton as MB;
+// use glutin::VirtualKeyCode::*;
+// use glutin::MouseButton as MB;
 
 use entities::PosMarker;
 use Handler;
-use engine::input::KeyCode as KC;
-use engine::input::KeyCodes as KCS;
+// use engine::input::KeyCode as KC;
+// use engine::input::KeyCodes as KCS;
 // use terrain::World;
 use util::{Vector3f, HashMap, Rc, RefCell, };
 

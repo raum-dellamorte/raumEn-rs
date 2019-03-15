@@ -1,38 +1,46 @@
 
 // pub mod builder;
 pub mod coords;
+pub mod gen;
+pub mod node;
 pub mod platform;
 // pub mod world;
 
 // pub use terrain::builder::*;
 pub use terrain::coords::*;
+pub use terrain::gen::*;
 pub use terrain::platform::*;
+pub use terrain::node::*;
 // pub use terrain::world::*;
 
-use terrain::TerrainCoords::ChunkLoc;
+#[derive(Debug)]
+pub struct PlayerLoc(pub i32,pub i32);
+impl Default for PlayerLoc { fn default() -> Self { Self(0,0) } }
 
-pub fn from_world_to_chunk_space(x: f32, z: f32) -> (isize, isize) {
-  ((x / 16.0).floor() as isize, (z / 16.0).floor() as isize)
-}
+// use terrain::TerrainCoords::ChunkLoc;
 
-pub fn local_to_world(cx: isize, cz: isize, lx: isize, lz: isize) -> TerrainCoords {
-  // let lx = if cx < 0 { 7 - lx } else { lx };
-  // let lz = if cz < 0 { 7 - lz } else { lz };
-  ChunkLoc { x: ( cx * 16 ) + ( lx * 2 ), z: ( cz * 16 ) + ( lz * 2 ) }
-}
+// pub fn from_world_to_chunk_space(x: f32, z: f32) -> (isize, isize) {
+//   ((x / 16.0).floor() as isize, (z / 16.0).floor() as isize)
+// }
 
-pub fn world_to_local(wx: f32, wz: f32) -> (TerrainCoords, TerrainCoords) {
-  let wx = wx.floor() as isize;
-  let wz = wz.floor() as isize;
-  let cx = (wx - if wx < 0 { 15 } else { 0 }) / 16;
-  let cz = (wz - if wz < 0 { 15 } else { 0 }) / 16;
-  // let x = (wx - if wx < 0 { 1 } else { 0 }) / 2;
-  // let z = (wz - if wz < 0 { 1 } else { 0 }) / 2;
-  let x = (wx - (cx * 16)) / 2;
-  let z = (wz - (cz * 16)) / 2;
+// pub fn local_to_world(cx: isize, cz: isize, lx: isize, lz: isize) -> TerrainCoords {
+//   // let lx = if cx < 0 { 7 - lx } else { lx };
+//   // let lz = if cz < 0 { 7 - lz } else { lz };
+//   ChunkLoc { x: ( cx * 16 ) + ( lx * 2 ), z: ( cz * 16 ) + ( lz * 2 ) }
+// }
+
+// pub fn world_to_local(wx: f32, wz: f32) -> (TerrainCoords, TerrainCoords) {
+//   let wx = wx.floor() as isize;
+//   let wz = wz.floor() as isize;
+//   let cx = (wx - if wx < 0 { 15 } else { 0 }) / 16;
+//   let cz = (wz - if wz < 0 { 15 } else { 0 }) / 16;
+//   // let x = (wx - if wx < 0 { 1 } else { 0 }) / 2;
+//   // let z = (wz - if wz < 0 { 1 } else { 0 }) / 2;
+//   let x = (wx - (cx * 16)) / 2;
+//   let z = (wz - (cz * 16)) / 2;
   
-  ( ChunkLoc { x: cx, z: cz }, ChunkLoc { x: x, z: z } )
-}
+//   ( ChunkLoc { x: cx, z: cz }, ChunkLoc { x: x, z: z } )
+// }
 
 // #[cfg(test)]
 // mod tests {

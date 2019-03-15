@@ -1,5 +1,5 @@
 #![recursion_limit="128"]
-#![allow(unused_imports,dead_code)]
+// #![allow(unused_imports,dead_code)]
 
 extern crate gl;
 extern crate glutin;
@@ -20,14 +20,14 @@ use glutin::dpi::*;
 use glutin::GlContext;
 use specs::{
   Builder, 
-  Component, 
+  // Component, 
   DispatcherBuilder, 
-  ReadStorage, 
-  WriteStorage,
-  System, 
-  VecStorage, 
+  // ReadStorage, 
+  // WriteStorage,
+  // System, 
+  // VecStorage, 
   World, 
-  RunNow
+  // RunNow, 
 };
 // use cgmath::{Matrix4, Point3, Vector3}; // Deg, 
 
@@ -53,11 +53,20 @@ pub use shader::{
   Shader,
   terrain::TerrainShader,
 };
-pub use terrain::{Platform, DrawPlatform, PlatformData};
+pub use terrain::{Platform, DrawPlatform};
 // pub use terrain::{SpecsWorld, World, WorldBuilder};
 
-use engine::fbo::ColorType::{ColorMultisampleRenderBuffer, ColorMultisampleRenderBuffers2, ColorTexture, NoColor};
-use engine::fbo::DepthType::{DepthRenderBuffer, DepthTexture, NoDepth};
+use engine::fbo::ColorType::{
+  // ColorMultisampleRenderBuffer, 
+  ColorMultisampleRenderBuffers2, 
+  ColorTexture, 
+  // NoColor, 
+};
+use engine::fbo::DepthType::{
+  DepthRenderBuffer, 
+  DepthTexture, 
+  // NoDepth, 
+};
 
 fn main() {
   // // Test code for parsing fnt files
@@ -151,44 +160,70 @@ fn main() {
   render_mgr.return_mgr(mgr);
   
   // ECS experiment
-  use entities::position::{Position, Velocity, UpdatePos};
-  use material::{
-    lighting::Lightings, 
-    texture::Textures, 
+  use {
+    entities::position::{
+      Position, 
+      Velocity, 
+      // UpdatePos, 
+    },
+    material::{
+      lighting::Lightings, 
+      texture::Textures, 
+      TextureComponent,
+      LightingComponent,
+    },
+    model::{
+      Models,
+      ModelComponent,
+    },
+    util::rgl::*,
+    shader::terrain::TerrainShader,
+    terrain::{
+      PlayerLoc,
+      gen::{
+        LandscapeGen,
+        PlatformGen,
+      },
+      node::{
+        TerrainNodes,
+      },
+      platform::{
+        DrawPlatform,
+        DrawPlatformPrep,
+      },
+    },
   };
-  use model::Models;
-  use util::rgl::*;
+  
   let mut world = World::new();
-  world.register::<Position>();
-  world.register::<Velocity>();
+  // world.add_resource(DrawModelsWithTextures::default());
+  // world.add_resource(LandscapeGen::default());
+  // world.add_resource(PlayerLoc::default());
+  // world.add_resource(TerrainShader::default());
+  // world.add_resource(TerrainNodes::default());
+  // world.add_resource(Models);
+  // world.add_resource(Textures);
+  // world.add_resource(Lightings);
+  // world.register::<Platform>();
+  // world.register::<ModelComponent>();
+  // world.register::<TextureComponent>();
+  // world.register::<LightingComponent>();
   
-  world.add_resource(Timer::default());
-  world.add_resource(TerrainShader::default());
-  world.add_resource(Models::default());
-  world.add_resource(Textures::default());
-  world.add_resource(Lightings::default());
-  world.add_resource(DrawModelsWithTextures::default());
   
-  world.create_entity()
-      .with(Position { x: 4.0, y: 7.0, z: 0.0, w: 0.0 })
-      .with(Velocity { x: 0.2, y: 0.1, z: 0.3 })
+  
+  let mut terrain_gen = DispatcherBuilder::new()
+      .with(PlatformGen, "terrain_gen", &[])
       .build();
-  world.create_entity()
-      .with(Position { x: 7.0, y: 0.0, z: 4.0, w: 0.0 })
-      .with(Velocity { x: 0.1, y: 0.3, z: 0.2 })
+  terrain_gen.setup(&mut world.res);
+  terrain_gen.dispatch(&mut world.res);
+  world.maintain();
+  
+  let mut terrain_draw = DispatcherBuilder::new()
+      .with_thread_local(DrawPlatformPrep)
+      .with_thread_local(DrawPlatform)
       .build();
+  terrain_draw.setup(&mut world.res);
   
-  // let mut specs_world = SpecsWorld;
-  // specs_world.run_now(&sworld.res);
-  
-  // let mut dispatcher = DispatcherBuilder::new()
-  //     .with(SpecsWorld, "specs_world", &[])
-  //     .with(UpdatePos, "update_pos", &["specs_world"])
-  //     .with(SpecsWorld, "specs_updated", &["update_pos"])
-  //     .build();
-  
-  // dispatcher.dispatch(&mut sworld.res);
-  
+  terrain_draw.dispatch(&mut world.res);
   world.maintain();
   
   // Game loop!

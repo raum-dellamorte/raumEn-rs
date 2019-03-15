@@ -1,11 +1,16 @@
 
-use std::sync::{Arc, Mutex};
-
 use specs::{Component, System, Read, ReadStorage, WriteStorage, VecStorage};
 use {Timer, }; // World, 
-use util::{Matrix4f, RVec, Vector3f, XVEC, YVEC, ZVEC, modulo};
+use util::{
+  // Arc, Mutex, 
+  Matrix4f, 
+  // RVec, 
+  Vector3f, 
+  XVEC, YVEC, ZVEC, 
+  modulo
+};
 
-const GRAVITY: f32 = 10.0;
+// const GRAVITY: f32 = 10.0;
 
 #[derive(Component, Debug)]
 #[storage(VecStorage)]
@@ -282,7 +287,7 @@ pub struct Feelers {
   pub ry: f32,
 }
 impl Feelers {
-  const DIST: f32 = 2.0;
+  // const DIST: f32 = 2.0;
   pub fn blank() -> Self {
     Self {
       center: Vector3f::blank(),
