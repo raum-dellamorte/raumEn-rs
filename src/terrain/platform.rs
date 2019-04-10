@@ -6,13 +6,13 @@ use {
     // prelude::*,
   },
   TerrainShader,
-  model::{
+  material::{
+    Model,
     Models, 
     ModelComponent,
-  },
-  material::{
     lighting::Lightings, 
     // material::MaterialData, 
+    Texture,
     texture::Textures, 
     TextureComponent, 
     LightingComponent, 

@@ -4,8 +4,8 @@ use gl::types::{GLfloat, GLint, GLuint, GLsizeiptr, }; // GLenum, GLchar, GLbool
 use std::mem;
 use std::ptr;
 
+use material::Model;
 use model::import::load_obj;
-use model::Model;
 use model::Mesh;
 use Texture;
 use util::{

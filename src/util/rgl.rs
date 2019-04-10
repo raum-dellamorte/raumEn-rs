@@ -2,10 +2,14 @@
 use {
   gl::{
     *,
-    // types::{ // GLuint, GLfloat, GLenum, GLint, GLchar, GLsizeiptr, GLboolean, 
+    // types::{ 
+    //   // GLuint, GLfloat, GLenum, GLint, GLchar, GLsizeiptr, GLboolean, 
     // },
   },
   CVOID,
+  material::{
+    Model,
+  },
   util::{
     Matrix4f, 
     // HashMap,
@@ -47,7 +51,6 @@ pub struct TextureID(pub u32);
 #[derive(Debug)]
 pub struct TextureUnit(pub i32);
 
-use model::Model;
 pub fn r_bind_vaa_3(model: &Model) { unsafe {
   BindVertexArray(model.vao_id.0);
   EnableVertexAttribArray(0);

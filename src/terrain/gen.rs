@@ -1,15 +1,12 @@
 
 use {
-  model::{
-    // Models, 
-    ModelComponent,
-  },
   material::{
     // lighting::Lightings, 
     // material::MaterialData, 
     // texture::Textures, 
-    TextureComponent, 
     LightingComponent, 
+    ModelComponent,
+    TextureComponent, 
     // TexIndexComponent, 
     // RowCountComponent, 
     // OffsetComponent, 

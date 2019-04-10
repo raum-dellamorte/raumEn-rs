@@ -156,25 +156,20 @@ fn main() {
     _gui.depth_tex_id = _fbo_final.depth_tex_id;
   }
   
-  // Return the GameMgr to the RenderMgr
-  render_mgr.return_mgr(mgr);
-  
   // ECS experiment
   use {
-    entities::position::{
-      Position, 
-      Velocity, 
-      // UpdatePos, 
-    },
+    // entities::position::{
+    //   Position, 
+    //   Velocity, 
+    //   // UpdatePos, 
+    // },
     material::{
-      lighting::Lightings, 
-      texture::Textures, 
-      TextureComponent,
-      LightingComponent,
-    },
-    model::{
+      Lightings, 
       Models,
+      Textures, 
+      LightingComponent,
       ModelComponent,
+      TextureComponent,
     },
     util::rgl::*,
     shader::terrain::TerrainShader,
@@ -225,6 +220,9 @@ fn main() {
   
   terrain_draw.dispatch(&mut world.res);
   world.maintain();
+  
+  // Return the GameMgr to the RenderMgr
+  render_mgr.return_mgr(mgr);
   
   // Game loop!
   println!("Starting game loop.");

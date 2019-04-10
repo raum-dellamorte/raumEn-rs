@@ -11,7 +11,7 @@ use {
   Material, 
   Texture, 
   // WorldBuilder, 
-  model::{Model, },
+  material::{Model, },
   text::{
     TextMgr, 
     // RFontType, 
