@@ -14,7 +14,7 @@ use {
   nom::{
     space, 
     digit, 
-    float_s, 
+    float, 
     // alpha, 
     // alphanumeric, 
   },
@@ -197,8 +197,8 @@ named!(_get_char<&str, ( CharVars ) >,
     tag!("y=") >> y: i32_digit >> space >>
     tag!("width=") >> width: i32_digit >> space >>
     tag!("height=") >> height: i32_digit >> space >>
-    tag!("xoffset=") >> xoffset: float_s >> space >>
-    tag!("yoffset=") >> yoffset: float_s >> space >>
+    tag!("xoffset=") >> xoffset: float >> space >>
+    tag!("yoffset=") >> yoffset: float >> space >>
     tag!("xadvance=") >> xadvance: i32_digit >> space >>
     tag!("page=") >> page: u32_digit >> space >>
     tag!("chnl=") >> chnl: u32_digit >> space >>

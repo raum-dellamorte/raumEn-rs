@@ -1,17 +1,29 @@
 
-use std::error::Error;
-use std::io::prelude::*;
-use std::io::BufReader;
-use std::fs::File;
-use std::path::Path;
-use std::str;
-use std::str::FromStr;
-
-use util::rvertex::*;
-use model::mesh::Mesh;
-use eof;
-
-use nom::{space, float_s, digit}; // IResult, alpha, alphanumeric, 
+use {
+  std::{
+    error::Error,
+    io::{
+      prelude::*,
+      BufReader,
+    },
+    fs::File,
+    path::Path,
+    str,
+    str::FromStr,
+  },
+  nalgebra::{
+    Vector3,
+    // Matrix4,
+  },
+  nom::{
+    space, float, digit,
+  },
+  crate::{
+    eof,
+    util::rvertex::*,
+    model::mesh::Mesh,
+  },
+};
 
 named!(usize_digit<&str, usize >,
     map_res!( digit, FromStr::from_str )
@@ -28,11 +40,11 @@ named!(_get_v<&str, (f32, f32, f32) >,
   do_parse!(
     tag!("v") >>
     space >>
-    x: float_s >>
+    x: float >>
     space >>
-    y: float_s >>
+    y: float >>
     space >>
-    z: float_s >>
+    z: float >>
     (x, y, z)
   )
 );
@@ -48,9 +60,9 @@ named!(_get_vt<&str, (f32, f32) >,
   do_parse!(
     tag!("vt") >>
     space >>
-    x: float_s >>
+    x: float >>
     space >>
-    y: float_s >>
+    y: float >>
     (x, y)
   )
 );
@@ -66,11 +78,11 @@ named!(_get_vn<&str, (f32, f32, f32) >,
   do_parse!(
     tag!("vn") >>
     space >>
-    x: float_s >>
+    x: float >>
     space >>
-    y: float_s >>
+    y: float >>
     space >>
-    z: float_s >>
+    z: float >>
     (x, y, z)
   )
 );
