@@ -86,9 +86,7 @@ pub fn r_draw_triangles(model: &Model) { unsafe {
 
 pub struct DrawModelsWithTextures(pub Vec<DrawModelWithTextures>);
 impl Default for DrawModelsWithTextures {
-  fn default() -> Self {
-    Self(Vec::new())
-  }
+  fn default() -> Self { Self(Vec::new()) }
 }
 impl DrawModelsWithTextures {
   pub fn index_of(&self, name: &str) -> i32 {
