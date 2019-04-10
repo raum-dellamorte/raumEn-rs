@@ -6,6 +6,7 @@ use {
     // prelude::*,
   },
   TerrainShader,
+  flags::InScene,
   material::{
     Model,
     Models, 

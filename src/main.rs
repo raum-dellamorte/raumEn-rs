@@ -36,6 +36,7 @@ const CVOID: *const c_void = 0 as *const c_void;
 // in project stuff
 pub mod engine;
 pub mod entities;
+pub mod flags;
 pub mod material;
 pub mod model;
 pub mod render;
@@ -163,6 +164,7 @@ fn main() {
     //   Velocity, 
     //   // UpdatePos, 
     // },
+    flags::InScene,
     material::{
       Lightings, 
       Models,
