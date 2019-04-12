@@ -1,18 +1,30 @@
 
-use gl::*;
-use gl::types::{GLfloat, GLint, GLuint, GLsizeiptr, }; // GLenum, GLchar, GLboolean, 
-use std::mem;
-use std::ptr;
-
-use material::Model;
-use model::import::load_obj;
-use model::Mesh;
-use Texture;
-use util::{
-  HashMap, 
-  rgl::*, 
+use {
+  gl::{
+    *,
+    types::{
+      GLfloat, GLint, GLuint, GLsizeiptr, // GLenum, GLchar, GLboolean, 
+    },
+  },
+  std::{
+    mem,
+    ptr,
+    path::Path,
+  },
+  image,
+ 
+  material::Model,
+  model::import::load_obj,
+  model::Mesh,
+  Texture,
+  util::{
+    HashMap, 
+    rgl::*, 
+  },
+  util::rvertex::{
+    RVertex, RVertex2D
+  },
 };
-use util::rvertex::{RVertex, RVertex2D};
 
 pub struct Loader {
   vaos: Vec<GLuint>,
@@ -65,7 +77,6 @@ impl Loader {
     assert!(vbo_id != 0);
     self.vbos.push(vbo_id);
     BindBuffer(ARRAY_BUFFER, vbo_id);
-    use std::mem;
     BufferData(ARRAY_BUFFER,
       (data.len() * mem::size_of::<GLfloat>()) as GLsizeiptr,
       mem::transmute(&data[0]),
@@ -77,7 +88,6 @@ impl Loader {
     let vbo_id = r_gen_buffers();
     self.vbos.push(vbo_id);
     BindBuffer(ELEMENT_ARRAY_BUFFER, vbo_id);
-    use std::mem;
     let _idxs = indices_to_gluints(idxs);
     BufferData(ELEMENT_ARRAY_BUFFER,
       (_idxs.len() * mem::size_of::<GLuint>()) as GLsizeiptr,
@@ -88,8 +98,6 @@ impl Loader {
     BindVertexArray(0_u32);
   }}
   pub fn load_texture(&mut self, tex_name: &str) -> Texture {
-    use image;
-    use std::path::Path;
     let path: &str = &format!("res/img/{}.png", tex_name);
     let img = match image::open(&Path::new(path)) {
       Ok(image) => {
