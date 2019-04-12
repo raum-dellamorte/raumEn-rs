@@ -102,7 +102,6 @@ impl RenderTexModel {
     }
     {
       let texture = mgr.texture(texture);
-      use util::rgl::r_bind_texture;
       r_bind_texture(&texture);
     }
   }
