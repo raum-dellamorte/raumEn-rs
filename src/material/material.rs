@@ -1,13 +1,15 @@
 #![allow(dead_code)]
 
-
-use material::{
-  texture::Textures, 
-  lighting::Lightings, 
-};
-use util::{
-  // rgl::*, 
-  Vector2f, 
+use {
+  material::{
+    texture::Textures, 
+    lighting::Lightings, 
+  },
+  util::{
+    // rgl::*, 
+    Vector2f, 
+    // HashMap, 
+  },
 };
 
 // ECS
