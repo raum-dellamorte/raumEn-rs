@@ -1,5 +1,6 @@
 
 use {
+  GameMgr,
   util::{
     HashMap, 
     rgl::*, 
@@ -8,6 +9,13 @@ use {
 
 #[derive(Default)]
 pub struct Textures(pub HashMap<String,Texture>);
+impl Textures {
+  pub fn new_texture(&mut self, mgr: &GameMgr, name: &str) {
+    let texture =  mgr.loader.borrow_mut().load_texture(name);
+    // println!("texture: image<{}> tex_id<{}>", name, texture.tex_id);
+    self.0.insert(name.to_string(), texture);
+  }
+}
 
 pub struct Texture {
   pub tex_name: String,

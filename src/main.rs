@@ -197,30 +197,40 @@ fn main() {
   };
   
   let mut world = World::new();
-  // world.add_resource(DrawModelsWithTextures::default());
-  // world.add_resource(LandscapeGen::default());
-  // world.add_resource(PlayerLoc::default());
-  // world.add_resource(TerrainShader::default());
-  // world.add_resource(TerrainNodes::default());
-  // world.add_resource(Models);
-  // world.add_resource(Textures);
-  // world.add_resource(Lightings);
-  // world.register::<Platform>();
-  // world.register::<ModelComponent>();
-  // world.register::<TextureComponent>();
-  // world.register::<LightingComponent>();
+  world.add_resource(DrawModelsWithTextures::default());
+  world.add_resource(LandscapeGen::default());
+  world.add_resource(PlayerLoc::default());
+  world.add_resource(TerrainShader::default());
+  world.add_resource(TerrainNodes::default());
+  world.add_resource(Models::default());
+  world.add_resource(Textures::default());
+  world.add_resource(Lightings::default());
+  world.register::<InScene>();
+  world.register::<Platform>();
+  world.register::<ModelComponent>();
+  world.register::<TextureComponent>();
+  world.register::<LightingComponent>();
   
-  
+  {
+    let mut models = world.write_resource::<Models>();
+    models.new_model(&mgr, "platform");
+    let mut textures = world.write_resource::<Textures>();
+    textures.new_texture(&mgr, "dirt");
+    let mut lightings = world.write_resource::<Lightings>();
+    lightings.new_lighting("flat");
+  }
   
   let mut terrain_gen = DispatcherBuilder::new()
-      .with(PlatformGen, "terrain_gen", &[])
+      .with_thread_local(PlatformGen)
       .build();
   terrain_gen.setup(&mut world.res);
   terrain_gen.dispatch(&mut world.res);
   world.maintain();
   
+  // world.create_entity()
+  //     .with()
+  
   let mut terrain_draw = DispatcherBuilder::new()
-      .with_thread_local(DrawPlatformPrep)
       .with_thread_local(DrawPlatform)
       .build();
   terrain_draw.setup(&mut world.res);
@@ -304,6 +314,8 @@ fn main() {
     // Draw the stuff we keep in the mgr we just returned
     _fbo.bind();
     render_mgr.render();
+    terrain_draw.dispatch(&mut world.res);
+    world.maintain();
     _fbo.unbind();
     _fbo.blit_to_fbo(0, &_fbo_final);
     

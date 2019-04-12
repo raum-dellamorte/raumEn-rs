@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 
 use {
+  std::cmp::Ordering,
   specs::{
     *,
     // prelude::*,
@@ -49,74 +50,56 @@ impl Platform {
   }
 }
 
-pub struct DrawPlatformPrep;
-impl<'a> System<'a> for DrawPlatformPrep {
-  type SystemData = (
-    Write<'a, DrawModelsWithTextures>, 
-    ReadStorage<'a, Platform>,
-    ReadStorage<'a, ModelComponent>,
-    ReadStorage<'a, TextureComponent>,
-    ReadStorage<'a, LightingComponent>,
-  );
-  fn run(&mut self, data: Self::SystemData) {
-    use specs::Join;
-    let (mut draw, platform, model, texture, lighting) = data;
-    draw.clear();
-    let mut count = 0;
-    for (platform, model, texture, lighting) in (&platform, &model, &texture, &lighting).join() {
-      count += 1;
-      if count > 9000000 {println!("It's over 9000000!");}
-      let mut tex = match draw.index_of(&model.0) {
-        _n if _n < 0 => { draw.push(&texture.0) }
-        n => { &mut draw.0[n as usize] }
-      };
-      let mut attribs = match tex.index_of(&texture.0, &lighting.0) {
-        _n if _n < 0 => { tex.push(&texture.0, &lighting.0) }
-        n => { &mut tex.1[n as usize] }
-      };
-      let mut transform = Matrix4f::new();
-      transform.set_identity();
-      transform.translate_v3f(&platform.pos(200.0, 100.0));
-      transform.scale(&platform.scale(200.0));
-      let attrib = ModelTextureAttribs {
-        transform: transform,
-        tex_index: None,
-        row_count: None,
-        offset: None,
-        multi_tex: None,
-      };
-      attribs.push(attrib);
-    }
-    println!("Platforms Prepped");
-  }
-}
+
 pub struct DrawPlatform;
 impl<'a> System<'a> for DrawPlatform {
   type SystemData = (
-    Read<'a, TerrainShader>, 
-    Read<'a, Models>, 
-    Read<'a, Textures>, 
-    Read<'a, Lightings>, 
-    Read<'a, DrawModelsWithTextures>
+    (
+      Read<'a, TerrainShader>, 
+      Read<'a, Models>, 
+      Read<'a, Textures>, 
+      Read<'a, Lightings>, 
+    ),
+    (
+      ReadStorage<'a, InScene>,
+      ReadStorage<'a, Platform>,
+      ReadStorage<'a, ModelComponent>,
+      ReadStorage<'a, TextureComponent>,
+      ReadStorage<'a, LightingComponent>
+    ),
   );
-  fn run(&mut self, (shader, models, textures, lightings, data): Self::SystemData) {
+  fn run(&mut self, data: Self::SystemData) {
+    let (shader, models, textures, lightings) = data.0;
     let shader = &shader.shader;
-    
+    let mut transform = Matrix4f::new();
     shader.start();
-    for draw_model in &data.0 {
-      if let Some(ref model) = models.0.get(&draw_model.0) {
-        r_bind_vaa_3(model);
-        for draw_material in &draw_model.1 {
-          if let (Some(ref texture), Some(ref lighting)) = (textures.0.get(&draw_material.0), lightings.0.get(&draw_material.1)) {
-            r_bind_texture(texture);
-            lighting.load_to_shader(shader);
-            for attrib in &draw_material.2 {
-              shader.load_matrix("u_Transform", &attrib.transform);
-              r_draw_triangles(model);
-            }
-          }
+    let _data = (&(data.1).0, &(data.1).1, &(data.1).2, &(data.1).3, &(data.1).4);
+    let mut d = _data.join().collect::<Vec<_>>();
+    d.sort_by(|&a,&b| {
+      match a.2 .0 .cmp(&b.2 .0) {
+        Ordering::Equal => {
+          a.3 .0 .cmp(&b.3 .0) // When I want to sort by draw distance and whatnot
         }
+        x => { x }
       }
+    });
+    let mut last_model = "platform";
+    let mut last_texture = "dirt";
+    let mut model: &Model = &models.0.get("platform").unwrap();
+    let mut texture: &Texture = &textures.0.get("dirt").unwrap();
+    for (_, p, m, t, l) in &d {
+      if m.0 != last_model { model = &models.0.get(&m.0).unwrap(); last_model = &m.0; }
+      r_bind_vaa_3(model);
+      if t.0 != last_texture { texture = &textures.0.get(&t.0).unwrap(); last_texture = &t.0; }
+      r_bind_texture(texture);
+      if let Some(ref lighting) = lightings.0.get(&l.0) {
+        lighting.load_to_shader(shader);
+      }
+      transform.set_identity();
+      transform.translate_v3f(&p.pos(200.0, 100.0));
+      transform.scale(&p.scale(200.0));
+      shader.load_matrix("u_Transform", &transform);
+      r_draw_triangles(model);
     }
     r_unbind_vaa_3();
     shader.stop();

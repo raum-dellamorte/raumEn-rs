@@ -1,5 +1,6 @@
 
 use {
+  // GameMgr,
   Shader,
   util::{
     HashMap, 
@@ -9,6 +10,11 @@ use {
 
 #[derive(Default)]
 pub struct Lightings(pub HashMap<String,Lighting>);
+impl Lightings {
+  pub fn new_lighting(&mut self, name: &str) { // , mgr: &GameMgr
+    self.0.insert(name.to_string(), Lighting::new());
+  }
+}
 
 #[derive (Debug, PartialEq)]
 pub struct Lighting {

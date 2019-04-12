@@ -28,6 +28,8 @@ use noise::Point2;
 use noise::Seedable;
 use specs::*;
 
+const NODE_SIZE: i32 = 100;
+
 pub struct LandscapeGen {
   pub landscape: noise::Fbm,
   pub l_weight: f32,
@@ -61,12 +63,12 @@ impl<'a> System<'a> for PlatformGen {
     let (landgen, mut nodes, player, ents, mut platforms, mut models, mut textures, mut lightings) = data;
     // Need to know where I am and what "Node" I am nearest, what "Node"s haven't been generated near me
     
-    let (px,pz) = (thousands_group(player.0),thousands_group(player.1));
+    let (px,pz) = (node_group(player.0),node_group(player.1));
     for ix in vec![-1, 0, 1] { for iz in vec![-1, 0, 1] {
       let node = TerrainNode(px + ix, pz + iz);
       if !nodes.0.contains(&node) {
-        let (nx,nz) = (node.0 * 1000, node.1 * 1000);
-        for x_loc in 0..1000_i32 { for z_loc in 0..1000_i32 { 
+        let (nx,nz) = (node.0 * NODE_SIZE, node.1 * NODE_SIZE);
+        for x_loc in 0..NODE_SIZE { for z_loc in 0..NODE_SIZE { 
           let (x, z) = ((nx + x_loc) * 2, (nz + z_loc) * 2);
           let ent = ents.create();
           let hpt = point(x, z, 6);
@@ -90,7 +92,7 @@ impl<'a> System<'a> for PlatformGen {
   }
 }
 
-fn thousands_group(x: i32) -> i32 { (if x < 0 { -999 + x } else { x }) / 1000 }
+fn node_group(x: i32) -> i32 { (if x < 0 { -(NODE_SIZE - 1) + x } else { x }) / NODE_SIZE }
 
 fn point(x: i32, z: i32, precision: u32) -> Point2<f64> {
   let p = 2_isize.pow(precision) as f64;

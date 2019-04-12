@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 
 use {
+  std::cmp::Ordering,
   material::{
     texture::Textures, 
     lighting::Lightings, 
@@ -50,6 +51,37 @@ pub struct OffsetComponent(pub Vector2f);
 #[derive(Component, Default)]
 #[storage(NullStorage)]
 pub struct MultiTexComponent;
+
+#[derive(Component, Debug)]
+#[storage(VecStorage)]
+pub struct ModelComponent(pub String);
+impl PartialEq for ModelComponent {
+  fn eq(&self, other: &Self) -> bool {
+    self.0 == other.0
+  }
+}
+impl Eq for ModelComponent {}
+impl Ord for ModelComponent {
+  fn cmp(&self, other: &Self) -> Ordering {
+    if self == other { return Ordering::Equal }
+    let mut a: Vec<char> = self.0.chars().collect();
+    let mut b: Vec<char> = other.0.chars().collect();
+    while a.len() > 0 && b.len() > 0 {
+      match (a.pop(), b.pop()) {
+        (ac,bc) if bc < ac => { return Ordering::Less } 
+        (ac,bc) if bc > ac => { return Ordering::Greater } 
+        _ => {}
+      };
+    };
+    return if a.len() == 0 { Ordering::Greater } else { Ordering::Less }
+  }
+}
+impl PartialOrd for ModelComponent {
+  fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+    if self == other { return Some(Ordering::Equal) }
+    return if self < other { Some(Ordering::Less) } else { Some(Ordering::Greater) }
+  }
+}
 
 // !ECS
 
