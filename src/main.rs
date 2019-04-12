@@ -6,7 +6,7 @@ extern crate glutin;
 #[macro_use] extern crate nom;
 extern crate image;
 extern crate num;
-extern crate cgmath;
+extern crate nalgebra;
 extern crate time;
 extern crate noise;
 extern crate specs;
@@ -87,22 +87,19 @@ fn main() {
   // use text::metafile::test_noms;
   // test_noms();
   
-  let mut events_loop = glutin::EventsLoop::new();
-  let window = glutin::WindowBuilder::new()
+  let mut el = glutin::EventsLoop::new();
+  let wb = glutin::WindowBuilder::new()
     .with_title("RaumEn")
-    .with_dimensions(LogicalSize::new(640.0, 360.0))
+    .with_dimensions(glutin::dpi::LogicalSize::new(1024.0, 768.0))
     .with_maximized(false);
-  let context = glutin::ContextBuilder::new()
-    .with_vsync(true);
-  let gl_window = glutin::GlWindow::new(window, context, &events_loop).unwrap();
-  gl_window.set_maximized(false);
+  let windowed_context = glutin::ContextBuilder::new()
+    .build_windowed(wb, &el)
+    .unwrap();
+  
+  unsafe { windowed_context.make_current().unwrap() };
   
   unsafe {
-    gl_window.make_current().unwrap();
-  }
-  
-  unsafe {
-    load_with(|symbol| gl_window.get_proc_address(symbol) as *const _);
+    load_with(|symbol| windowed_context.get_proc_address(symbol) as *const _);
     ClearColor(0.0, 1.0, 0.0, 1.0);
   }
   
@@ -137,8 +134,8 @@ fn main() {
   let mut sec = 0.0;
   
   {
-    let dpi = gl_window.get_hidpi_factor();
-    let size = gl_window.get_inner_size().unwrap().to_physical(dpi);
+    let dpi = windowed_context.get_hidpi_factor();
+    let size = windowed_context.get_inner_size().unwrap().to_physical(dpi);
     render_mgr.update_size(size.into());
   }
   let mut mgr = render_mgr.take_mgr();
@@ -187,7 +184,6 @@ fn main() {
       TextureComponent,
     },
     util::rgl::*,
-    shader::terrain::TerrainShader,
     terrain::{
       PlayerLoc,
       gen::{
@@ -196,10 +192,6 @@ fn main() {
       },
       node::{
         TerrainNodes,
-      },
-      platform::{
-        DrawPlatform,
-        DrawPlatformPrep,
       },
     },
   };
@@ -249,14 +241,14 @@ fn main() {
       handler.reset_delta();
       render_mgr.mgr.as_mut().unwrap().return_handler(handler);
     }
-    events_loop.poll_events(|event| {
+    el.poll_events(|event| {
       match event {
         glutin::Event::WindowEvent{ event, .. } => match event {
           glutin::WindowEvent::CloseRequested => running = false,
           glutin::WindowEvent::Resized(logical_size) => {
-            let dpi = gl_window.get_hidpi_factor();
+            let dpi = windowed_context.get_hidpi_factor();
             let size = logical_size.to_physical(dpi);
-            gl_window.resize(size);
+            windowed_context.resize(size);
             render_mgr.update_size(size.into());
           },
           _ => {
@@ -320,7 +312,7 @@ fn main() {
     render_post.render();
     render_mgr.render_gui();
     // Write the new frame to the screen!
-    gl_window.swap_buffers().unwrap();
+    windowed_context.swap_buffers().unwrap();
   }
   _fbo.clean_up();
   _fbo_final.clean_up();
