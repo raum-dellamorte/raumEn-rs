@@ -1,7 +1,9 @@
 
-use util::{
-  HashMap, 
-  rgl::*, 
+use {
+  util::{
+    HashMap, 
+    rgl::*, 
+  },
 };
 
 #[derive(Default)]
