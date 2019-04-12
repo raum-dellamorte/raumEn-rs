@@ -14,22 +14,25 @@ extern crate specs;
 extern crate shred;
 #[macro_use] extern crate shred_derive;
 
-use gl::*;
-use std::os::raw::c_void;
-use glutin::dpi::*;
-use glutin::GlContext;
-use specs::{
-  Builder, 
-  // Component, 
-  DispatcherBuilder, 
-  // ReadStorage, 
-  // WriteStorage,
-  // System, 
-  // VecStorage, 
-  World, 
-  // RunNow, 
+use {
+  gl::*,
+  std::os::raw::c_void,
+  glutin::{
+    // dpi::*,
+    ContextTrait,
+  },
+  specs::{
+    // Builder, 
+    // Component, 
+    DispatcherBuilder, 
+    // ReadStorage, 
+    // WriteStorage,
+    // System, 
+    // VecStorage, 
+    World, 
+    // RunNow, 
+  }
 };
-// use cgmath::{Matrix4, Point3, Vector3}; // Deg, 
 
 const CVOID: *const c_void = 0 as *const c_void;
 
@@ -45,17 +48,27 @@ pub mod terrain;
 pub mod text;
 pub mod util;
 
-pub use engine::{Camera, Display, Fbo, GameMgr, HUD, GuiObj, Handler, Loader, Timer};
-pub use entities::EntityMgr;
-pub use entities::Mob;
-pub use material::{Material, Texture, Lights, Lighting};
-pub use render::{RenderMgr, RenderPostProc, };
-pub use shader::{
-  Shader,
-  terrain::TerrainShader,
+pub use {
+  engine::{
+    Camera, Display, Fbo, GameMgr, HUD, GuiObj, Handler, Loader, Timer
+  },
+  entities::EntityMgr,
+  entities::Mob,
+  material::{
+    Material, Texture, Lights, Lighting
+  },
+  render::{
+    RenderMgr, RenderPostProc,
+  },
+  shader::{
+    Shader,
+    terrain::TerrainShader,
+  },
+  terrain::{
+    // SpecsWorld, World, WorldBuilder,
+    Platform, DrawPlatform
+  }
 };
-pub use terrain::{Platform, DrawPlatform};
-// pub use terrain::{SpecsWorld, World, WorldBuilder};
 
 use engine::fbo::ColorType::{
   // ColorMultisampleRenderBuffer, 
