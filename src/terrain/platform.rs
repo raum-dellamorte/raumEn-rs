@@ -61,18 +61,18 @@ impl<'a> System<'a> for DrawPlatform {
       Read<'a, Lightings>, 
     ),
     (
-      ReadStorage<'a, InScene>,
+      Entities<'a>,
       ReadStorage<'a, Platform>,
       ReadStorage<'a, ModelComponent>,
       ReadStorage<'a, TextureComponent>,
       ReadStorage<'a, LightingComponent>
+      // ReadStorage<'a, InScene>,
     ),
   );
   fn run(&mut self, data: Self::SystemData) {
     let (shader, models, textures, lightings) = data.0;
     let shader = &shader.shader;
     let mut transform = Matrix4f::new();
-    shader.start();
     let _data = (&(data.1).0, &(data.1).1, &(data.1).2, &(data.1).3, &(data.1).4);
     let mut d = _data.join().collect::<Vec<_>>();
     d.sort_by(|&a,&b| {
@@ -87,11 +87,20 @@ impl<'a> System<'a> for DrawPlatform {
     let mut last_texture = "dirt";
     let mut model: &Model = &models.0.get("platform").unwrap();
     let mut texture: &Texture = &textures.0.get("dirt").unwrap();
+    shader.start();
+    r_bind_vaa_3(model);
+    r_bind_texture(texture);
     for (_, p, m, t, l) in &d {
-      if m.0 != last_model { model = &models.0.get(&m.0).unwrap(); last_model = &m.0; }
-      r_bind_vaa_3(model);
-      if t.0 != last_texture { texture = &textures.0.get(&t.0).unwrap(); last_texture = &t.0; }
-      r_bind_texture(texture);
+      if m.0 != last_model {
+        model = &models.0.get(&m.0).unwrap();
+        last_model = &m.0;
+        r_bind_vaa_3(model);
+      }
+      if t.0 != last_texture {
+        texture = &textures.0.get(&t.0).unwrap();
+        last_texture = &t.0;
+        r_bind_texture(texture);
+      }
       if let Some(ref lighting) = lightings.0.get(&l.0) {
         lighting.load_to_shader(shader);
       }
