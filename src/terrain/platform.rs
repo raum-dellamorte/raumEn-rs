@@ -41,9 +41,9 @@ pub struct Platform {
   pub d: f32,
 }
 impl Platform {
-  pub fn pos(&self, wh: f32, base: f32) -> Vector3f {
-    let y = ((wh * self.h) - (wh * self.d)) + base;
-    Vector3f::new(self.x as f32, y, self.z as f32)
+  pub fn pos(&self, _wh: f32, _base: f32) -> Vector3f {
+    // let y = ((wh * self.h) - (wh * self.d)) + base;
+    Vector3f::new(self.x as f32, 0.0, self.z as f32)
   }
   pub fn scale(&self, wh: f32) -> Vector3f {
     Vector3f::new(1.0, wh * self.d, 1.0)
@@ -87,6 +87,7 @@ impl<'a> System<'a> for DrawPlatform {
     let mut last_texture = "dirt";
     let mut model: &Model = &models.0.get("platform").unwrap();
     let mut texture: &Texture = &textures.0.get("dirt").unwrap();
+    println!("platform {}, dirt {}", model.vao_id.0, texture.tex_id.0);
     shader.start();
     r_bind_vaa_3(model);
     r_bind_texture(texture);
@@ -107,6 +108,9 @@ impl<'a> System<'a> for DrawPlatform {
       transform.set_identity();
       transform.translate_v3f(&p.pos(200.0, 100.0));
       transform.scale(&p.scale(200.0));
+      if p.x.abs() < 3 && p.z.abs() < 3 {
+        println!("{:?}", transform);
+      }
       shader.load_matrix("u_Transform", &transform);
       r_draw_triangles(model);
     }
