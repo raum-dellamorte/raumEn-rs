@@ -53,6 +53,7 @@ pub struct TextureUnit(pub i32);
 
 pub fn r_bind_vaa_3(model: &Model) { unsafe {
   BindVertexArray(model.vao_id.0);
+  // print!(" r_bind_vaa_3(model: {})", model.vao_id.0);
   EnableVertexAttribArray(0);
   EnableVertexAttribArray(1);
   EnableVertexAttribArray(2);
@@ -78,6 +79,7 @@ pub fn r_bind_texture(texture: &Texture) { unsafe {
   if tex_unit < 0 { tex_unit = 0 };
   ActiveTexture(TEXTURE0 + tex_unit as u32);
   BindTexture(TEXTURE_2D, tex_id);
+  // print!(" r_bind_texture(texture: {})", texture.tex_id.0)
 }}
 pub fn r_draw_triangles(model: &Model) { unsafe {
   DrawElements(TRIANGLES, model.vertex_count.0, UNSIGNED_INT, CVOID); 
