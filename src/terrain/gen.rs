@@ -28,7 +28,7 @@ use noise::Point2;
 use noise::Seedable;
 use specs::*;
 
-const NODE_SIZE: i32 = 10;
+const NODE_SIZE: i32 = 50;
 
 pub struct LandscapeGen {
   pub landscape: noise::Fbm,
