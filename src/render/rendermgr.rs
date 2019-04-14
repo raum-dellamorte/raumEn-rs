@@ -5,6 +5,7 @@ use {
     // types::{ // GLuint, GLfloat, GLenum, GLint, GLchar, GLsizeiptr, GLboolean, 
     // },
   },
+  specs::World,
   util::{
     Rc, RefCell,
   },
@@ -16,6 +17,7 @@ use {
     RenderFont, 
     RenderHUD 
   },
+  shader::terrain::TerrainShader,
   // glutin::dpi::PhysicalSize,
 };
 
@@ -52,12 +54,23 @@ impl RenderMgr {
   pub fn return_mgr(&mut self, mgr: Box<GameMgr>) {
     self.mgr = Some(mgr);
   }
-  pub fn render(&mut self) { 
+  pub fn render(&mut self, world: &World) { 
     prepare();
     let mut mgr = self.take_mgr();
     mgr.create_view_matrix();
     mgr = self.ren_tex_model.render(mgr);
     // mgr = self.ren_terrain.render(mgr);
+    {
+      use ViewMatrix;
+      let view = &mut (*world.write_resource::<ViewMatrix>()).view;
+      view.from_m4f(&mgr.view_mat);
+    }
+    {
+      let shader = &(*world.read_resource::<TerrainShader>()).shader;
+      shader.start();
+      mgr.lights.borrow().load_to_shader(shader);
+      shader.stop();
+    }
     self.return_mgr(mgr);
     unsafe { BindVertexArray(0); }
   }
@@ -68,7 +81,7 @@ impl RenderMgr {
     self.return_mgr(mgr);
     unsafe { BindVertexArray(0); }
   }
-  pub fn update_size(&mut self, dimensions: (u32, u32)) {
+  pub fn update_size(&mut self, world: &World, dimensions: (u32, u32)) {
     let mut mgr = self.take_mgr();
     {
       mgr = mgr.update_size(dimensions);
@@ -76,6 +89,12 @@ impl RenderMgr {
       let proj_mat = d.projection();
       {
         let shader = &self.ren_tex_model.shader;
+        shader.start();
+        shader.load_matrix("u_Projection", &proj_mat); // Maybe move this to Shader
+        shader.stop();
+      }
+      {
+        let shader = &(*world.read_resource::<TerrainShader>()).shader;
         shader.start();
         shader.load_matrix("u_Projection", &proj_mat); // Maybe move this to Shader
         shader.stop();

@@ -50,12 +50,13 @@ impl Platform {
   }
 }
 
-
+use ViewMatrix;
 pub struct DrawPlatform;
 impl<'a> System<'a> for DrawPlatform {
   type SystemData = (
     (
       Read<'a, TerrainShader>, 
+      Read<'a, ViewMatrix>,
       Read<'a, Models>, 
       Read<'a, Textures>, 
       Read<'a, Lightings>, 
@@ -70,7 +71,7 @@ impl<'a> System<'a> for DrawPlatform {
     ),
   );
   fn run(&mut self, data: Self::SystemData) {
-    let (shader, models, textures, lightings) = data.0;
+    let (shader, view, models, textures, lightings) = data.0;
     let shader = &shader.shader;
     let mut transform = Matrix4f::new();
     let _data = (&(data.1).0, &(data.1).1, &(data.1).2, &(data.1).3, &(data.1).4);
@@ -88,6 +89,9 @@ impl<'a> System<'a> for DrawPlatform {
     let mut model: &Model = &models.0.get("platform").unwrap();
     let mut texture: &Texture = &textures.0.get("dirt").unwrap();
     shader.start();
+    shader.load_matrix("u_View", &(*view).view);
+    // shader.load_vec_3f("light_pos", &(*light).pos); // Unimplemented
+    // shader.load_vec_3f("light_color", &(*light).color);
     r_bind_vaa_3(model);
     r_bind_texture(texture);
     for (_, p, m, t, l) in &d {

@@ -133,40 +133,6 @@ fn main() {
   let mut fps: (f32, f32);
   let mut sec = 0.0;
   
-  {
-    let dpi = windowed_context.get_hidpi_factor();
-    let size = windowed_context.get_inner_size().unwrap().to_physical(dpi);
-    render_mgr.update_size(size.into());
-  }
-  let mut mgr = render_mgr.take_mgr();
-  {
-    let _textmgr = mgr.textmgr.take().unwrap();
-    {
-      let mut textmgr = _textmgr.borrow_mut();
-      mgr = textmgr.add_font(mgr, "pirate");
-      mgr = textmgr.add_font(mgr, "sans");
-      mgr = textmgr.new_text(mgr, "Title", "The Never", "pirate", 4.0, 0.0, 0.0, 1.0, true, true);
-      mgr = textmgr.new_text(mgr, "FPS", "FPS: 0.0", "sans", 1.5, 0.0, 0.0, 0.3, false, true);
-    }
-    mgr.textmgr = Some(_textmgr);
-  }
-  
-  
-  let mut _fbo = Fbo::new(mgr.display_clone(), 0, 0, ColorMultisampleRenderBuffers2, DepthRenderBuffer);
-  let mut _fbo_final = Fbo::new(mgr.display_clone(), 0, 0, ColorTexture, DepthTexture);
-  let render_post = RenderPostProc::new("fog", mgr.quad_id, 
-      vec![
-        Texture::new("fbo color", _fbo_final.color_tex_id).assign_tex_unit(0_i32),
-        Texture::new("fbo depth", _fbo_final.depth_tex_id).assign_tex_unit(1_i32),
-      ]);
-  {
-    let mut _hud = mgr.hud.borrow_mut();
-    _hud.elements.push(GuiObj::new());
-    let _gui = _hud.elements.get_mut(0).unwrap();
-    _gui.tex_id = _fbo_final.color_tex_id;
-    _gui.depth_tex_id = _fbo_final.depth_tex_id;
-  }
-  
   // ECS experiment
   use {
     // entities::position::{
@@ -205,11 +171,48 @@ fn main() {
   world.add_resource(Models::default());
   world.add_resource(Textures::default());
   world.add_resource(Lightings::default());
+  world.add_resource(ViewMatrix::default());
   world.register::<InScene>();
   world.register::<Platform>();
   world.register::<ModelComponent>();
   world.register::<TextureComponent>();
   world.register::<LightingComponent>();
+  
+  {
+    let dpi = windowed_context.get_hidpi_factor();
+    let size = windowed_context.get_inner_size().unwrap().to_physical(dpi);
+    render_mgr.update_size(&world, size.into());
+  }
+  let mut mgr = render_mgr.take_mgr();
+  {
+    let _textmgr = mgr.textmgr.take().unwrap();
+    {
+      let mut textmgr = _textmgr.borrow_mut();
+      mgr = textmgr.add_font(mgr, "pirate");
+      mgr = textmgr.add_font(mgr, "sans");
+      mgr = textmgr.new_text(mgr, "Title", "The Never", "pirate", 4.0, 0.0, 0.0, 1.0, true, true);
+      mgr = textmgr.new_text(mgr, "FPS", "FPS: 0.0", "sans", 1.5, 0.0, 0.0, 0.3, false, true);
+    }
+    mgr.textmgr = Some(_textmgr);
+  }
+  
+  
+  let mut _fbo = Fbo::new(mgr.display_clone(), 0, 0, ColorMultisampleRenderBuffers2, DepthRenderBuffer);
+  let mut _fbo_final = Fbo::new(mgr.display_clone(), 0, 0, ColorTexture, DepthTexture);
+  let render_post = RenderPostProc::new("fog", mgr.quad_id, 
+      vec![
+        Texture::new("fbo color", _fbo_final.color_tex_id).assign_tex_unit(0_i32),
+        Texture::new("fbo depth", _fbo_final.depth_tex_id).assign_tex_unit(1_i32),
+      ]);
+  {
+    let mut _hud = mgr.hud.borrow_mut();
+    _hud.elements.push(GuiObj::new());
+    let _gui = _hud.elements.get_mut(0).unwrap();
+    _gui.tex_id = _fbo_final.color_tex_id;
+    _gui.depth_tex_id = _fbo_final.depth_tex_id;
+  }
+  
+  // ECS Continued...
   
   {
     let mut models = world.write_resource::<Models>();
@@ -259,7 +262,7 @@ fn main() {
             let dpi = windowed_context.get_hidpi_factor();
             let size = logical_size.to_physical(dpi);
             windowed_context.resize(size);
-            render_mgr.update_size(size.into());
+            render_mgr.update_size(&world, size.into());
           },
           _ => {
             let mut handler = render_mgr.mgr.as_mut().unwrap().take_handler();
@@ -313,7 +316,7 @@ fn main() {
     render_mgr.return_mgr(mgr);
     // Draw the stuff we keep in the mgr we just returned
     _fbo.bind();
-    render_mgr.render();
+    render_mgr.render(&world);
     terrain_draw.dispatch(&mut world.res);
     world.maintain();
     _fbo.unbind();
@@ -337,3 +340,11 @@ pub const EOF: &str = "\04";
 pub fn eof(string: &str) -> String {
   [string, EOF].join("")
 }
+
+pub struct ViewMatrix { pub view: util::Matrix4f }
+impl Default for ViewMatrix {
+  fn default() -> Self {
+    Self { view: util::Matrix4f::new() }
+  }
+}
+
