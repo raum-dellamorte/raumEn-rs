@@ -41,9 +41,9 @@ pub struct Platform {
   pub d: f32,
 }
 impl Platform {
-  pub fn pos(&self, _wh: f32, _base: f32) -> Vector3f {
-    // let y = ((wh * self.h) - (wh * self.d)) + base;
-    Vector3f::new(self.x as f32, 0.0, self.z as f32)
+  pub fn pos(&self, world_height: f32, base: f32) -> Vector3f {
+    let y = ((world_height * self.h) - (world_height * self.d)) - base;
+    Vector3f::new(self.x as f32, y, self.z as f32)
   }
   pub fn scale(&self, wh: f32) -> Vector3f {
     Vector3f::new(1.0, wh * self.d, 1.0)
