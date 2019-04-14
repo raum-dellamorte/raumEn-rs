@@ -87,7 +87,6 @@ impl<'a> System<'a> for DrawPlatform {
     let mut last_texture = "dirt";
     let mut model: &Model = &models.0.get("platform").unwrap();
     let mut texture: &Texture = &textures.0.get("dirt").unwrap();
-    println!("platform {}, dirt {}", model.vao_id.0, texture.tex_id.0);
     shader.start();
     r_bind_vaa_3(model);
     r_bind_texture(texture);
@@ -108,14 +107,10 @@ impl<'a> System<'a> for DrawPlatform {
       transform.set_identity();
       transform.translate_v3f(&p.pos(200.0, 100.0));
       transform.scale(&p.scale(200.0));
-      if p.x.abs() < 3 && p.z.abs() < 3 {
-        println!("{:?}", transform);
-      }
       shader.load_matrix("u_Transform", &transform);
       r_draw_triangles(model);
     }
     r_unbind_vaa_3();
     shader.stop();
-    println!("Platforms Drawn");
   }
 }
