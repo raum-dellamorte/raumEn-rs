@@ -6,18 +6,25 @@ use {
     // },
   },
   specs::World,
-  util::{
-    Rc, RefCell,
+  Camera, Display, Loader, TextMgr,
+  ecs::{
+    c::{
+      Lights,
+    },
   },
-  Display,
-  GameMgr,
   render::{
-    RenderTexModel, 
+    // RenderTexModel, 
     // RenderTerrain, 
     RenderFont, 
     RenderHUD 
   },
-  shader::terrain::TerrainShader,
+  shader::{
+    TerrainShader,
+    TexModShader,
+  },
+  // util::{
+  //   Rc, RefCell,
+  // },
   // glutin::dpi::PhysicalSize,
 };
 
@@ -30,8 +37,8 @@ pub fn prepare() { unsafe {
 }}
 
 pub struct RenderMgr {
-  pub mgr: Option<Box<GameMgr>>,
-  pub ren_tex_model: RenderTexModel,
+  // pub mgr: Option<Box<GameMgr>>,
+  // pub ren_tex_model: RenderTexModel,
   // pub ren_terrain: RenderTerrain,
   pub ren_font: RenderFont,
   pub ren_hud: RenderHUD,
@@ -40,90 +47,79 @@ pub struct RenderMgr {
 impl RenderMgr {
   pub fn new() -> Self {
     RenderMgr {
-      mgr: Some(Box::new(GameMgr::new())),
-      ren_tex_model: RenderTexModel::new(),
+      // mgr: Some(Box::new(GameMgr::new())),
+      // ren_tex_model: RenderTexModel::new(),
       // ren_terrain: RenderTerrain::new(),
       ren_font: RenderFont::new(),
       ren_hud: RenderHUD::new(),
     }
   }
-  pub fn take_mgr(&mut self) -> Box<GameMgr> {
-    let out = self.mgr.take();
-    Box::new(*out.unwrap())
-  }
-  pub fn return_mgr(&mut self, mgr: Box<GameMgr>) {
-    self.mgr = Some(mgr);
-  }
+  // pub fn take_mgr(&mut self) -> Box<GameMgr> {
+  //   let out = self.mgr.take();
+  //   Box::new(*out.unwrap())
+  // }
+  // pub fn return_mgr(&mut self, mgr: Box<GameMgr>) {
+  //   self.mgr = Some(mgr);
+  // }
   pub fn render(&mut self, world: &World) { 
     prepare();
-    let mut mgr = self.take_mgr();
-    mgr.create_view_matrix();
-    mgr = self.ren_tex_model.render(mgr);
+    // let mut mgr = self.take_mgr();
+    // mgr.create_view_matrix();
+    // mgr = self.ren_tex_model.render(mgr);
     // mgr = self.ren_terrain.render(mgr);
     {
       use ViewMatrix;
+      let mut cam = world.write_resource::<Camera>();
       let view = &mut (*world.write_resource::<ViewMatrix>()).view;
-      view.from_m4f(&mgr.view_mat);
+      cam.create_view_matrix(view);
     }
+    let lights = world.read_resource::<Lights>();
     {
       let shader = &(*world.read_resource::<TerrainShader>()).shader;
       shader.start();
-      mgr.lights.borrow().load_to_shader(shader);
+      lights.load_to_shader(shader);
       shader.stop();
     }
-    self.return_mgr(mgr);
+    {
+      let shader = &(*world.read_resource::<TexModShader>()).shader;
+      shader.start();
+      lights.load_to_shader(shader);
+      shader.stop();
+    }
+    // self.return_mgr(mgr);
     unsafe { BindVertexArray(0); }
   }
-  pub fn render_gui(&mut self) { 
-    let mut mgr = self.take_mgr();
-    mgr = self.ren_font.render(mgr);
-    mgr = self.ren_hud.render(mgr);
-    self.return_mgr(mgr);
+  pub fn render_gui(&mut self, world: &World) { 
+    self.ren_font.render(world);
+    self.ren_hud.render(world);
     unsafe { BindVertexArray(0); }
   }
   pub fn update_size(&mut self, world: &World, dimensions: (u32, u32)) {
-    let mut mgr = self.take_mgr();
+    world.write_resource::<Display>().update_size(dimensions);
     {
-      mgr = mgr.update_size(dimensions);
-      let mut d = mgr.display.borrow_mut();
-      let proj_mat = d.projection();
-      {
-        let shader = &self.ren_tex_model.shader;
-        shader.start();
-        shader.load_matrix("u_Projection", &proj_mat); // Maybe move this to Shader
-        shader.stop();
-      }
-      {
-        let shader = &(*world.read_resource::<TerrainShader>()).shader;
-        shader.start();
-        shader.load_matrix("u_Projection", &proj_mat); // Maybe move this to Shader
-        shader.stop();
-      }
-      // {
-      //   let shader = &self.ren_terrain.shader;
-      //   shader.start();
-      //   shader.load_matrix("u_Projection", &proj_mat); // Maybe move this to Shader
-      //   shader.stop();
-      // }
+      let mut textmgr = world.write_resource::<TextMgr>();
+      textmgr.update_size(world);
     }
-    self.return_mgr(mgr);
-  }
-  pub fn display_clone(&self) -> Rc<RefCell<Display>> {
-    match &self.mgr {
-      Some(mgr) => { mgr.display_clone() }
-      None => { panic!("Tried to get display_clone from GameMgr through RenderMgr without first returning GameMgr to RenderMgr") }
+    {
+      let shader = &(*world.read_resource::<TexModShader>()).shader;
+      let proj_mat = &world.read_resource::<Display>().proj_mat;
+      shader.start();
+      shader.load_matrix("u_Projection", &proj_mat); // Maybe move this to Shader
+      shader.stop();
+    }
+    {
+      let shader = &(*world.read_resource::<TerrainShader>()).shader;
+      let proj_mat = &world.read_resource::<Display>().proj_mat;
+      shader.start();
+      shader.load_matrix("u_Projection", &proj_mat); // Maybe move this to Shader
+      shader.stop();
     }
   }
-  pub fn dimensions(&self) -> (u32, u32) {
-    match &self.mgr {
-      Some(mgr) => { mgr.dimensions() }
-      None => { panic!("Tried to get dimensions from GameMgr through RenderMgr without first returning GameMgr to RenderMgr") }
-    }
-  }
-  pub fn clean_up(&mut self) {
-    self.mgr.as_mut().unwrap().clean_up();
-    self.ren_tex_model.clean_up();
-    // self.ren_terrain.clean_up();
+  pub fn clean_up(&mut self, world: &World) {
+    let mut loader = world.write_resource::<Loader>();
+    loader.clean_up();
+    world.read_resource::<TerrainShader>().shader.clean_up();
+    world.read_resource::<TexModShader>().shader.clean_up();
     self.ren_font.clean_up();
     self.ren_hud.clean_up();
   }

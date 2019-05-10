@@ -5,10 +5,14 @@ pub mod textmgr;
 
 pub use text::textmgr::TextMgr;
 
-use GameMgr;
-use text::guitext::GuiTextVals;
-// use text::metafile::MetaFile;
-use text::rtmc::RTextMeshCreator;
+use {
+  specs::World,
+  text::{
+    // metafile::MetaFile,
+    guitext::GuiTextVals,
+    rtmc::RTextMeshCreator,
+  },
+};
 
 pub const SPACE_ASCII: u32 = 32;
 pub const NEWLINE_ASCII: u32 = 10;
@@ -29,8 +33,8 @@ impl RFontType {
   pub fn load_text(&mut self, text: &mut GuiTextVals) -> RTextMesh {
     self.rtmc.create_text_mesh(text)
   }
-  pub fn update_size(&mut self, mgr: Box<GameMgr>) -> Box<GameMgr> {
-    self.rtmc.update_size(mgr)
+  pub fn update_size(&mut self, world: &World) {
+    self.rtmc.update_size(world);
   }
 }
 

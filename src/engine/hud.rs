@@ -1,7 +1,12 @@
-#![allow(unused_imports,dead_code)]
+#![allow(dead_code)]
 
-use GameMgr;
-use util::{Matrix4f, Vector2f, Vector3f};
+use {
+  // GameMgr,
+  // Loader,
+  util::{
+    Matrix4f, Vector2f, Vector3f,
+  },
+};
 
 // -1.0,1.0,-1.0,-1.0,1.0,1.0,1.0,-1.0
 
@@ -21,6 +26,7 @@ impl HUD {
 
 pub struct GuiObj {
   pub pos: Vector2f,
+  pub pos_last: Vector2f,
   pub scale: Vector2f,
   pub transmat: Matrix4f,
   pub row_count: f32,
@@ -33,6 +39,7 @@ impl GuiObj {
   pub fn new() -> Self {
     GuiObj {
       pos: Vector2f::new(0.25,0.75),
+      pos_last: Vector2f::new(0.0,0.0),
       scale: Vector2f {x: 0.25, y: 0.25},
       transmat: Matrix4f::new(),
       row_count: 1_f32,
@@ -47,6 +54,9 @@ impl GuiObj {
     &self.transmat
   }
   fn calc_transformation(&mut self) {
+    // Don't recalc if we haven't moved.
+    if self.pos == self.pos_last { return }
+    self.pos_last.from_v2f(&self.pos);
     self.transmat.set_identity();
     let x = (&self.pos.x *  2.0_f32) - 1.0_f32;
     let y = (&self.pos.y * -2.0_f32) + 1.0_f32;

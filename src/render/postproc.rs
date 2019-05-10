@@ -5,7 +5,7 @@ use {
     Shader,
     gen_fog_shader,
   }, 
-  material::{
+  ecs::c::{
     Texture,
   },
 };

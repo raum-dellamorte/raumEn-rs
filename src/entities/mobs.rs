@@ -1,13 +1,16 @@
 
-// use glutin::VirtualKeyCode::*;
-// use glutin::MouseButton as MB;
-
-use entities::PosMarker;
-use Handler;
-// use engine::input::KeyCode as KC;
-// use engine::input::KeyCodes as KCS;
-// use terrain::World;
-use util::{Vector3f, HashMap, Rc, RefCell, };
+use {
+  // glutin::VirtualKeyCode::*,
+  // glutin::MouseButton as MB,
+  // engine::input::KeyCode as KC,
+  // engine::input::KeyCodes as KCS,
+  // terrain::World,
+  entities::PosMarker,
+  Handler,
+  util::{
+    Vector3f, HashMap, Rc, RefCell, 
+  },
+};
 
 pub struct Mob {
   pub name: String,

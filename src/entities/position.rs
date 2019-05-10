@@ -1,51 +1,14 @@
 
-use specs::{Component, System, Read, ReadStorage, WriteStorage, VecStorage};
-use {Timer, }; // World, 
-use util::{
-  // Arc, Mutex, 
-  Matrix4f, 
-  // RVec, 
-  Vector3f, 
-  XVEC, YVEC, ZVEC, 
-  modulo
+use {
+  util::{
+    // Arc, Mutex, 
+    Matrix4f, 
+    // RVec, // to get len() of Vector
+    Vector3f, 
+    XVEC, YVEC, ZVEC, 
+    modulo
+  },
 };
-
-// const GRAVITY: f32 = 10.0;
-
-#[derive(Component, Debug)]
-#[storage(VecStorage)]
-pub struct Position {
-  pub x: f32,
-  pub y: f32,
-  pub z: f32,
-  pub w: f32,
-}
-
-#[derive(Component, Debug)]
-#[storage(VecStorage)]
-pub struct Velocity {
-  pub x: f32,
-  pub y: f32,
-  pub z: f32,
-}
-
-pub struct UpdatePos;
-
-impl<'a> System<'a> for UpdatePos {
-  type SystemData = (Read<'a, Timer>,
-                     ReadStorage<'a, Velocity>,
-                     WriteStorage<'a, Position>);
-  fn run(&mut self, data: Self::SystemData) {
-    use specs::Join;
-    let (timer, vel, mut pos) = data;
-    let delta = timer.delta;
-    for (vel, pos) in (&vel, &mut pos).join() {
-      pos.x += vel.x * delta;
-      pos.y += vel.y * delta;
-      pos.z += vel.z * delta;
-    }
-  }
-}
 
 pub struct PosMarker {
   pub pos: Vector3f,

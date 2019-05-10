@@ -1,14 +1,26 @@
 #![allow(unused_imports,dead_code)]
 
-// use glutin::VirtualKeyCode::*;
-use glutin::MouseButton as MB;
-
-use entities::mobs::Mob;
-use entities::position::PosMarker;
-use GameMgr;
-use Handler;
-use util::{Matrix4f, RVec, Vector3f, XVEC, YVEC, modulo, Rc, RefCell, }; // ZVEC, 
-// use util::rvertex::RVertex;
+use {
+  glutin::{
+    MouseButton as MB,
+    // VirtualKeyCode::*,
+  },
+  // GameMgr,
+  Handler,
+  ecs::{
+    c::{
+      Position,
+    },
+  },
+  entities::{
+    mobs::Mob,
+    // position::PosMarker,
+  },
+  util::{
+    // ZVEC, RVertex,
+    Matrix4f, RVec, Vector3f, XVEC, YVEC, modulo, Rc, RefCell, 
+  },
+};
 
 pub struct Camera {
   pub pos: Vector3f,
@@ -29,9 +41,8 @@ pub struct Camera {
   
   pub view_mat: Matrix4f,
 }
-
-impl Camera {
-  pub fn new() -> Self {
+impl Default for Camera {
+  fn default() -> Self {
     Camera {
       pos: Vector3f {x: 0_f32, y: 5_f32, z: 0_f32},
       pos_bak: Vector3f {x: 0_f32, y: 5_f32, z: 0_f32},
@@ -50,7 +61,8 @@ impl Camera {
       view_mat: Matrix4f::new(),
     }
   }
-  
+}
+impl Camera {
   pub fn store(&mut self) {
     self.pos_bak.from_v3f(&self.pos);
     self.pitch_bak = self.pitch;
@@ -74,7 +86,7 @@ impl Camera {
     }
   }
 
-  pub fn calc_pos(&mut self, handler: &mut Handler, follow: &PosMarker) {
+  pub fn calc_pos(&mut self, handler: &mut Handler, follow: &Position) {
     {
       if handler.read_mouse_multi(MB::Right) {
         match handler.cursor_delta {
@@ -91,11 +103,11 @@ impl Camera {
     self.calc_cam_pos(follow, handler.timer.delta);
   }
 
-  pub fn calc_cam_pos(&mut self, follow: &PosMarker, rate: f32) {
+  pub fn calc_cam_pos(&mut self, follow: &Position, rate: f32) {
     let h_dist: f32 = self.calc_h_distance();
     let v_dist: f32 = self.calc_v_distance() + 10_f32;
     
-    let ry_new = follow.ry;
+    let ry_new = follow.rot.y;
     let ry_diff = self.focus_ry - ry_new;
     if ry_diff.abs() > 0.01 {
       self.focus_ry = drift_to_zero(ry_diff, rate, 0.1) + ry_new;

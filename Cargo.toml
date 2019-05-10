@@ -2,18 +2,22 @@
 authors = ["Raum Dellamorte <elementalsin@gmail.com>"]
 name = "raum-en"
 version = "0.1.0"
+feature = "nightly"
 [dependencies]
 nalgebra = "0.18.0"
 env_logger = "0.6.1"
 gl = "0.12.0"
-glutin = "0.20.0"
-image = "0.21.0"
+glutin = "0.21.0"
+image = "0.21.1"
 log = "0.4"
 noise = "0.5.1"
 nom = "4.2.3"
 num = "0.2.0"
-shred = "0.7.1"
-shred-derive = "0.5.1"
+shred = "0.8.0"
+shred-derive = "0.6.0"
 specs = "0.14.3"
 specs-derive = "0.4.0"
 time = "0.1.42"
+
+[features]
+nightly = ["shred/nightly"]

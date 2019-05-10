@@ -5,13 +5,12 @@ use {
   EntityMgr, 
   Handler, 
   HUD, 
-  Lighting, 
-  Lights, 
   Loader, 
-  Material, 
-  Texture, 
-  // WorldBuilder, 
-  material::{Model, },
+  ecs::c::{
+    material::*,
+    Model, Texture,
+    lighting::{Lights, Lighting},
+  },
   text::{
     TextMgr, 
     // RFontType, 

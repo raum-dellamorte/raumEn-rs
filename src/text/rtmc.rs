@@ -1,10 +1,15 @@
 
 
-
-use GameMgr;
-use text::{RChar, RLine, RWord, RTextMesh, NEWLINE_ASCII, SPACE_ASCII, LINE_HEIGHT, }; // RFontType, 
-use text::guitext::GuiTextVals;
-use text::metafile::MetaFile;
+use {
+  specs::World,
+  Display,
+  text::{
+    // RFontType, 
+    RChar, RLine, RWord, RTextMesh, NEWLINE_ASCII, SPACE_ASCII, LINE_HEIGHT, 
+    guitext::GuiTextVals,
+    metafile::MetaFile,
+  },
+};
 
 #[derive(Debug)]
 pub struct RTextMeshCreator {
@@ -22,9 +27,9 @@ impl RTextMeshCreator {
       metadata: MetaFile::new(aspect_ratio, file),
     }
   }
-  pub fn update_size(&mut self, mgr: Box<GameMgr>) -> Box<GameMgr> {
-    self.metadata.update_size(mgr.aspect_ratio());
-    mgr
+  pub fn update_size(&mut self, world: &World) {
+    let display = world.read_resource::<Display>();
+    self.metadata.update_size(display.aspect_ratio);
   }
   pub fn create_text_mesh(&mut self, text: &mut GuiTextVals) -> RTextMesh {
     let lines: Vec<RLine> = self.create_structure(text);

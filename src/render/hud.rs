@@ -7,10 +7,8 @@ use {
     // }, 
   },
   // CVOID,
-  // entities::PosMarker,
-  GameMgr, 
-  // Texture,
-  // model::Model,
+  specs::World,
+  HUD,
   shader::{
     Shader,
     gen_hud_shader,
@@ -39,8 +37,7 @@ impl RenderHUD {
       shader: gen_hud_shader(),
     }
   }
-  pub fn render(&mut self, _mgr: Box<GameMgr>) -> Box<GameMgr> {
-    let mut _mgr = _mgr;
+  pub fn render(&mut self, world: &World) {
     unsafe {
       Enable(BLEND);
       BlendFunc(SRC_ALPHA, ONE_MINUS_SRC_ALPHA);
@@ -48,7 +45,7 @@ impl RenderHUD {
     }
     // println!("Running Gui Render Pass");
     {
-      let mut _hud = _mgr.hud.borrow_mut();
+      let mut _hud = world.write_resource::<HUD>();
       self.shader.start();
       
       let _offset = Vector2f::blank();
@@ -78,7 +75,6 @@ impl RenderHUD {
         Enable(DEPTH_TEST);
       }
     }
-    _mgr
   }
   pub fn clean_up(&mut self) {
     self.shader.clean_up();

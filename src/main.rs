@@ -1,4 +1,5 @@
 #![recursion_limit="128"]
+// #![feature(nightly)]
 // #![allow(unused_imports,dead_code)]
 
 extern crate gl;
@@ -12,62 +13,95 @@ extern crate noise;
 extern crate specs;
 #[macro_use] extern crate specs_derive;
 extern crate shred;
-#[macro_use] extern crate shred_derive;
-
-use {
-  gl::*,
-  std::os::raw::c_void,
-  glutin::{
-    // dpi::*,
-    ContextTrait,
-  },
-  specs::{
-    // Builder, 
-    // Component, 
-    DispatcherBuilder, 
-    // ReadStorage, 
-    // WriteStorage,
-    // System, 
-    // VecStorage, 
-    World, 
-    // RunNow, 
-  }
-};
+//#[macro_use]
+extern crate shred_derive;
 
 const CVOID: *const c_void = 0 as *const c_void;
 
 // in project stuff
+pub mod ecs;
 pub mod engine;
 pub mod entities;
 pub mod flags;
-pub mod material;
-pub mod model;
+pub mod importobj;
 pub mod render;
 pub mod shader;
-pub mod terrain;
 pub mod text;
 pub mod util;
 
+use {
+  gl::*,
+  std::os::raw::c_void,
+  // glutin::{
+  //   // dpi::*,
+  //   ContextCurrentState,
+  // },
+  specs::{
+    // Builder, Component, ReadStorage, WriteStorage, System, VecStorage, RunNow,
+    DispatcherBuilder, 
+    World, 
+  },
+  ecs::{
+    c::{
+      material::*,
+      Lights, Lightings, Models, Textures, Texture,
+      terrain::{
+        Platform,
+        TerrainNodes,
+      },
+      position::PlayerLoc,
+    },
+    e::{
+      gen::{
+        LandscapeGen,
+        PlatformGen,
+        PlayerGen,
+      },
+    },
+    s::{
+      camera::{
+        CameraToActivePlayer,
+      },
+      position::{
+        PlayerInput,
+        UpdatePos,
+        ApplyGravity,
+        Collision,
+      },
+      terrain::{
+        DrawPlatform,
+      },
+      texmod::{
+        DrawTexMods,
+      },
+    },
+  },
+  flags::{
+    ActivePlayer,
+    InScene,
+    Falling,
+  },
+  // util::rgl::*,
+  // entities::{
+  //   EntityMgr,
+  //   // Mob,
+  // },
+};
+
 pub use {
   engine::{
-    Camera, Display, Fbo, GameMgr, HUD, GuiObj, Handler, Loader, Timer
+    // , GameMgr
+    Camera, Display, Fbo, HUD, GuiObj, Handler, Loader
   },
-  entities::EntityMgr,
-  entities::Mob,
-  material::{
-    Material, Texture, Lights, Lighting
-  },
+  text::TextMgr,
   render::{
     RenderMgr, RenderPostProc,
   },
   shader::{
     Shader,
-    terrain::TerrainShader,
+    TerrainShader,
+    TexModShader,
   },
-  terrain::{
-    // SpecsWorld, World, WorldBuilder,
-    Platform, DrawPlatform
-  }
 };
 
 use engine::fbo::ColorType::{
@@ -81,6 +115,45 @@ use engine::fbo::DepthType::{
   DepthTexture, 
   // NoDepth, 
 };
+
+fn gen_world() -> World {
+  let mut world = World::new();
+  world.add_resource(ViewMatrix::default());
+  world.add_resource(Display::default());
+  world.add_resource(Loader::default());
+  world.add_resource(Camera::default());
+  world.add_resource(Handler::default());
+  // world.add_resource(DrawModelsWithTextures::default());
+  world.add_resource(LandscapeGen::default());
+  world.add_resource(PlayerLoc::default());
+  world.add_resource(TerrainShader::default());
+  world.add_resource(TexModShader::default());
+  world.add_resource(TerrainNodes::default());
+  world.add_resource(Models::default());
+  world.add_resource(Textures::default());
+  world.add_resource(Lights::default());
+  world.add_resource(Lightings::default());
+  world.add_resource(TextMgr::default());
+  world.register::<ActivePlayer>();
+  world.register::<InScene>();
+  world.register::<Falling>();
+  world.register::<Platform>();
+  world.register::<ModelComponent>();
+  world.register::<TextureComponent>();
+  world.register::<LightingComponent>();
+  {
+    let mut lights = world.write_resource::<Lights>();
+    lights.add_light();
+    lights.lights[0].pos.from_isize(0,500,-10);
+  }
+  let quad = {
+    let mut loader = world.write_resource::<Loader>();
+    let quad_vec = vec![-1.0,1.0, -1.0,-1.0, 1.0,1.0, 1.0,-1.0];
+    loader.load_to_vao_gui(&quad_vec)
+  };
+  world.add_resource(HUD::new(quad));
+  world
+}
 
 fn main() {
   // // Test code for parsing fnt files
@@ -96,116 +169,53 @@ fn main() {
     .build_windowed(wb, &el)
     .unwrap();
   
-  unsafe { windowed_context.make_current().unwrap() };
+  let windowed_context = unsafe { windowed_context.make_current().unwrap() };
   
   unsafe {
-    load_with(|symbol| windowed_context.get_proc_address(symbol) as *const _);
+    load_with(|symbol| windowed_context.context().get_proc_address(symbol) as *const _);
     ClearColor(0.0, 1.0, 0.0, 1.0);
   }
   
   let mut render_mgr = RenderMgr::new();
-  let mut mgr = render_mgr.take_mgr();
-  
-  let mut _player_mob;
-  {
-    // Models
-    mgr.new_model("spaceship");
-    mgr.new_model("player");
-    mgr.new_model("platform");
-    // Materials
-    mgr.new_material("spaceship", "spaceship", "metal");
-    mgr.new_material("player", "dirt", "metal");
-    mgr.new_material("dirt", "dirt", "flat");
-    // Entities
-    let emgr = &mgr.entity_mgr;
-    emgr.new_entity("spaceship", "spaceship", "spaceship");
-    emgr.new_entity("player", "player", "player");
-    emgr.new_instance_at("spaceship", 10.0,10.0,10.0);
-    emgr.new_instance_at("spaceship", 10.0,0.0,-10.0);
-    emgr.new_instance_at("spaceship", -12.0,5.0,-15.0);
-    emgr.new_instance_at("player", 0.0,10.0,0.0);
-    // println!("entities loaded");
-    let player = emgr.first("player");
-    _player_mob = player.borrow().create_mob("player");
-  };
-  render_mgr.return_mgr(mgr);
   
   let mut fps: (f32, f32);
   let mut sec = 0.0;
   
   // ECS experiment
-  use {
-    // entities::position::{
-    //   Position, 
-    //   Velocity, 
-    //   // UpdatePos, 
-    // },
-    flags::InScene,
-    material::{
-      Lightings, 
-      Models,
-      Textures, 
-      LightingComponent,
-      ModelComponent,
-      TextureComponent,
-    },
-    util::rgl::*,
-    terrain::{
-      PlayerLoc,
-      gen::{
-        LandscapeGen,
-        PlatformGen,
-      },
-      node::{
-        TerrainNodes,
-      },
-    },
-  };
   
-  let mut world = World::new();
-  world.add_resource(DrawModelsWithTextures::default());
-  world.add_resource(LandscapeGen::default());
-  world.add_resource(PlayerLoc::default());
-  world.add_resource(TerrainShader::default());
-  world.add_resource(TerrainNodes::default());
-  world.add_resource(Models::default());
-  world.add_resource(Textures::default());
-  world.add_resource(Lightings::default());
-  world.add_resource(ViewMatrix::default());
-  world.register::<InScene>();
-  world.register::<Platform>();
-  world.register::<ModelComponent>();
-  world.register::<TextureComponent>();
-  world.register::<LightingComponent>();
+  let mut world = gen_world();
   
   {
-    let dpi = windowed_context.get_hidpi_factor();
-    let size = windowed_context.get_inner_size().unwrap().to_physical(dpi);
+    let dpi = windowed_context.window().get_hidpi_factor();
+    let size = windowed_context.window().get_inner_size().unwrap().to_physical(dpi);
     render_mgr.update_size(&world, size.into());
   }
-  let mut mgr = render_mgr.take_mgr();
   {
-    let _textmgr = mgr.textmgr.take().unwrap();
-    {
-      let mut textmgr = _textmgr.borrow_mut();
-      mgr = textmgr.add_font(mgr, "pirate");
-      mgr = textmgr.add_font(mgr, "sans");
-      mgr = textmgr.new_text(mgr, "Title", "The Never", "pirate", 4.0, 0.0, 0.0, 1.0, true, true);
-      mgr = textmgr.new_text(mgr, "FPS", "FPS: 0.0", "sans", 1.5, 0.0, 0.0, 0.3, false, true);
-    }
-    mgr.textmgr = Some(_textmgr);
+    let loader = &mut world.write_resource::<Loader>();
+    let mut models = world.write_resource::<Models>();
+    let mut textures = world.write_resource::<Textures>();
+    let mut lightings = world.write_resource::<Lightings>();
+    models.load_models(loader, &["platform", "player", "spaceship"]);
+    textures.load_textures(loader, &["dirt", "spaceship"]);
+    lightings.new_lighting_default("flat");
+  }
+  {
+    let mut textmgr = world.write_resource::<TextMgr>();
+    textmgr.add_font(&world, "pirate");
+    textmgr.add_font(&world, "sans");
+    textmgr.new_text(&world, "Title", "The Never", "pirate", 4.0, 0.0, 0.0, 1.0, true, true);
+    textmgr.new_text(&world, "FPS", "FPS: 0.0", "sans", 1.5, 0.0, 0.0, 0.3, false, true);
   }
   
-  
-  let mut _fbo = Fbo::new(mgr.display_clone(), 0, 0, ColorMultisampleRenderBuffers2, DepthRenderBuffer);
-  let mut _fbo_final = Fbo::new(mgr.display_clone(), 0, 0, ColorTexture, DepthTexture);
-  let render_post = RenderPostProc::new("fog", mgr.quad_id, 
+  let mut _fbo = Fbo::new(&world, 0, 0, ColorMultisampleRenderBuffers2, DepthRenderBuffer);
+  let mut _fbo_final = Fbo::new(&world, 0, 0, ColorTexture, DepthTexture);
+  let render_post = RenderPostProc::new("fog", world.read_resource::<HUD>().quad_id, 
       vec![
         Texture::new("fbo color", _fbo_final.color_tex_id).assign_tex_unit(0_i32),
         Texture::new("fbo depth", _fbo_final.depth_tex_id).assign_tex_unit(1_i32),
       ]);
   {
-    let mut _hud = mgr.hud.borrow_mut();
+    let mut _hud = world.write_resource::<HUD>();
     _hud.elements.push(GuiObj::new());
     let _gui = _hud.elements.get_mut(0).unwrap();
     _gui.tex_id = _fbo_final.color_tex_id;
@@ -214,21 +224,34 @@ fn main() {
   
   // ECS Continued...
   
-  {
-    let mut models = world.write_resource::<Models>();
-    models.new_model(&mgr, "platform");
-    let mut textures = world.write_resource::<Textures>();
-    textures.new_texture(&mgr, "dirt");
-    let mut lightings = world.write_resource::<Lightings>();
-    lightings.new_lighting("flat");
-  }
-  
   let mut terrain_gen = DispatcherBuilder::new()
       .with_thread_local(PlatformGen)
       .build();
   terrain_gen.setup(&mut world.res);
   terrain_gen.dispatch(&mut world.res);
+  
   world.maintain();
+  
+  let mut player_gen = DispatcherBuilder::new()
+      .with_thread_local(PlayerGen)
+      .build();
+  player_gen.setup(&mut world.res);
+  player_gen.dispatch(&mut world.res);
+  
+  let mut follow_player = DispatcherBuilder::new()
+      .with_thread_local(CameraToActivePlayer)
+      .build();
+  follow_player.setup(&mut world.res);
+  follow_player.dispatch(&mut world.res);
+  
+  let mut move_player = DispatcherBuilder::new()
+      .with_thread_local(PlayerInput)
+      .with_thread_local(ApplyGravity)
+      .with_thread_local(Collision)
+      .with_thread_local(UpdatePos)
+      .build();
+  move_player.setup(&mut world.res);
+  move_player.dispatch(&mut world.res);
   
   // world.create_entity()
   //     .with()
@@ -239,99 +262,76 @@ fn main() {
   terrain_draw.setup(&mut world.res);
   
   terrain_draw.dispatch(&mut world.res);
-  world.maintain();
   
-  // Return the GameMgr to the RenderMgr
-  render_mgr.return_mgr(mgr);
+  let mut texmod_draw = DispatcherBuilder::new()
+      .with_thread_local(DrawTexMods)
+      .build();
+  texmod_draw.setup(&mut world.res);
+  
+  texmod_draw.dispatch(&mut world.res);
+  world.maintain();
   
   // Game loop!
   println!("Starting game loop.");
   let mut running = true;
   while running {
     {
-      let mut handler = render_mgr.mgr.as_mut().unwrap().take_handler();
+      let mut handler = world.write_resource::<Handler>();
       handler.timer.tick();
       handler.reset_delta();
-      render_mgr.mgr.as_mut().unwrap().return_handler(handler);
     }
     el.poll_events(|event| {
       match event {
         glutin::Event::WindowEvent{ event, .. } => match event {
           glutin::WindowEvent::CloseRequested => running = false,
           glutin::WindowEvent::Resized(logical_size) => {
-            let dpi = windowed_context.get_hidpi_factor();
+            let dpi = windowed_context.window().get_hidpi_factor();
             let size = logical_size.to_physical(dpi);
             windowed_context.resize(size);
             render_mgr.update_size(&world, size.into());
           },
-          _ => {
-            let mut handler = render_mgr.mgr.as_mut().unwrap().take_handler();
-            handler.window_event(&event);
-            render_mgr.mgr.as_mut().unwrap().return_handler(handler);
-          }
+          _ => { world.write_resource::<Handler>().window_event(&event); }
         },
-        glutin::Event::DeviceEvent{ event, ..} => {
-          let mut handler = render_mgr.mgr.as_mut().unwrap().take_handler();
-          handler.device_event(&event);
-          render_mgr.mgr.as_mut().unwrap().return_handler(handler);
-        }
+        glutin::Event::DeviceEvent{ event, ..} => { world.write_resource::<Handler>().device_event(&event); }
         e => println!("Other Event:\n{:?}", e)
       }
     });
-    let mut mgr = render_mgr.take_mgr();
     {
       {
-        fps = mgr.fps_and_delta();
+        fps = world.read_resource::<Handler>().fps_and_delta();
         sec += fps.1;
       }
       if sec >= 1.0 {
         sec -= 1.0;
-        let _textmgr = mgr.textmgr.take().unwrap();
-        {
-          let mut textmgr = _textmgr.borrow_mut();
-          mgr = textmgr.update_text(mgr, "FPS", &format!("FPS: {:.3}", (fps.0 * 1000.0).round() / 1000.0 ) );
-        }
-        mgr.textmgr = Some(_textmgr);
-        
+        let mut textmgr = world.write_resource::<TextMgr>();
+        textmgr.update_text(&world, "FPS", &format!("FPS: {:.3}", (fps.0 * 1000.0).round() / 1000.0 ) );
       }
-      
-      // Borrowing things from mgr
-      let mut handler = mgr.take_handler();
-      let mut camera = mgr.take_camera();
-      // let mut world = mgr.take_world();
-      { // Do per frame calculations such as movement
-        
-        // player_mob.move_mob(&mut handler, &mut world);
-        camera.calc_pos(&mut handler, &_player_mob.pos.borrow());
-        _player_mob.pos_copy(&mut mgr.player_loc);
-        
-      }
-      // Returning borrowed things to mgr
-      mgr.return_camera(camera);
-      mgr.return_handler(handler);
-      // mgr.return_world(world);
-      // mgr.gen_chunks();
     }
-    // Returning mgr to render_mgr
-    render_mgr.return_mgr(mgr);
-    // Draw the stuff we keep in the mgr we just returned
+    // *** Do per frame calculations such as movement
+    
+    move_player.dispatch(&mut world.res);
+    follow_player.dispatch(&mut world.res);
+    world.maintain();
+    
+    // *** Drawing phase
     _fbo.bind();
     render_mgr.render(&world);
     terrain_draw.dispatch(&mut world.res);
+    texmod_draw.dispatch(&mut world.res);
     world.maintain();
-    _fbo.unbind();
-    _fbo.blit_to_fbo(0, &_fbo_final);
+    _fbo.unbind(&world);
+    _fbo.blit_to_fbo(&world, 0, &_fbo_final);
     
     // render_mgr.render();
     // _fbo_final.blit_to_screen();
     render_post.render();
-    render_mgr.render_gui();
+    render_mgr.render_gui(&world);
     // Write the new frame to the screen!
     windowed_context.swap_buffers().unwrap();
   }
   _fbo.clean_up();
   _fbo_final.clean_up();
-  render_mgr.clean_up();
+  render_mgr.clean_up(&world);
   render_post.clean_up();
 }
 

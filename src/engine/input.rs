@@ -7,7 +7,7 @@ use glutin::ElementState::{Pressed, Released};
 use glutin::VirtualKeyCode as VKC;
 use glutin::ModifiersState as MKS;
 
-use Timer;
+use engine::timer::Timer;
 use util::HashMap;
 
 pub struct Handler {
@@ -17,12 +17,16 @@ pub struct Handler {
   pub cursor_pos: Option<(f64, f64)>,
   pub cursor_delta: Option<(f64, f64)>,
 }
-
-impl Handler {
-  pub fn new() -> Self {
+impl Default for Handler {
+  fn default() -> Self {
     let mut timer = Timer::new();
     timer.tick();
     Handler { timer: timer, kb: HashMap::new(), mouse: HashMap::new(), cursor_pos: None, cursor_delta: None }
+  }
+}
+impl Handler {
+  pub fn fps_and_delta(&self) -> (f32, f32) {
+    (self.timer.fps, self.timer.delta)
   }
   pub fn reset_delta(&mut self) {
     self.cursor_delta = None;

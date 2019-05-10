@@ -1,9 +1,15 @@
 
-
-
-use GameMgr;
-use text::{TextMgr, RTextMesh, }; // RFontType, 
-use util::rvector::{Vector2f, Vector3f, };
+use {
+  specs::World,
+  Loader,
+  text::{
+    // RFontType, 
+    TextMgr, RTextMesh, 
+  },
+  util::{
+    Vector2f, Vector3f, 
+  },
+};
 
 pub struct GuiText {
   pub font: String,
@@ -36,8 +42,8 @@ impl GuiText {
       loaded: false,
     }
   }
-  pub fn load(&mut self, textmgr: &mut TextMgr, mgr: Box<GameMgr>) -> Box<GameMgr> {
-    if self.loaded { return mgr }
+  pub fn load(&mut self, textmgr: &mut TextMgr, world: &World) {
+    if self.loaded { return }
     // println!("Attempting to load guitext to vao");
     let mut data: Option<RTextMesh> = None;
     {
@@ -50,22 +56,25 @@ impl GuiText {
     }
     // println!("  stage 2");
     let data = data.unwrap();
-    let vao = mgr.loader.borrow_mut().load_to_vao_2d(&data.verts, &data.tex_coords);
+    let mut loader = world.write_resource::<Loader>();
+    let vao = loader.load_to_vao_2d(&data.verts, &data.tex_coords);
     // println!("  vao: {:?}", vao);
     self.set_mesh_info(vao, data.vert_count);
     self.loaded = true;
-    mgr
   }
-  pub fn update_text(&mut self, textmgr: &mut TextMgr, mgr: Box<GameMgr>, text: &str) -> Box<GameMgr> {
+  pub fn update_text(&mut self, textmgr: &mut TextMgr, world: &World, text: &str) {
     self.text = text.to_string();
-    self.update_size(textmgr, mgr)
+    self.update_size(textmgr, world);
   }
-  pub fn update_size(&mut self, textmgr: &mut TextMgr, mgr: Box<GameMgr>) -> Box<GameMgr> {
-    if self.text_mesh_vao == 0 { return mgr }
-    mgr.loader.borrow_mut().rm_vao(self.text_mesh_vao);
+  pub fn update_size(&mut self, textmgr: &mut TextMgr, world: &World) {
+    if self.text_mesh_vao == 0 { return }
+    {
+      let mut loader = world.write_resource::<Loader>();
+      loader.rm_vao(self.text_mesh_vao);
+    }
     self.loaded = false;
     // println!("Reloading GuiText");
-    self.load(textmgr, mgr)
+    self.load(textmgr, world);
   }
   pub fn set_colour(&mut self, r: f32, g: f32, b: f32) { self.colour.from_f32(r, g, b); }
   pub fn set_mesh_info(&mut self, vao: u32, vert_count: u32) {

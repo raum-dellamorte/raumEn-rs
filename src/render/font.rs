@@ -4,13 +4,16 @@ use gl::*;
 // use CVOID;
 
 use {
+  specs::World,
   // Camera, 
-  GameMgr, 
+  // GameMgr, 
   // Lights, 
   Shader, 
   // Texture, 
   // entities::PosMarker,
   // model::Model,
+  Textures,
+  TextMgr,
   shader::gen_font_shader,
   // text::{
   //   // TextMgr, 
@@ -39,17 +42,17 @@ impl RenderFont {
       shader: gen_font_shader(),
     }
   }
-  pub fn render(&mut self, mgr: Box<GameMgr>) -> Box<GameMgr> {
-    let mut mgr = mgr;
+  // pub fn render(&mut self, mgr: Box<GameMgr>) -> Box<GameMgr> {
+  pub fn render(&mut self, world: &World) {
+    // let mut mgr = mgr;
     unsafe {
       Enable(BLEND);
       BlendFunc(SRC_ALPHA, ONE_MINUS_SRC_ALPHA);
       Disable(DEPTH_TEST);
     }
     // println!("Running Text Render Pass");
-    let _textmgr = mgr.textmgr.take().unwrap();
     {
-      let mut textmgr = _textmgr.borrow_mut();
+      let mut textmgr = world.write_resource::<TextMgr>();
       self.shader.start();
       let _tmp: HashMap<String, HashSet<String>> = (*textmgr).active_text.clone();
       let fonts: Vec<&String> = _tmp.keys().clone().into_iter().collect();
@@ -57,8 +60,8 @@ impl RenderFont {
       for font in fonts {
         match textmgr.fonts.get_mut(font) {
           Some(x) => {
-            let texs = mgr.textures.borrow_mut();
-            match texs.get(&x.tex_atlas) {
+            let mut texs = world.write_resource::<Textures>();
+            match texs.0.get(&x.tex_atlas) {
               Some(tid) => { 
                 // println!("tex_id: {}", tex_id);
                 r_bind_texture(&tid); 
@@ -92,8 +95,6 @@ impl RenderFont {
         Enable(DEPTH_TEST);
       }
     }
-    mgr.textmgr = Some(_textmgr);
-    mgr
   }
   pub fn clean_up(&mut self) {
     self.shader.clean_up();

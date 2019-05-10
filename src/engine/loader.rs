@@ -13,10 +13,15 @@ use {
   },
   image,
  
-  material::Model,
-  model::import::load_obj,
-  model::Mesh,
-  Texture,
+  ecs::c::{
+    model::Model,
+    texture::Texture,
+  },
+  importobj::{
+    load_obj,
+    Mesh,
+  },
+  // Texture,
   util::{
     HashMap, 
     rgl::*, 
@@ -32,9 +37,8 @@ pub struct Loader {
   meshes: HashMap<String, Mesh>,
   textures: Vec<GLuint>,
 }
-
-impl Loader {
-  pub fn new() -> Self {
+impl Default for Loader {
+  fn default() -> Self {
     Loader {
       vaos: Vec::new(),
       vbos: Vec::new(),
@@ -42,6 +46,8 @@ impl Loader {
       textures: Vec::new(),
     }
   }
+}
+impl Loader {
   pub fn load_to_vao(&mut self, mesh_name: &str) -> Model {
     let (indcs, verts) = match self.load_mesh(mesh_name) {
       Some(mesh) => { (mesh.indcs.clone(), mesh.verts.clone()) }

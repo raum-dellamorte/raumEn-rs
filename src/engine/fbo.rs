@@ -1,12 +1,20 @@
 
-use util::{Rc, RefCell};
-
-use gl::*;
-// use gl::types::{GLuint, }; // GLfloat, GLenum, GLint, GLchar, GLsizeiptr, GLboolean, 
-use CVOID;
-
-use Display;
-use util::rgl::*;
+use {
+  gl::{
+    *,
+    // types::{
+    //   // GLfloat, GLenum, GLint, GLchar, GLsizeiptr, GLboolean,
+    //   GLuint, 
+    // },
+  },
+  CVOID,
+  specs::World,
+  Display,
+  util::{
+    rgl::*,
+    // Rc, RefCell,
+  },
+};
 
 pub enum ColorType {
   ColorTexture,
@@ -24,7 +32,6 @@ use engine::fbo::ColorType::{ColorTexture, ColorMultisampleRenderBuffer, ColorMu
 use engine::fbo::DepthType::{DepthTexture, DepthRenderBuffer, NoDepth};
 
 pub struct Fbo {
-  pub display: Rc<RefCell<Display>>,
   pub width: i32,
   pub height: i32,
   pub color_type: ColorType,
@@ -39,10 +46,9 @@ pub struct Fbo {
 }
 
 impl Fbo {
-  pub fn new(display: Rc<RefCell<Display>>, width: i32, height: i32, color_type: ColorType, depth_type: DepthType) -> Self {
-    let (w, h) = display.borrow().dimensions();
+  pub fn new(world: &World, width: i32, height: i32, color_type: ColorType, depth_type: DepthType) -> Self {
+    let (w, h) = world.read_resource::<Display>().dimensions();
     let mut out = Fbo {
-      display: display,
       width: if width == 0 { w as i32 } else { width },
       height: if height == 0 { h as i32 } else { height },
       color_type: color_type,
@@ -72,7 +78,7 @@ impl Fbo {
         DepthRenderBuffer => { _self.create_depth_buffer_attachment(); }
         NoDepth => {}
       }
-      _self.unbind();
+      _self.unbind(world);
       _self.active = true;
     }
     out
@@ -90,8 +96,9 @@ impl Fbo {
     BindFramebuffer(DRAW_FRAMEBUFFER, self.frame_buffer_id);
     Viewport(0, 0, self.width, self.height);
   }}
-  pub fn unbind(&self) { unsafe {
-    let (w, h) = self.display.borrow().dimensions();
+  pub fn unbind(&self, world: &World) { unsafe {
+    let display = world.read_resource::<Display>();
+    let (w, h) = display.dimensions();
     BindFramebuffer(FRAMEBUFFER, 0);
     Viewport(0, 0, w as i32, h as i32);
   }}
@@ -100,20 +107,20 @@ impl Fbo {
     BindFramebuffer(READ_FRAMEBUFFER, self.frame_buffer_id);
     ReadBuffer(COLOR_ATTACHMENT0);
   }}
-  pub fn blit_to_fbo(&self, color_attachment: u32, other: &Self) { unsafe {
+  pub fn blit_to_fbo(&self, world: &World, color_attachment: u32, other: &Self) { unsafe {
     BindFramebuffer(DRAW_FRAMEBUFFER, other.frame_buffer_id);
     BindFramebuffer(READ_FRAMEBUFFER, self.frame_buffer_id);
     ReadBuffer(COLOR_ATTACHMENT0 + color_attachment);
     BlitFramebuffer(0, 0, self.width, self.height, 0, 0, other.width, other.height, 
         COLOR_BUFFER_BIT | DEPTH_BUFFER_BIT, NEAREST);
-    self.unbind();
+    self.unbind(world);
   }}
-  pub fn blit_to_screen(&self) { unsafe {
-    let (w, h) = self.display.borrow().dimensions();
+  pub fn blit_to_screen(&self, world: &World) { unsafe {
+    let (w, h) = world.read_resource::<Display>().dimensions();
     BindFramebuffer(DRAW_FRAMEBUFFER, 0);
     BindFramebuffer(READ_FRAMEBUFFER, self.frame_buffer_id);
     BlitFramebuffer(0, 0, self.width, self.height, 0, 0, w as i32, h as i32, COLOR_BUFFER_BIT, NEAREST);
-    self.unbind();
+    self.unbind(world);
   }}
   fn create_frame_buffer(&mut self) { unsafe {
     let id = r_gen_framebuffers();

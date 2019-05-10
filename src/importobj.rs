@@ -21,9 +21,17 @@ use {
   crate::{
     eof,
     util::rvertex::*,
-    model::mesh::Mesh,
   },
 };
+
+pub struct Mesh {
+  pub verts: Vec<RVertex>,
+  pub indcs: Vec<u16>,
+  pub far_point: u16,
+  pub buffers: Option<MeshBuffers>,
+}
+
+pub struct MeshBuffers;
 
 named!(usize_digit<&str, usize >,
     map_res!( digit, FromStr::from_str )

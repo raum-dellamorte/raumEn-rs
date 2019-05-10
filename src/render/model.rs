@@ -8,14 +8,10 @@ use {
   //   // }, 
   // },
   // CVOID,
-  // entities::PosMarker,
-  // Camera, 
-  GameMgr, 
-  // Texture,
-  // model::Model,
+  specs::World,
   shader::{
     Shader,
-    gen_model_shader,
+    TexModShader,
   },
   // text::{
   //   // TextMgr, 
@@ -35,17 +31,16 @@ use {
 };
 
 pub struct RenderTexModel {
-  pub shader: Shader,
+  pub shader: TexModShader,
 }
 impl RenderTexModel {
   pub fn new() -> Self {
     RenderTexModel {
-      shader: gen_model_shader(),
+      shader: TexModShader::default(),
     }
   }
-  pub fn render(&mut self, mgr: Box<GameMgr>) -> Box<GameMgr> {
-    let mut mgr = mgr;
-    let shader = &self.shader;
+  pub fn render(&mut self, world: &World) {
+    let shader = &self.shader.shader;
     shader.start();
     shader.load_matrix("u_View", &mgr.view_mat);
     mgr.lights_do(|lights| { lights.load_to_shader(shader); });
@@ -60,7 +55,7 @@ impl RenderTexModel {
         let entity = _entity.borrow_mut();
         let model = mgr.model(&entity.model);
         r_bind_vaa_3(&model);
-        Self::use_material(&mgr, &self.shader, &entity.material);
+        Self::use_material(&mgr, &self.shader.shader, &entity.material);
         if let Some(_instances) = instances.get(&entity.name) {
           for ent_inst in _instances {
             let ent = ent_inst.borrow();
@@ -77,10 +72,9 @@ impl RenderTexModel {
       }
     }
     shader.stop();
-    mgr
   }
   pub fn clean_up(&mut self) {
-    self.shader.clean_up();
+    self.shader.shader.clean_up();
   }
   fn use_material(mgr: &GameMgr, shader: &Shader, material: &str) {
     let (lighting, texture) = {

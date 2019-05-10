@@ -7,8 +7,13 @@ use {
     // },
   },
   CVOID,
-  material::{
-    Model,
+  ecs::c::{
+    model::Model,
+    texture::Texture,
+    material::{
+      TexIndexComponent, RowCountComponent, 
+      OffsetComponent, MultiTexComponent,
+    }
   },
   util::{
     Matrix4f, 
@@ -72,7 +77,6 @@ pub fn r_unbind_vaa_2() { unsafe {
   DisableVertexAttribArray(1);
   DisableVertexAttribArray(0);
 }}
-use material::Texture;
 pub fn r_bind_texture(texture: &Texture) { unsafe {
   let tex_id = texture.tex_id.0;
   let mut tex_unit = texture.tex_unit.0;
@@ -132,9 +136,6 @@ impl DrawModelTextureWithAttribs {
     self.2.push(attribs);
   }
 }
-use material::material::{
-  TexIndexComponent, RowCountComponent, 
-  OffsetComponent, MultiTexComponent};
 pub struct ModelTextureAttribs {
   pub transform: Matrix4f,
   pub tex_index: Option<TexIndexComponent>,

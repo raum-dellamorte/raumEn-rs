@@ -9,9 +9,8 @@ pub struct Display {
   pub aspect_ratio: f32,
   pub proj_mat: Matrix4f,
 }
-
-impl Display {
-  pub fn new() -> Self {
+impl Default for Display {
+  fn default() -> Self {
     Self {
       w: 640,
       h: 480,
@@ -19,6 +18,8 @@ impl Display {
       proj_mat: Matrix4f::new(),
     }
   }
+}
+impl Display {
   pub fn dimensions(&self) -> (u32, u32) {
     (self.w, self.h)
   }
@@ -28,8 +29,9 @@ impl Display {
     self.w = w;
     self.h = h;
     self.aspect_ratio = w as f32 / h as f32;
+    self.projection();
   }
-  pub fn projection(&mut self) -> &Matrix4f {
+  fn projection(&mut self) {
     let fov: f32 = 3.141592 / 3.0;
     let zfar = 1024.0;
     let znear = 0.1;
@@ -43,6 +45,5 @@ impl Display {
     self.proj_mat.set_m23(-1_f32);
     self.proj_mat.set_m32(-(2_f32 * znear * zfar) / frustum_length);
     self.proj_mat.set_m33(0_f32);
-    &self.proj_mat
   }
 }

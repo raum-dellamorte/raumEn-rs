@@ -6,8 +6,27 @@ use {
   },
 };
 
-#[derive(Default)]
+#[derive(Default, Component)]
+#[storage(NullStorage)]
 pub struct InScene;
-impl Component for InScene {
-  type Storage = NullStorage<Self>;
-}
+
+#[derive(Default, Component)]
+#[storage(NullStorage)]
+pub struct ActivePlayer;
+
+#[derive(Default, Component)]
+#[storage(NullStorage)]
+pub struct IsPlatform;
+
+#[derive(Default, Component)]
+#[storage(NullStorage)]
+pub struct IsTexMod;
+
+#[derive(Default, Component)]
+#[storage(NullStorage)]
+pub struct Falling;
+
+#[derive(Default, Component)]
+#[storage(NullStorage)]
+pub struct CurrentNode;
+

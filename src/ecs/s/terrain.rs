@@ -1,56 +1,35 @@
-#![allow(dead_code)]
 
 use {
   std::cmp::Ordering,
-  specs::{
-    *,
-    // prelude::*,
-  },
-  TerrainShader,
-  // flags::InScene,
-  material::{
-    Model,
-    Models, 
-    ModelComponent,
-    lighting::Lightings, 
-    // material::MaterialData, 
-    Texture,
-    texture::Textures, 
-    TextureComponent, 
-    LightingComponent, 
-    // TexIndexComponent, 
-    // RowCountComponent, 
-    // OffsetComponent, 
-    // MultiTexComponent,
-  },
+  
   util::{
-    rgl::*, 
-    // HashSet,
-    // HashMap, 
-    Vector3f,
-    Matrix4f,
+    Matrix4f, 
   },
+  specs::{
+    System, Read, ReadStorage, Entities, Join, 
+  },
+  ecs::{
+    c::{
+      lighting::Lightings,
+      model::{
+        Models, Model,
+      },
+      texture::{
+        Textures,
+        Texture,
+      },
+      material::{
+        LightingComponent, ModelComponent, TextureComponent,
+      },
+      terrain::Platform,
+    },
+  },
+  util::rgl::*,
+  
+  ViewMatrix,
+  shader::terrain::TerrainShader,
 };
 
-#[derive(Component, Debug)]
-#[storage(VecStorage)]
-pub struct Platform {
-  pub x: i32,
-  pub z: i32,
-  pub h: f32,
-  pub d: f32,
-}
-impl Platform {
-  pub fn pos(&self, world_height: f32, base: f32) -> Vector3f {
-    let y = ((world_height * self.h) - (world_height * self.d)) - base;
-    Vector3f::new(self.x as f32, y, self.z as f32)
-  }
-  pub fn scale(&self, wh: f32) -> Vector3f {
-    Vector3f::new(1.0, wh * self.d, 1.0)
-  }
-}
-
-use ViewMatrix;
 pub struct DrawPlatform;
 impl<'a> System<'a> for DrawPlatform {
   type SystemData = (
@@ -84,10 +63,12 @@ impl<'a> System<'a> for DrawPlatform {
         x => { x }
       }
     });
-    let mut last_model = "platform";
-    let mut last_texture = "dirt";
-    let mut model: &Model = &models.0.get("platform").unwrap();
-    let mut texture: &Texture = &textures.0.get("dirt").unwrap();
+    let mut last_model = &d[0] .2 .0;
+    let mut last_texture = &d[0] .3 .0;
+    let mut model: &Model = &models.0.get(last_model)
+        .expect(&format!("DrawPlatform: No such Model :{}", last_model));
+    let mut texture: &Texture = &textures.0.get(last_texture)
+        .expect(&format!("DrawPlatform: No such Texture :{}", last_texture));
     shader.start();
     shader.load_matrix("u_View", &(*view).view);
     // shader.load_vec_3f("light_pos", &(*light).pos); // Unimplemented
@@ -95,12 +76,12 @@ impl<'a> System<'a> for DrawPlatform {
     r_bind_vaa_3(model);
     r_bind_texture(texture);
     for (_, p, m, t, l) in &d {
-      if m.0 != last_model {
+      if m.0 != *last_model {
         model = &models.0.get(&m.0).unwrap();
         last_model = &m.0;
         r_bind_vaa_3(model);
       }
-      if t.0 != last_texture {
+      if t.0 != *last_texture {
         texture = &textures.0.get(&t.0).unwrap();
         last_texture = &t.0;
         r_bind_texture(texture);
@@ -118,3 +99,4 @@ impl<'a> System<'a> for DrawPlatform {
     shader.stop();
   }
 }
+
