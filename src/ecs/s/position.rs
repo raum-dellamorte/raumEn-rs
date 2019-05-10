@@ -30,7 +30,7 @@ use {
   },
 };
 
-const GRAVITY: f32 = 1.0;
+const GRAVITY: f32 = 5.0;
 
 // pub struct MovePlayer;
 // impl<'a> System<'a> for MovePlayer {
@@ -167,7 +167,7 @@ impl<'a> System<'a> for Collision {
       fpos.x += 0.1;
       fpos.z += 0.1;
       let fpos = &(*fpos);
-      let _p_size = &Vector3f::new(1.8, 1.0, 1.8);
+      let _p_size = &Vector3f::new(1.8, 2.0, 1.8);
       let _t_size = &mut Vector3f::new(2.0, 0.0, 2.0);
       let _p1m = &(&p.pos + _p_size);
       let _p2m = &(fpos + _p_size);
