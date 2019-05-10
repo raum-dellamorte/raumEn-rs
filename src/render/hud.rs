@@ -3,13 +3,7 @@ use {
   gl::{
     *,
     // types::{
-    //   // GLuint,
-    //   // GLfloat, 
-    //   // GLenum, 
-    //   // GLint, 
-    //   // GLchar, 
-    //   // GLsizeiptr, 
-    //   // GLboolean, 
+    //   // GLuint, GLfloat, GLenum, GLint, GLchar, GLsizeiptr, GLboolean, 
     // }, 
   },
   // CVOID,
