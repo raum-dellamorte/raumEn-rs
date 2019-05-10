@@ -173,10 +173,8 @@ impl<'a> System<'a> for Collision {
       let _p2m = &(fpos + _p_size);
       for _tile in (&pform).join() {
         _t_size.y = _tile.d * 200.0;
-        // was Vector3f::new(_tile.x as f32, ((_tile.h * 200.0) - 100.0) - _t_size.y + (_p_size.y * 0.5), _tile.z as f32)
         let _t = &_tile.pos;
         let _tm = &(_t + _t_size);
-        // let same_col = terrain_same_col(_p2, _p2m, _t, _tm);
         let collided = terrain_collide(fpos, _p2m, _t, _tm);
         match collided {
           TerrainCollideType::Floor(n) => {
