@@ -184,15 +184,16 @@ impl<'a> System<'a> for Collision {
             // panic!("Stop the show!");
             // Stop Falling and Y velocity
             v.0.y = 0.0;
-            tv.0.y = p.pos.y - (fpos.y + n);
+            tv.0.y = dv.0.y + n;
+            // println!("{} = {} + {}", tv.0.y, dv.0.y, n);
             falling.remove(e);
           }
           TerrainCollideType::Ceiling(n) => {
             // Stop Y velocity
             println!("Collision: Ceiling({}) | Player: {} Object {}", n, fpos, _t);
             v.0.y = 0.0;
-            p.pos.y += n - 0.001; // make sure player head doesn't stick in ceiling causing another collide
-            // doing it wrong, don't write to pos
+            tv.0.y = (dv.0.y - n) - 0.001; // make sure player head doesn't stick in ceiling causing another collide
+            println!("{} = ({} - {}) - 0.001", tv.0.y, dv.0.y, n);
             panic!("Stop the show!");
           }
           TerrainCollideType::WallXY(n) => {
@@ -200,7 +201,7 @@ impl<'a> System<'a> for Collision {
             // if we're close enough, we should just climb it.
             println!("Collision: WallXY({}) | Player: {} Object {}", n, fpos, _t);
             if n <= 0.5 {
-              tv.0.y = v.0.z;
+              tv.0.y = dv.0.z;
             }
             v.0.z = 0.0;
             panic!("Stop the show!");
@@ -208,7 +209,7 @@ impl<'a> System<'a> for Collision {
           TerrainCollideType::WallYZ(n) => {
             println!("Collision: WallYZ({}) | Player: {} Object {}", n, fpos, _t);
             if n <= 0.5 {
-              tv.0.y = v.0.x;
+              tv.0.y = dv.0.x;
             }
             v.0.x = 0.0;
           }
