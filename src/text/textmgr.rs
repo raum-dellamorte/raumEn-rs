@@ -84,7 +84,7 @@ impl TextMgr {
     if let Some(text) = self.texts.get_mut(label) {
       let mut text_batch = self.active_text.get_mut(&text.font);
       if text_batch.is_some() {
-        let mut hs = &mut text_batch.as_mut().unwrap();
+        let hs = &mut text_batch.as_mut().unwrap();
         hs.remove(label);
         rm = hs.is_empty();
         font = text.font.clone();

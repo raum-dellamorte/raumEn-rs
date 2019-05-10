@@ -60,7 +60,7 @@ impl RenderFont {
       for font in fonts {
         match textmgr.fonts.get_mut(font) {
           Some(x) => {
-            let mut texs = world.write_resource::<Textures>();
+            let texs = world.write_resource::<Textures>();
             match texs.0.get(&x.tex_atlas) {
               Some(tid) => { 
                 // println!("tex_id: {}", tex_id);
