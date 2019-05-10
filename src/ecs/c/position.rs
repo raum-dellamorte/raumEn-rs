@@ -17,19 +17,19 @@ pub struct Position {
 
 #[derive(Component, Debug)]
 #[storage(VecStorage)]
-pub struct Velocity {
-  pub vel: Vector3f,
-}
+pub struct Velocity(pub Vector3f);
 
 #[derive(Component, Debug)]
 #[storage(VecStorage)]
-pub struct TmpVelocity {
-  pub tvel: Vector3f,
-}
+pub struct DeltaVelocity(pub Vector3f);
+
+#[derive(Component, Debug)]
+#[storage(VecStorage)]
+pub struct TmpVelocity(pub Vector3f);
 
 impl TmpVelocity {
   pub fn clear(&mut self) {
-    self.tvel.clear();
+    self.0.clear();
   }
 }
 

@@ -16,14 +16,18 @@ pub struct Platform {
   pub z: i32,
   pub h: f32,
   pub d: f32,
+  pub pos: Vector3f,
+  pub scale: Vector3f,
 }
 impl Platform {
-  pub fn pos(&self, world_height: f32, base: f32) -> Vector3f {
-    let y = ((world_height * self.h) - base) - (world_height * self.d * 0.5); // 
-    Vector3f::new(self.x as f32, y, self.z as f32)
-  }
-  pub fn scale(&self, wh: f32) -> Vector3f {
-    Vector3f::new(1.0, wh * self.d, 1.0)
+  pub fn new(world_height: f32, base: f32, x: i32, z: i32, top: f32, depth: f32) -> Self {
+    let y = ((world_height * top) - (world_height * depth)) + base;
+    let ys = world_height * depth;
+    Self {
+      x: x, z: z, h: top, d: depth,
+      pos: Vector3f::new(x as f32, y, z as f32),
+      scale: Vector3f::new(1.0, ys, 1.0),
+    }
   }
 }
 

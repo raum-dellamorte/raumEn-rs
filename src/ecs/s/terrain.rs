@@ -90,8 +90,8 @@ impl<'a> System<'a> for DrawPlatform {
         lighting.load_to_shader(shader);
       }
       transform.set_identity();
-      transform.translate_v3f(&p.pos(200.0, 100.0));
-      transform.scale(&p.scale(200.0));
+      transform.translate_v3f(&p.pos);
+      transform.scale(&p.scale);
       shader.load_matrix("u_Transform", &transform);
       r_draw_triangles(model);
     }

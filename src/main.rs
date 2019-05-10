@@ -65,6 +65,7 @@ use {
       position::{
         PlayerInput,
         UpdatePos,
+        UpdateDeltaVelocity,
         ApplyGravity,
         Collision,
       },
@@ -248,6 +249,7 @@ fn main() {
       .with_thread_local(PlayerInput)
       .with_thread_local(ApplyGravity)
       .with_thread_local(Collision)
+      .with_thread_local(UpdateDeltaVelocity)
       .with_thread_local(UpdatePos)
       .build();
   move_player.setup(&mut world.res);

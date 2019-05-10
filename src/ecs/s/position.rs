@@ -30,7 +30,7 @@ use {
   },
 };
 
-const GRAVITY: f32 = 0.5;
+const GRAVITY: f32 = 1.0;
 
 // pub struct MovePlayer;
 // impl<'a> System<'a> for MovePlayer {
@@ -58,25 +58,37 @@ const GRAVITY: f32 = 0.5;
 
 pub struct UpdatePos;
 impl<'a> System<'a> for UpdatePos {
-  type SystemData = ( Read<'a, Handler>,
+  type SystemData = (
                       Entities<'a>,
-                      ReadStorage<'a, Velocity>,
+                      ReadStorage<'a, DeltaVelocity>,
                       WriteStorage<'a, TmpVelocity>,
                       WriteStorage<'a, Position>,
                     );
   fn run(&mut self, data: Self::SystemData) {
-    let (handler, ent, vel, mut tvel, mut pos) = data;
+    let (ent, deltav, mut tvel, mut pos) = data;
+    for (_, dvel, tvel, p) in (&ent, &deltav, &mut tvel, &mut pos).join() {
+      if dvel.0.is_blank() && tvel.0.is_blank() { continue; }
+      p.pos += dvel.0;
+      p.pos += tvel.0;
+      tvel.0.clear();
+    }
+  }
+}
+
+pub struct UpdateDeltaVelocity;
+impl<'a> System<'a> for UpdateDeltaVelocity {
+  type SystemData = ( Read<'a, Handler>,
+                      Entities<'a>,
+                      ReadStorage<'a, Velocity>,
+                      WriteStorage<'a, DeltaVelocity>,
+                    );
+  fn run(&mut self, data: Self::SystemData) {
+    let (handler, ent, vel, mut dvel) = data;
     let delta = handler.timer.delta;
     // println!("delta {}", delta);
     if delta < 0.0 || delta > 0.04 { return }
-    for (_, v, tv, p) in (&ent, &vel, &mut tvel, &mut pos).join() {
-      // println!("pos.y {}", pos.y);
-      let mut dvel = Vector3f::blank();
-      v.vel.scale_to(&mut dvel, delta);
-      p.pos += dvel;
-      tv.tvel.scale_to(&mut dvel, delta);
-      p.pos += dvel;
-      tv.tvel.clear();
+    for (_, vel, dvel) in (&ent, &vel, &mut dvel).join() {
+      vel.0.scale_to(&mut dvel.0, delta);
     }
   }
 }
@@ -93,7 +105,7 @@ impl<'a> System<'a> for ApplyGravity {
     let delta = handler.timer.delta;
     for (_, v, _) in (&ents, &mut vel, &falling).join() {
       // println!("Applying gravity");
-      v.vel.y -= GRAVITY * delta;
+      v.0.y -= GRAVITY * delta;
     }
   }
 }
@@ -126,7 +138,7 @@ impl<'a> System<'a> for PlayerInput {
     if handler.read_kb_single_any_of(KCS::new(&[Q]))       { ; }                  // Turn Left
     if handler.read_kb_single_any_of(KCS::new(&[E]))       { ; }                 // Turn Right
     if handler.read_kb_single(KC::new(Space))              {
-      _d.1 .vel.y += 10.0;
+      _d.1 .0.y += 10.0;
       falling.insert(_d.0, Falling).expect("Trying to set Falling flag.");
     }                        // Jumping... is useless
     if handler.read_mouse_single(MB::Left)                 { println!("mouse x: {} y: {}", _mx, _my); } // Fire/Select
@@ -139,6 +151,7 @@ impl<'a> System<'a> for Collision {
                       Read<'a, TerrainNodes>,
                       Entities<'a>,
                       WriteStorage<'a, Position>,
+                      ReadStorage<'a, DeltaVelocity>,
                       WriteStorage<'a, Velocity>,
                       WriteStorage<'a, TmpVelocity>,
                       WriteStorage<'a, Falling>,
@@ -146,53 +159,58 @@ impl<'a> System<'a> for Collision {
                       ReadStorage<'a, ActivePlayer>,
                     );
   fn run(&mut self, data: Self::SystemData) {
-    let (handler, _nodes, ents, mut pos, mut vel, mut tvel, mut falling, pform, player) = data;
+    let (handler, _nodes, ents, mut pos, dvel, mut vel, mut tvel, mut falling, pform, player) = data;
     let delta = handler.timer.delta; // 
     if delta < 0.0 || delta > 0.04 { return }
-    for (e, p, v, tv, _) in (&ents, &mut pos, &mut vel, &mut tvel, &player).join() {
-      let _p2 = &(&p.pos + &v.vel);
-      let _p_size = &Vector3f::new(2.0, 2.0, 2.0);
+    for (e, p, dv, v, tv, _) in (&ents, &mut pos, &dvel, &mut vel, &mut tvel, &player).join() {
+      let fpos = &mut (&p.pos + &dv.0); // future position
+      fpos.x += 0.1;
+      fpos.z += 0.1;
+      let fpos = &(*fpos);
+      let _p_size = &Vector3f::new(1.8, 1.0, 1.8);
       let _t_size = &mut Vector3f::new(2.0, 0.0, 2.0);
       let _p1m = &(&p.pos + _p_size);
-      let _p2m = &(_p2 + _p_size);
+      let _p2m = &(fpos + _p_size);
       for _tile in (&pform).join() {
         _t_size.y = _tile.d * 200.0;
-        let _t = &Vector3f::new(_tile.x as f32, ((_tile.h * 200.0) - 100.0) - _t_size.y + (_p_size.y * 0.5), _tile.z as f32);
+        // was Vector3f::new(_tile.x as f32, ((_tile.h * 200.0) - 100.0) - _t_size.y + (_p_size.y * 0.5), _tile.z as f32)
+        let _t = &_tile.pos;
         let _tm = &(_t + _t_size);
         // let same_col = terrain_same_col(_p2, _p2m, _t, _tm);
-        let collided = terrain_collide(_p2, _p2m, _t, _tm);
+        let collided = terrain_collide(fpos, _p2m, _t, _tm);
         match collided {
           TerrainCollideType::Floor(n) => {
-            println!("Collision: Floor({}) | Player: {} Object {}", n, _p2, _t);
+            println!("Collision: Floor({}) | Player: {} Object {}", n, fpos, _t);
             // panic!("Stop the show!");
             // Stop Falling and Y velocity
-            v.vel.y = 0.0;
-            p.pos.y += n; // make sure the player min is the terrain max
+            v.0.y = 0.0;
+            tv.0.y = p.pos.y - (fpos.y + n);
             falling.remove(e);
           }
           TerrainCollideType::Ceiling(n) => {
             // Stop Y velocity
-            println!("Collision: Ceiling({}) | Player: {} Object {}", n, _p2, _t);
-            v.vel.y = 0.0;
+            println!("Collision: Ceiling({}) | Player: {} Object {}", n, fpos, _t);
+            v.0.y = 0.0;
             p.pos.y += n - 0.001; // make sure player head doesn't stick in ceiling causing another collide
+            // doing it wrong, don't write to pos
             panic!("Stop the show!");
           }
           TerrainCollideType::WallXY(n) => {
             // n is how close the foot of the player is to the top of the wall
             // if we're close enough, we should just climb it.
-            println!("Collision: WallXY({}) | Player: {} Object {}", n, _p2, _t);
+            println!("Collision: WallXY({}) | Player: {} Object {}", n, fpos, _t);
             if n <= 0.5 {
-              tv.tvel.y = v.vel.z;
+              tv.0.y = v.0.z;
             }
-            v.vel.z = 0.0;
+            v.0.z = 0.0;
             panic!("Stop the show!");
           }
           TerrainCollideType::WallYZ(n) => {
-            println!("Collision: WallYZ({}) | Player: {} Object {}", n, _p2, _t);
+            println!("Collision: WallYZ({}) | Player: {} Object {}", n, fpos, _t);
             if n <= 0.5 {
-              tv.tvel.y = v.vel.x;
+              tv.0.y = v.0.x;
             }
-            v.vel.x = 0.0;
+            v.0.x = 0.0;
           }
           TerrainCollideType::None => {
             // 

@@ -20,6 +20,7 @@ use {
       Position,
       TmpVelocity,
       Velocity,
+      DeltaVelocity,
     },
     terrain::{
       Platform,
@@ -93,7 +94,7 @@ impl<'a> System<'a> for PlatformGen {
             let mut top: f64 = landgen.landscape.get(pt);
             top = (top + 1.0) / 2.0;
             // top = (top + (landgen.l_weight * landgen.l_mult as f32) as f64) / (landgen.l_mult + 1) as f64;
-            let pf = Platform { x: x, z: z, h: top as f32, d: 0.05 };
+            let pf = Platform::new(200.0, -100.0, x, z, top as f32, 0.05);
             platforms.insert(ent, pf).expect("Failed to insert new Platform");
             models.insert(ent, ModelComponent("platform".to_owned())).expect("Failed to insert new ModelComponent");
             textures.insert(ent, TextureComponent("dirt".to_owned())).expect("Failed to insert new TextureComponent");
@@ -126,6 +127,7 @@ impl<'a> System<'a> for PlayerGen {
     Entities<'a>,
     WriteStorage<'a, Position>,
     WriteStorage<'a, Velocity>,
+    WriteStorage<'a, DeltaVelocity>,
     WriteStorage<'a, TmpVelocity>,
     WriteStorage<'a, ModelComponent>,
     WriteStorage<'a, TextureComponent>,
@@ -135,15 +137,16 @@ impl<'a> System<'a> for PlayerGen {
     WriteStorage<'a, IsTexMod>,
   );
   fn run(&mut self, _data: Self::SystemData) {
-    let (ploc, ents, mut pos, mut vel, mut tvel, mut mod_c, mut tex_c, mut ltg_c, mut player, mut fall, mut texmod) = _data;
+    let (ploc, ents, mut pos, mut vel, mut dvel, mut tvel, mut mod_c, mut tex_c, mut ltg_c, mut player, mut fall, mut texmod) = _data;
     let ent = ents.create();
     
     pos.insert(ent, Position {
       pos: Vector3f {x: ploc.0 as f32, y: 20.0, z: ploc.1 as f32},
       rot: Vector3f {x: 0.0, y: 0.0, z: 0.0}
     }).expect("Failed to insert new Position");
-    vel.insert(ent, Velocity{ vel: Vector3f {x: 0.0, y: 0.0, z: 0.0}}).expect("Failed to insert new Velocity");
-    tvel.insert(ent, TmpVelocity{tvel: Vector3f {x: 0.0, y: 0.0, z: 0.0}}).expect("Failed to insert new TmpVelocity");
+    vel.insert(ent, Velocity {0: Vector3f::blank()}).expect("Failed to insert new Velocity");
+    dvel.insert(ent, DeltaVelocity {0: Vector3f::blank()}).expect("Failed to insert new DeltaVelocity");
+    tvel.insert(ent, TmpVelocity {0: Vector3f::blank()}).expect("Failed to insert new TmpVelocity");
     mod_c.insert(ent, ModelComponent("player".to_owned())).expect("Failed to insert new ModelComponent");
     tex_c.insert(ent, TextureComponent("dirt".to_owned())).expect("Failed to insert new TextureComponent");
     ltg_c.insert(ent, LightingComponent("flat".to_owned())).expect("Failed to insert new LightingComponent");
