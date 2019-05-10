@@ -147,6 +147,11 @@ impl Vector3f {
     self.x = other.x + (dist * ry.sin());
     self.z = other.z + (dist * ry.cos());
   }
+  pub fn is_blank(&self) -> bool {
+    self.x == 0.0 &&
+    self.y == 0.0 &&
+    self.z == 0.0
+  }
   pub fn dist_rot_offset(&self, dist: f32, rot: f32) -> Self {
     let ry = rot.to_radians();
     Self {
