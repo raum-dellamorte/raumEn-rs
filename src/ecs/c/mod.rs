@@ -17,9 +17,7 @@ pub use ecs::c::{
     Models,
     Model,
   },
-  position::{
-    Position,
-  },
+  position::*,
   texture::{
     Textures,
     Texture
