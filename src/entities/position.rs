@@ -25,7 +25,11 @@ pub struct PosMarker {
   pub trans_mat: Matrix4f,
   pub moving: bool,
 }
-
+impl Default for PosMarker {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 impl PosMarker {
   pub fn new() -> Self {
     PosMarker {
@@ -287,50 +291,38 @@ impl Feelers {
   //   self.backward.y = world.bounds_under_v3f(&self.backward).0;
   // }
   pub fn can_jump_forward(&self) -> bool {
-    if self.center.y < self.forward.y {
-      if self.forward.y < 5.0 + self.center.y {
-        return true
-      }
+    if self.center.y < self.forward.y && self.forward.y < 5.0 + self.center.y {
+      return true
     }
     false
   }
   pub fn can_move_forward(&self) -> bool {
-    if self.center.y >= self.forward.y {
-      if self.center.y < 50.0 + self.forward.y {
-        return true
-      }
+    if self.center.y >= self.forward.y && self.center.y < 50.0 + self.forward.y {
+      return true
     }
     false
   }
   pub fn can_move_left_45(&self) -> bool {
-    if self.center.y >= self.left_45.y {
-      if self.center.y < 50.0 + self.left_45.y {
-        return true
-      }
+    if self.center.y >= self.left_45.y && self.center.y < 50.0 + self.left_45.y {
+      return true
     }
     false
   }
   pub fn can_move_right_45(&self) -> bool {
-    if self.center.y >= self.right_45.y {
-      if self.center.y < 50.0 + self.right_45.y {
-        return true
-      }
+    if self.center.y >= self.right_45.y && self.center.y < 50.0 + self.right_45.y {
+      return true
     }
     false
   }
   pub fn can_move_left_90(&self) -> bool {
-    if self.center.y >= self.left_45.y {
-      if self.center.y < 50.0 + self.left_45.y {
-        return true
-      }
+    if self.center.y >= self.left_45.y && self.center.y < 50.0 + self.left_45.y {
+      return true
     }
     false
   }
   pub fn can_move_right_90(&self) -> bool {
-    if self.center.y >= self.right_45.y {
-      if self.center.y < 50.0 + self.right_45.y {
-        return true
-      }
+    if self.center.y >= self.right_45.y && self.center.y < 50.0 + self.right_45.y {
+      return true
     }
     false
   }
@@ -343,6 +335,11 @@ pub struct JumpArc {
   pub current: Vector3f,
   pub time: f32,
   pub fin: bool,
+}
+impl Default for JumpArc {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 impl JumpArc {
   const PEAK: f32 = 3.0;
