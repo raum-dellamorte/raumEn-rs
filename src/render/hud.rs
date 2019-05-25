@@ -30,7 +30,11 @@ use {
 pub struct RenderHUD {
   pub shader: Shader,
 }
-
+impl Default for RenderHUD {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 impl RenderHUD {
   pub fn new() -> Self {
     Self {
@@ -61,7 +65,7 @@ impl RenderHUD {
           // Shader Vars!
           self.shader.load_matrix("u_Transform", gui.transformation());
           self.shader.load_float("row_count", gui.row_count);
-          self.shader.load_vec_2f("offset", &gui.offset);
+          self.shader.load_vec_2f("offset", gui.offset);
           self.shader.load_bool("flip_y", gui.flip_y);
           // Draw!
           DrawArrays(TRIANGLE_STRIP, 0, 4_i32);
