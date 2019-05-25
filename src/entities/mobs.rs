@@ -26,7 +26,7 @@ impl Mob {
     Mob {
       name: "".to_string(),
       entity: entity.to_string(),
-      pos: pos,
+      pos,
       speed: 20_f32,
       turn: 180_f32,
       stats: HashMap::new(),
