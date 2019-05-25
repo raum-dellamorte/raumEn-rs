@@ -5,15 +5,19 @@ use std::ops::{Add, AddAssign, Sub, SubAssign, Mul, MulAssign}; // , Div, DivAss
 pub struct Matrix4f {
   pub matrix: [f32; 16],
 }
-
-impl Matrix4f {
-  pub fn new() -> Self {
-    Matrix4f {
+impl Default for Matrix4f {
+  fn default() -> Self {
+    Self {
       matrix: [ 1.0, 0.0, 0.0, 0.0,
                 0.0, 1.0, 0.0, 0.0,
                 0.0, 0.0, 1.0, 0.0,
                 0.0, 0.0, 0.0, 1.0_f32],
     }
+  }
+}
+impl Matrix4f {
+  pub fn new() -> Self {
+    Self::default()
   }
   pub fn m00(&self) -> f32 { self.matrix[0] }
   pub fn m01(&self) -> f32 { self.matrix[1] }
