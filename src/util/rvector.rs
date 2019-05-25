@@ -92,18 +92,18 @@ impl RVec for Vector4f {
 }
 
 impl Vector2f {
-  pub fn new(x: f32, y: f32) -> Self { Vector2f {x: x, y: y} }
-  pub fn blank() -> Self { Vector2f {x: 0.0_f32, y: 0.0_f32} }
   pub fn from_v2f(&mut self, other: &Vector2f) {
+  pub fn new(x: f32, y: f32) -> Self { Vector2f {x, y} }
+  pub fn blank() -> Self { Self {x: 0.0_f32, y: 0.0_f32} }
     self.x = other.x;
     self.y = other.y;
   }
-  pub fn to_slice(&self) -> [f32; 2] { [self.x, self.y] }
-  pub fn scale_to(&self, dest: &mut Self, scale: f32) {
+  pub fn to_slice(self) -> [f32; 2] { [self.x, self.y] }
+  pub fn scale_to(self, dest: &mut Self, scale: f32) {
     (*dest).x = self.x * scale;
     (*dest).y = self.y * scale;
   }
-  pub fn negate_to(&self, dest: &mut Self) {
+  pub fn negate_to(self, dest: &mut Self) {
     (*dest).x = -self.x;
     (*dest).y = -self.y;
   }
@@ -111,7 +111,7 @@ impl Vector2f {
 
 impl Vector3f {
   //#[derive_keyword_argument_macro("new", x=0.0, y=0.0, z=0.0)]
-  pub fn new(x: f32, y: f32, z: f32) -> Self { Self {x: x, y: y, z: z} }
+  pub fn new(x: f32, y: f32, z: f32) -> Self { Self {x, y, z} }
   pub fn new_from_v3f(other: &Vector3f) -> Self { Self { x: other.x, y: other.y, z: other.z, } }
   pub fn new_isize(x: isize, y: isize, z: isize) -> Self { Self {x: x as f32, y: y as f32, z: z as f32} }
   pub fn blank() -> Self { Vector3f::new_isize(0,0,0) }
