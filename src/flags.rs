@@ -28,5 +28,17 @@ pub struct Falling;
 
 #[derive(Default, Component)]
 #[storage(NullStorage)]
+pub struct StartMoving;
+
+#[derive(Default, Component)]
+#[storage(NullStorage)]
+pub struct Moving;
+
+#[derive(Default, Component)]
+#[storage(NullStorage)]
 pub struct CurrentNode;
+
+#[derive(Default, Component)]
+#[storage(NullStorage)]
+pub struct LocalToPlayer;
 
