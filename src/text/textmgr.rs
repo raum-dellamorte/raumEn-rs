@@ -104,7 +104,7 @@ impl TextMgr {
   }
   pub fn update_size(&mut self, world: &World) {
     let mut fonts = Vec::new();
-    for (font, _) in &self.fonts {
+    for font in self.fonts.keys() {
       fonts.push(font.to_owned());
     }
     for font in &fonts {
@@ -117,7 +117,7 @@ impl TextMgr {
       }
     }
     let mut labels = Vec::new();
-    for (label, _) in &self.texts {
+    for label in self.texts.keys() {
       labels.push(label.to_owned());
     }
     for label in &labels {
