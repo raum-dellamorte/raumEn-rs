@@ -59,7 +59,7 @@ impl<'a> System<'a> for DrawTexMods {
     let mut transform = Matrix4f::new();
     let _data = (&(data.1).0, &(data.1).1, &(data.1).2, &(data.1).3, &(data.1).4, &(data.1).5);
     let mut d = _data.join().collect::<Vec<_>>();
-    if d.len() < 1 { return }
+    if d.is_empty() { return }
     d.sort_by(|&a,&b| {
       match a.2 .0 .cmp(&b.2 .0) { // .2 is ModelComponent; .0 is the internal String
         Ordering::Equal => {
@@ -71,9 +71,9 @@ impl<'a> System<'a> for DrawTexMods {
     let mut last_model = &d[0] .2 .0;
     let mut last_texture = &d[0] .3 .0;
     let mut model: &Model = &models.0.get(last_model)
-        .expect(&format!("DrawTexMods: No such Model :{}", last_model));
+        .unwrap_or_else(|| panic!("DrawTexMods: No such Model :{}", last_model));
     let mut texture: &Texture = &textures.0.get(last_texture)
-        .expect(&format!("DrawTexMods: No such Texture :{}", last_texture));
+        .unwrap_or_else(|| panic!("DrawTexMods: No such Texture :{}", last_texture));
     shader.start();
     shader.load_matrix("u_View", &(*view).view);
     // shader.load_vec_3f("light_pos", &(*light).pos); // Unimplemented
