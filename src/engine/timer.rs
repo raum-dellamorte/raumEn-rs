@@ -40,13 +40,10 @@ impl Timer {
     self.now = SteadyTime::now();
     let dur = self.now - self.last;
     self.delta = match dur.num_microseconds() {
-      Some(t) => (t as f32) / 1000000_f32,
+      Some(t) => (t as f32) / 1_000_000_f32,
       None => 0_f32,
     };
-    self.fps = match self.delta > 0_f32 {
-      true => 1_f32 / self.delta,
-      false => 0_f32,
-    };
+    self.fps = if self.delta > 0_f32 { 1_f32 / self.delta } else { 0_f32 };
     self
   }
 }
