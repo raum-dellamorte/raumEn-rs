@@ -1,7 +1,9 @@
 
-use gl::Viewport;
-
-use util::Matrix4f;
+use {
+  gl::Viewport,
+  std::f32::consts::PI,
+  util::Matrix4f,
+};
 
 pub struct Display {
   pub w: u32,
@@ -14,7 +16,7 @@ impl Default for Display {
     Self {
       w: 640,
       h: 480,
-      aspect_ratio: 1.333334,
+      aspect_ratio: 1.333_334,
       proj_mat: Matrix4f::new(),
     }
   }
@@ -32,7 +34,7 @@ impl Display {
     self.projection();
   }
   fn projection(&mut self) {
-    let fov: f32 = 3.141592 / 3.0;
+    let fov: f32 = PI / 3.0;
     let zfar = 1024.0;
     let znear = 0.1;
     let y_scale = 1_f32 / (fov / 2_f32).tan();
