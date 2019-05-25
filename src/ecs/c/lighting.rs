@@ -36,11 +36,7 @@ impl Default for Lighting {
 }
 impl Lighting {
   pub fn new(shine_damper: f32, reflectivity: f32, use_fake_lighting: bool) -> Self {
-    Self {
-      shine_damper: shine_damper,
-      reflectivity: reflectivity,
-      use_fake_lighting: use_fake_lighting,
-    }
+    Self { shine_damper, reflectivity, use_fake_lighting, }
   }
   pub fn load_to_shader(&self, shader: &Shader) {
     // Assumes shader is active
@@ -67,13 +63,18 @@ pub struct Light {
   pub color: Vector3f,
   pub atten: Vector3f,
 }
-impl Light {
-  pub fn new() -> Self {
-    Light {
+impl Default for Light {
+  fn default() -> Self {
+    Self {
       pos: Vector3f::blank(),
       color: Vector3f::new(0.5, 0.5, 0.5),
       atten: Vector3f::blank(),
     }
+  }
+}
+impl Light {
+  pub fn new() -> Self {
+    Self::default()
   }
   pub fn load_to_shader_single(&self, shader: &Shader) {
     // Assumes shader is active
