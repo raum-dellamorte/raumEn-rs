@@ -48,8 +48,8 @@ impl RTextMesh {
   pub fn new(verts: Vec<f32>, tex_coords: Vec<f32>) -> Self {
     let count = verts.len() / 2;
     Self {
-      verts: verts,
-      tex_coords: tex_coords,
+      verts,
+      tex_coords,
       vert_count: count as u32,
     }
   }
@@ -67,13 +67,13 @@ impl RLine {
     Self {
       words: Vec::new(),
       line_length: 0.0,
-      max_length: max_length,
+      max_length,
       space_size: space_width * font_size,
     }
   }
   pub fn try_add_word(&mut self, word: &mut Option<RWord>) -> Option<RWord> {
     let word = word.take().unwrap();
-    let mut plus_length = (&word).width;
+    let mut plus_length = word.width;
     if !self.words.is_empty() { plus_length += self.space_size; }
     // println!("size: {} trying to add word: {:?}, ", plus_length, word);
     if self.line_length + plus_length <= self.max_length {
@@ -128,12 +128,10 @@ impl RChar {
     x_advance: f32,
   ) -> Self {
     Self {
-      id: id,
-      x_tex: x_tex, y_tex: y_tex,
+      id,
+      x_tex, y_tex,
       x_tex_max: x_tex_size + x_tex, y_tex_max: y_tex_size + y_tex,
-      x_offset: x_offset, y_offset: y_offset,
-      x_size: x_size, y_size: y_size,
-      x_advance: x_advance,
+      x_offset, y_offset, x_size, y_size, x_advance,
     }
   }
 }
