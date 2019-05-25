@@ -36,37 +36,20 @@ pub fn prepare() { unsafe {
   ClearColor(0.2, 0.2, 0.3, 1.0);
 }}
 
+#[derive(Default)]
 pub struct RenderMgr {
-  // pub mgr: Option<Box<GameMgr>>,
-  // pub ren_tex_model: RenderTexModel,
-  // pub ren_terrain: RenderTerrain,
   pub ren_font: RenderFont,
   pub ren_hud: RenderHUD,
 }
-
 impl RenderMgr {
   pub fn new() -> Self {
     RenderMgr {
-      // mgr: Some(Box::new(GameMgr::new())),
-      // ren_tex_model: RenderTexModel::new(),
-      // ren_terrain: RenderTerrain::new(),
       ren_font: RenderFont::new(),
       ren_hud: RenderHUD::new(),
     }
   }
-  // pub fn take_mgr(&mut self) -> Box<GameMgr> {
-  //   let out = self.mgr.take();
-  //   Box::new(*out.unwrap())
-  // }
-  // pub fn return_mgr(&mut self, mgr: Box<GameMgr>) {
-  //   self.mgr = Some(mgr);
-  // }
   pub fn render(&mut self, world: &World) { 
     prepare();
-    // let mut mgr = self.take_mgr();
-    // mgr.create_view_matrix();
-    // mgr = self.ren_tex_model.render(mgr);
-    // mgr = self.ren_terrain.render(mgr);
     {
       use ViewMatrix;
       let mut cam = world.write_resource::<Camera>();
