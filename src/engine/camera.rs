@@ -78,7 +78,7 @@ impl Camera {
   }
   
   pub fn drift_to_origin(&mut self, rate: f32) {
-    if self.pitch != 25.0 {
+    if (self.pitch - 25.0).abs() > 0.0001 {
       self.pitch = drift_to_zero(self.pitch - 25.0, rate, 0.05) + 25.0;
     }
     if self.focus_angle != 0.0 {
@@ -89,12 +89,9 @@ impl Camera {
   pub fn calc_pos(&mut self, handler: &mut Handler, follow: &Position) {
     {
       if handler.read_mouse_multi(MB::Right) {
-        match handler.cursor_delta {
-          Some((dx, dy)) => {
-            self.pitch -= (dy as f32) * self.mouse_rate;
-            self.focus_angle -= (dx as f32) * self.mouse_rate;
-          }
-          _ => ()
+        if let Some((dx, dy)) = handler.cursor_delta {
+          self.pitch -= (dy as f32) * self.mouse_rate;
+          self.focus_angle -= (dx as f32) * self.mouse_rate;
         }
       } else {
         self.drift_to_origin(handler.timer.delta);
@@ -161,9 +158,7 @@ impl Camera {
 }
 
 pub fn degree_cap(val: f32) -> f32 {
-  if (val <= 180.0) && (val > -180.0) { val } else {
-    if val > 0.0 { degree_cap(val - 360.0) } else { degree_cap(val + 360.0) }
-  }
+  if (val <= 180.0) && (val > -180.0) { val } else if val > 0.0 { degree_cap(val - 360.0) } else { degree_cap(val + 360.0) }
 }
 
 pub fn drift_to_zero(val: f32, rate: f32, min: f32) -> f32 {
