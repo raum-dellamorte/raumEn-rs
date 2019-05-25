@@ -24,7 +24,7 @@ impl Platform {
     let y = ((world_height * top) - (world_height * depth)) + base;
     let ys = world_height * depth;
     Self {
-      x: x, z: z, h: top, d: depth,
+      x, z, h: top, d: depth,
       pos: Vector3f::new(x as f32, y, z as f32),
       scale: Vector3f::new(1.0, ys, 1.0),
     }
