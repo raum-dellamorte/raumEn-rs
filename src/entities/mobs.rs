@@ -57,6 +57,6 @@ impl Mob {
     let x = marker.pos.x;
     let y = marker.pos.y;
     let z = marker.pos.z;
-    v.from_f32(x, y, z);
+    v.copy_from_f32(x, y, z);
   }
 }

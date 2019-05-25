@@ -92,9 +92,9 @@ impl RVec for Vector4f {
 }
 
 impl Vector2f {
-  pub fn from_v2f(&mut self, other: &Vector2f) {
   pub fn new(x: f32, y: f32) -> Self { Vector2f {x, y} }
   pub fn blank() -> Self { Self {x: 0.0_f32, y: 0.0_f32} }
+  pub fn copy_from_v2f(&mut self, other: Vector2f) {
     self.x = other.x;
     self.y = other.y;
   }
@@ -115,17 +115,17 @@ impl Vector3f {
   pub fn new_from_v3f(other: &Vector3f) -> Self { Self { x: other.x, y: other.y, z: other.z, } }
   pub fn new_isize(x: isize, y: isize, z: isize) -> Self { Self {x: x as f32, y: y as f32, z: z as f32} }
   pub fn blank() -> Self { Vector3f::new_isize(0,0,0) }
-  pub fn from_isize(&mut self, x: isize, y: isize, z: isize) {
+  pub fn copy_from_isize(&mut self, x: isize, y: isize, z: isize) {
     self.x = x as f32;
     self.y = y as f32;
     self.z = z as f32;
   }
-  pub fn from_f32(&mut self, x: f32, y: f32, z: f32) {
+  pub fn copy_from_f32(&mut self, x: f32, y: f32, z: f32) {
     self.x = x;
     self.y = y;
     self.z = z;
   }
-  pub fn from_v3f(&mut self, other: &Vector3f) {
+  pub fn copy_from_v3f(&mut self, other: &Vector3f) {
     self.x = other.x;
     self.y = other.y;
     self.z = other.z;

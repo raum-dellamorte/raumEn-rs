@@ -76,7 +76,7 @@ impl GuiText {
     // println!("Reloading GuiText");
     self.load(textmgr, world);
   }
-  pub fn set_colour(&mut self, r: f32, g: f32, b: f32) { self.colour.from_f32(r, g, b); }
+  pub fn set_colour(&mut self, r: f32, g: f32, b: f32) { self.colour.copy_from_f32(r, g, b); }
   pub fn set_mesh_info(&mut self, vao: u32, vert_count: u32) {
     self.text_mesh_vao = vao;
     self.vertex_count = vert_count;

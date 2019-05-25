@@ -64,14 +64,14 @@ impl Default for Camera {
 }
 impl Camera {
   pub fn store(&mut self) {
-    self.pos_bak.from_v3f(&self.pos);
+    self.pos_bak.copy_from_v3f(&self.pos);
     self.pitch_bak = self.pitch;
     self.yaw_bak = self.yaw;
     self.roll_bak = self.roll;
   }
 
   pub fn restore(&mut self) {
-    self.pos.from_v3f(&self.pos_bak);
+    self.pos.copy_from_v3f(&self.pos_bak);
     self.pitch = self.pitch_bak;
     self.yaw = self.yaw_bak;
     self.roll = self.roll_bak;

@@ -145,7 +145,7 @@ fn gen_world() -> World {
   {
     let mut lights = world.write_resource::<Lights>();
     lights.add_light();
-    lights.lights[0].pos.from_isize(0,500,-10);
+    lights.lights[0].pos.copy_from_isize(0,500,-10);
   }
   let quad = {
     let mut loader = world.write_resource::<Loader>();

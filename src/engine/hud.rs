@@ -56,7 +56,7 @@ impl GuiObj {
   fn calc_transformation(&mut self) {
     // Don't recalc if we haven't moved.
     if self.pos == self.pos_last { return }
-    self.pos_last.from_v2f(&self.pos);
+    self.pos_last.copy_from_v2f(self.pos);
     self.transmat.set_identity();
     let x = (&self.pos.x *  2.0_f32) - 1.0_f32;
     let y = (&self.pos.y * -2.0_f32) + 1.0_f32;

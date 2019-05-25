@@ -61,7 +61,7 @@ impl PosMarker {
   // }
   pub fn move_to_new_pos(&mut self, rate: f32) {
     self.calc_fall(rate);
-    self.pos.from_v3f(&self.new_pos);
+    self.pos.copy_from_v3f(&self.new_pos);
   }
   // pub fn move_forward(&mut self, world: &mut Box<World>, forward: bool) {
   //   if self.moving { return }
@@ -360,8 +360,8 @@ impl JumpArc {
     {
       let (orig, dest, time) = (&mut self.orig, &mut self.dest, &mut self.time);
       *time = 0_f32;
-      orig.from_v3f(_orig);
-      dest.from_v3f(_dest);
+      orig.copy_from_v3f(_orig);
+      dest.copy_from_v3f(_dest);
       self.fin = false;
     }
     println!("JumpArc\n{:?}", self);
@@ -372,7 +372,7 @@ impl JumpArc {
       *time += 5_f32 * delta;
       if *time >= Self::JUMPTIME {
         *time = Self::JUMPTIME;
-        current.from_v3f(dest);
+        current.copy_from_v3f(dest);
         self.fin = true;
       } else {
         let percent = *time / Self::JUMPTIME;

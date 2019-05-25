@@ -55,6 +55,6 @@ impl EntityInstance {
     Mob::new(name, self.marker.clone())
   }
   pub fn set_pos(&self, x: f32, y: f32, z: f32) {
-    self.marker.borrow_mut().pos.from_f32(x, y, z);
+    self.marker.borrow_mut().pos.copy_from_f32(x, y, z);
   }
 }
