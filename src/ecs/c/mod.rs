@@ -1,4 +1,5 @@
 
+pub mod bounding;
 pub mod lighting;
 pub mod material;
 pub mod model;
@@ -7,6 +8,7 @@ pub mod terrain;
 pub mod texture;
 
 pub use ecs::c::{
+  bounding::*,
   lighting::{
     Lights,
     Light,
