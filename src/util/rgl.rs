@@ -97,7 +97,7 @@ impl Default for DrawModelsWithTextures {
 impl DrawModelsWithTextures {
   pub fn index_of(&self, name: &str) -> i32 {
     for (i, x) in self.0.iter().enumerate() {
-      if &x.0 == name { return i as i32 }
+      if x.0 == name { return i as i32 }
     }
     -1
   }
@@ -117,7 +117,7 @@ impl DrawModelWithTextures {
   }
   pub fn index_of(&self, texture: &str, lighting: &str) -> i32 {
     for (i, x) in self.1.iter().enumerate() {
-      if (&x.0 == texture) && (&x.1 == lighting) { return i as i32 }
+      if (x.0 == texture) && (x.1 == lighting) { return i as i32 }
     }
     -1
   }
