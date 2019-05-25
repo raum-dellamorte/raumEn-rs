@@ -7,7 +7,7 @@ use std::str;
 use std::str::from_utf8;
 use std::ffi::CStr;
 use std::ffi::CString;
-use std::mem::transmute;
+// use std::mem::transmute;
 // use cgmath::{Matrix, Matrix4, };
 
 use std::fs::File;
@@ -25,7 +25,7 @@ pub struct ShaderVar {
 impl ShaderVar {
   pub fn new(name: &str) -> Self {
     ShaderVar {
-      var_name: format!("{}", name),
+      var_name: name.to_string(),
       var_id: -1 as GLint,
     }
   }
@@ -39,7 +39,7 @@ pub struct ShaderUni {
 impl ShaderUni {
   pub fn new(name: &str) -> Self {
     ShaderUni {
-      var_name: format!("{}", name),
+      var_name: name.to_string(),
       var_id: -1 as GLint,
       texture: -1 as GLint,
     }
@@ -52,7 +52,7 @@ pub struct ShaderOutputVar {
 }
 impl ShaderOutputVar {
   pub fn new(name: &str, loc: u32) -> Self {
-    let name = format!("{}", name);
+    let name = name.to_string();
     let cname = CString::new(name.as_bytes()).unwrap();
     ShaderOutputVar {
       var_name: cname,
@@ -69,7 +69,7 @@ pub struct ShaderSrc {
 
 impl ShaderSrc {
   pub fn new(kind: GLenum, id: GLuint, src: CString) -> Self {
-    ShaderSrc { kind: kind, id: id, src: src }
+    ShaderSrc { kind, id, src, }
   }
   pub fn kind(&self) -> &str {
     match self.kind {
@@ -93,7 +93,7 @@ pub struct Shader {
 impl Shader {
   pub fn new(name: &str) -> Self {
     Shader { 
-      name: format!("{}", name), program: 0, done: false,
+      name: name.to_string(), program: 0, done: false,
       shaders: Vec::new(), vars: Vec::new(), unis: Vec::new(), 
       unis_unavailable: Arc::new(Mutex::new(HashSet::new())),
     }
@@ -220,7 +220,7 @@ impl Shader {
     if self.check_id(id, name, "load_vec_3f") { return }
     Uniform3f(id, vector.x, vector.y, vector.z);
   }}
-  pub fn load_vec_2f(&self, name: &str, vector: &Vector2f) { unsafe {
+  pub fn load_vec_2f(&self, name: &str, vector: Vector2f) { unsafe {
     let id = self.get_uniform_id(name);
     if self.check_id(id, name, "load_vec_2f") { return }
     Uniform2f(id, vector.x, vector.y);
@@ -228,7 +228,7 @@ impl Shader {
   pub fn load_matrix(&self, name: &str, matrix: &Matrix4f) { unsafe {
     let id = self.get_uniform_id(name);
     if self.check_id(id, name, "load_matrix") { return }
-    UniformMatrix4fv(id, 1, 0, transmute(&matrix.matrix[0]) );
+    UniformMatrix4fv(id, 1, 0, &matrix.matrix[0] as *const f32 );
   }}
   pub fn load_vert_shader(&mut self) -> &mut Self {
     self.add_shader(VERTEX_SHADER)
@@ -245,12 +245,10 @@ impl Shader {
   fn check_id(&self, id: GLint, name: &str, caller: &str) -> bool {
     let mut unis_unavailable = self.unis_unavailable.lock().unwrap();
     let test = unis_unavailable.contains(name);
-    if test { return true } else {
-      if id < 0 { 
-        unis_unavailable.insert(name.to_string());
-        println!("{}(): Uniform {} not available for shader {}", caller, name, self.name); 
-        return true;
-      }
+    if test { return true } else if id < 0 { 
+      unis_unavailable.insert(name.to_string());
+      println!("{}(): Uniform {} not available for shader {}", caller, name, self.name); 
+      return true;
     }
     false
   }
@@ -290,17 +288,17 @@ impl Shader {
       ShaderSource(shader.id, 1, &shader.src.as_ptr(), ptr::null());
       CompileShader(shader.id);
       // Get the compile status
-      let mut status = FALSE as GLint;
+      let mut status = i32::from(FALSE);
       GetShaderiv(shader.id, COMPILE_STATUS, &mut status);
       // Fail on error
-      if status != (TRUE as GLint) {
+      if status != i32::from(TRUE) {
         println!("Shader compile failed.");
         let mut buffer = [0u8; 512];
         let mut length: i32 = 0;
         GetShaderInfoLog(shader.id, buffer.len() as i32, &mut length,
           buffer.as_mut_ptr() as *mut i8);
         println!("Compiler log (length: {}):\n{}", length,
-          from_utf8(CStr::from_ptr(transmute(&buffer)).to_bytes()).unwrap());
+          from_utf8(CStr::from_ptr(&buffer as *const [u8; 512] as *const i8).to_bytes()).unwrap());
       } else { println!("Shader compiled"); }
     }
   } self }
@@ -319,17 +317,17 @@ impl Shader {
     LinkProgram(program);
     //ValidateProgram(program); // Maybe not needed?
     // Get the link status
-    let mut status = FALSE as GLint;
+    let mut status = i32::from(FALSE);
     GetProgramiv(program, LINK_STATUS, &mut status);
     // Fail on error
-    if status != (TRUE as GLint) {
+    if status != i32::from(TRUE) {
       println!("Program link failed. Program: {}", program);
       let mut buffer = [0u8; 512];
       let mut length: i32 = 0;
       GetProgramInfoLog(program, buffer.len() as i32, &mut length,
         buffer.as_mut_ptr() as *mut i8);
       println!("Linker log (length: {}):\n{}", length,
-        from_utf8(CStr::from_ptr(transmute(&buffer)).to_bytes()).unwrap());
+        from_utf8(CStr::from_ptr(&buffer as *const [u8; 512] as *const i8).to_bytes()).unwrap());
     } else {
       println!("{} shader linked. Program: {}", self.name, program);
     }
@@ -348,11 +346,7 @@ pub fn get_attrib_location(program: GLuint, name: &str) -> GLint {
 }
 pub fn get_uniform_location(program: GLuint, name: &str) -> GLint {
   let cname = CString::new(name.as_bytes()).unwrap();
-  let location = unsafe { GetUniformLocation(program, cname.as_ptr()) };
-  // if location < 0 {
-  //   println!("Failed to get uniform location: {}", name);
-  // }
-  location
+  unsafe { GetUniformLocation(program, cname.as_ptr()) }
 }
 pub fn get_ext(kind: GLenum) -> String {
   match kind {
