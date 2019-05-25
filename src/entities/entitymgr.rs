@@ -6,12 +6,17 @@ pub struct EntityMgr {
   pub entities: RefCell<HashMap<String,Rc<RefCell<Entity>>>>,
   pub instances: RefCell<HashMap<String,Vec<Rc<RefCell<EntityInstance>>>>>,
 }
-impl EntityMgr {
-  pub fn new() -> Self {
+impl Default for EntityMgr {
+  fn default() -> Self {
     Self {
       entities: RefCell::new(HashMap::new()),
       instances: RefCell::new(HashMap::new()),
     }
+  }
+}
+impl EntityMgr {
+  pub fn new() -> Self {
+    Self::default()
   }
   pub fn new_entity(&self, name: &str, model: &str, material: &str) {
     let mut entities = self.entities.borrow_mut();
@@ -45,7 +50,7 @@ impl EntityMgr {
   pub fn first(&self, name: &str) -> Rc<RefCell<EntityInstance>> {
     let mut all_instances = self.instances.borrow_mut();
     let instances = all_instances.get_mut(name).unwrap();
-    if instances.len() == 0 { panic!("No instances of Entity<{}>", name) }
+    if instances.is_empty() { panic!("No instances of Entity<{}>", name) }
     instances[0].clone()
   }
 }
