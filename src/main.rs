@@ -1,4 +1,5 @@
 #![recursion_limit="128"]
+#![allow(clippy::type_complexity, clippy::module_inception, clippy::too_many_arguments, clippy::len_without_is_empty)]
 // #![feature(nightly)]
 // #![allow(unused_imports,dead_code)]
 
@@ -229,7 +230,7 @@ fn main() {
       .with_thread_local(PlatformGen)
       .build();
   terrain_gen.setup(&mut world.res);
-  terrain_gen.dispatch(&mut world.res);
+  terrain_gen.dispatch(&world.res);
   
   world.maintain();
   
@@ -237,13 +238,13 @@ fn main() {
       .with_thread_local(PlayerGen)
       .build();
   player_gen.setup(&mut world.res);
-  player_gen.dispatch(&mut world.res);
+  player_gen.dispatch(&world.res);
   
   let mut follow_player = DispatcherBuilder::new()
       .with_thread_local(CameraToActivePlayer)
       .build();
   follow_player.setup(&mut world.res);
-  follow_player.dispatch(&mut world.res);
+  follow_player.dispatch(&world.res);
   
   let mut move_player = DispatcherBuilder::new()
       .with_thread_local(PlayerInput)
@@ -253,7 +254,7 @@ fn main() {
       .with_thread_local(UpdatePos)
       .build();
   move_player.setup(&mut world.res);
-  move_player.dispatch(&mut world.res);
+  move_player.dispatch(&world.res);
   
   // world.create_entity()
   //     .with()
@@ -263,14 +264,14 @@ fn main() {
       .build();
   terrain_draw.setup(&mut world.res);
   
-  terrain_draw.dispatch(&mut world.res);
+  terrain_draw.dispatch(&world.res);
   
   let mut texmod_draw = DispatcherBuilder::new()
       .with_thread_local(DrawTexMods)
       .build();
   texmod_draw.setup(&mut world.res);
   
-  texmod_draw.dispatch(&mut world.res);
+  texmod_draw.dispatch(&world.res);
   world.maintain();
   
   // Game loop!
@@ -311,15 +312,15 @@ fn main() {
     }
     // *** Do per frame calculations such as movement
     
-    move_player.dispatch(&mut world.res);
-    follow_player.dispatch(&mut world.res);
+    move_player.dispatch(&world.res);
+    follow_player.dispatch(&world.res);
     world.maintain();
     
     // *** Drawing phase
     _fbo.bind();
     render_mgr.render(&world);
-    terrain_draw.dispatch(&mut world.res);
-    texmod_draw.dispatch(&mut world.res);
+    terrain_draw.dispatch(&world.res);
+    texmod_draw.dispatch(&world.res);
     world.maintain();
     _fbo.unbind(&world);
     _fbo.blit_to_fbo(&world, 0, &_fbo_final);
