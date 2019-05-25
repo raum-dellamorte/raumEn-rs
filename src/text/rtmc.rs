@@ -60,7 +60,7 @@ impl RTextMeshCreator {
     let mut current_line = RLine::new(self.metadata.space_width, text.font_size, text.line_max_size);
     let mut current_word = Some(RWord::new(text.font_size));
     for chr in chars {
-      let ascii = *chr as u32;
+      let ascii = u32::from(*chr);
       if (ascii == self.space_ascii) || (ascii == self.newline_ascii) {
         current_word = current_line.try_add_word(&mut current_word);
         if current_word.is_some() || ascii == self.newline_ascii {
@@ -89,7 +89,7 @@ impl RTextMeshCreator {
       current_line.try_add_word(&mut current_word);
     }
     lines.push(current_line);
-    return lines
+    lines
   }
 }
 fn add_verts_for_char(verts: &mut Vec<f32>, x_curser: f32, y_curser: f32, rchar: &RChar, font_size: f32) {
