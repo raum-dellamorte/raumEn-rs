@@ -55,10 +55,10 @@ pub struct LandscapeGen {
 impl Default for LandscapeGen {
   fn default() -> Self {
     LandscapeGen {
-      landscape: Fbm::new().set_seed(186074_u32),
+      landscape: Fbm::new().set_seed(186_074_u32),
       l_weight: 0_f32,
       l_mult: 0_i32,
-      holes: Fbm::new().set_seed(441952_u32),
+      holes: Fbm::new().set_seed(441_952_u32),
     }
   }
 }
@@ -80,7 +80,7 @@ impl<'a> System<'a> for PlatformGen {
     // Need to know where I am and what "Node" I am nearest, what "Node"s haven't been generated near me
     
     let (px,pz) = (node_group(player.0),node_group(player.1));
-    for ix in vec![-1, 0, 1] { for iz in vec![-1, 0, 1] {
+    for ix in &[-1, 0, 1] { for iz in &[-1, 0, 1] {
       let node = TerrainNode(px + ix, pz + iz);
       if !nodes.0.contains(&node) {
         let (nx,nz) = (node.0 * NODE_SIZE, node.1 * NODE_SIZE);
@@ -112,8 +112,8 @@ fn node_group(x: i32) -> i32 { (if x < 0 { -(NODE_SIZE - 1) + x } else { x }) / 
 
 fn point(x: i32, z: i32, precision: u32) -> Point2<f64> {
   let p = 2_isize.pow(precision) as f64;
-  let x = x as f64 / p;
-  let z = z as f64 / p;
+  let x = f64::from(x) / p;
+  let z = f64::from(z) / p;
   let pt: Point2<f64> = [x, z];
   pt
 }
