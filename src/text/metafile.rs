@@ -238,7 +238,7 @@ pub struct MetaFile {
 impl MetaFile {
   pub fn new(aspect_ratio: f32, font_file: &str) -> Self {
     let mut out = Self {
-      aspect_ratio: aspect_ratio,
+      aspect_ratio,
       vertical_per_pixel_size: 0.0,
       horizontal_per_pixel_size: 0.0,
       image_width: 512.0,
