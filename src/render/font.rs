@@ -35,12 +35,16 @@ use {
 pub struct RenderFont {
   pub shader: Shader,
 }
-
-impl RenderFont {
-  pub fn new() -> Self {
+impl Default for RenderFont {
+  fn default() -> Self {
     Self {
       shader: gen_font_shader(),
     }
+  }
+}
+impl RenderFont {
+  pub fn new() -> Self {
+    Self::default()
   }
   // pub fn render(&mut self, mgr: Box<GameMgr>) -> Box<GameMgr> {
   pub fn render(&mut self, world: &World) {
@@ -55,7 +59,7 @@ impl RenderFont {
       let mut textmgr = world.write_resource::<TextMgr>();
       self.shader.start();
       let _tmp: HashMap<String, HashSet<String>> = (*textmgr).active_text.clone();
-      let fonts: Vec<&String> = _tmp.keys().clone().into_iter().collect();
+      let fonts: Vec<&String> = _tmp.keys().clone().collect();
       use util::rgl::r_bind_texture;
       for font in fonts {
         match textmgr.fonts.get_mut(font) {
@@ -71,15 +75,15 @@ impl RenderFont {
           }
           _ => { println!("No ftype {}", font); continue }
         };
-        for gtexts in textmgr.active_text.get(font) {
+        if let Some(gtexts) = textmgr.active_text.get(font) {
           for gtstr in gtexts {
-            for gtext in textmgr.texts.get(gtstr) {
+            if let Some(gtext) = textmgr.texts.get(gtstr) {
               unsafe {
                 BindVertexArray(gtext.text_mesh_vao);
                 EnableVertexAttribArray(0);
                 EnableVertexAttribArray(1);
                 self.shader.load_vec_3f("colour", &gtext.colour);
-                self.shader.load_vec_2f("translation", &gtext.position);
+                self.shader.load_vec_2f("translation", gtext.position);
                 DrawArrays(TRIANGLES, 0, gtext.vertex_count as i32);
                 DisableVertexAttribArray(0);
                 DisableVertexAttribArray(1);
