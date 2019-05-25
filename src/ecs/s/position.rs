@@ -123,7 +123,7 @@ impl<'a> System<'a> for PlayerInput {
     let (mut handler, ents, mut vel, mut tvel, mut falling, player) = data;
     
     let mut d = (&ents, &mut vel, &mut tvel, &player).join().collect::<Vec<_>>();
-    if d.len() < 1 { return }
+    if d.is_empty() { return }
     let _d = &mut d[0];
     
     let (_mx, _my) = match handler.cursor_pos {
