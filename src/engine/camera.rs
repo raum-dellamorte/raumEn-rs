@@ -10,6 +10,7 @@ use {
   ecs::{
     c::{
       Position,
+      Rotation,
     },
   },
   entities::{
@@ -86,7 +87,7 @@ impl Camera {
     }
   }
 
-  pub fn calc_pos(&mut self, handler: &mut Handler, follow: &Position) {
+  pub fn calc_pos(&mut self, handler: &mut Handler, follow_pos: &Position, follow_rot: &Rotation) {
     {
       if handler.read_mouse_multi(MB::Right) {
         if let Some((dx, dy)) = handler.cursor_delta {
@@ -97,14 +98,14 @@ impl Camera {
         self.drift_to_origin(handler.timer.delta);
       }
     }
-    self.calc_cam_pos(follow, handler.timer.delta);
+    self.calc_cam_pos(follow_pos, follow_rot, handler.timer.delta);
   }
 
-  pub fn calc_cam_pos(&mut self, follow: &Position, rate: f32) {
+  pub fn calc_cam_pos(&mut self, follow_pos: &Position, follow_rot: &Rotation, rate: f32) {
     let h_dist: f32 = self.calc_h_distance();
     let v_dist: f32 = self.calc_v_distance() + 10_f32;
     
-    let ry_new = follow.rot.y;
+    let ry_new = follow_rot.0.y;
     let ry_diff = self.focus_ry - ry_new;
     if ry_diff.abs() > 0.01 {
       self.focus_ry = drift_to_zero(ry_diff, rate, 0.1) + ry_new;
@@ -114,9 +115,9 @@ impl Camera {
     let theta = self.focus_ry + self.focus_angle;
     let x_offset = h_dist * theta.to_radians().sin();
     let z_offset = h_dist * theta.to_radians().cos();
-    self.pos.x = follow.pos.x - x_offset;
-    self.pos.z = follow.pos.z - z_offset;
-    self.pos.y = follow.pos.y + v_dist;
+    self.pos.x = follow_pos.0.x - x_offset;
+    self.pos.z = follow_pos.0.z - z_offset;
+    self.pos.y = follow_pos.0.y + v_dist;
   }
 
   fn calc_h_distance(&self) -> f32 {self.dist_from_focus_pos * self.pitch.to_radians().cos()}

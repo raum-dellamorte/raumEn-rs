@@ -95,7 +95,7 @@ impl<'a> System<'a> for DrawTexMods {
         lighting.load_to_shader(shader);
       }
       transform.set_identity();
-      transform.translate_v3f(&p.pos);
+      transform.translate_v3f(&p.0);
       // transform.scale(&p.scale(200.0));
       shader.load_matrix("u_Transform", &transform);
       r_draw_triangles(model);

@@ -65,9 +65,11 @@ use {
       },
       position::{
         PlayerInput,
+        ApplyMovement,
         UpdatePos,
         UpdateDeltaVelocity,
         ApplyGravity,
+        ApplyRotation,
         Collision,
       },
       terrain::{
@@ -247,12 +249,23 @@ fn main() {
   follow_player.dispatch(&world.res);
   
   let mut move_player = DispatcherBuilder::new()
-      .with_thread_local(PlayerInput)
-      .with_thread_local(ApplyGravity)
-      .with_thread_local(Collision)
-      .with_thread_local(UpdateDeltaVelocity)
-      .with_thread_local(UpdatePos)
+      .with(PlayerInput, "PlayerInput", &[])
+      .with(ApplyMovement, "ApplyMovement", &["PlayerInput"])
+      .with(ApplyGravity, "ApplyGravity", &[])
+      .with(ApplyRotation, "ApplyRotation", &[])
+      .with(UpdateDeltaVelocity, "UpdateDeltaVelocity", &["ApplyRotation", "ApplyMovement"])
+      .with(Collision, "Collision", &["UpdateDeltaVelocity", "ApplyGravity"])
+      .with(UpdatePos, "UpdatePos", &["Collision"])
       .build();
+  
+  // let mut move_player = DispatcherBuilder::new()
+  //     .with_thread_local(PlayerInput)
+  //     .with_thread_local(ApplyGravity)
+  //     .with_thread_local(ApplyRotation)
+  //     .with_thread_local(UpdateDeltaVelocity)
+  //     .with_thread_local(Collision)
+  //     .with_thread_local(UpdatePos)
+  //     .build();
   move_player.setup(&mut world.res);
   move_player.dispatch(&world.res);
   

@@ -6,7 +6,7 @@ use {
     Matrix4f, 
   },
   specs::{
-    System, Read, ReadStorage, Entities, Join, 
+    System, Read, ReadStorage, WriteStorage, Entities, Join, 
   },
   ecs::{
     c::{
@@ -24,6 +24,7 @@ use {
       terrain::Platform,
     },
   },
+  flags::*,
   util::rgl::*,
   
   ViewMatrix,
@@ -100,3 +101,19 @@ impl<'a> System<'a> for DrawPlatform {
   }
 }
 
+/// We want to mark platforms within a certain distance as local to the player
+/// so we know which should be processed when dealing with movement and other 
+/// things.  We don't want to have to process every platform in existence every
+/// time we want to know where a player can jump.
+pub struct MarkLocalToPlayer;
+impl<'a> System<'a> for MarkLocalToPlayer {
+  type SystemData = (
+    Entities<'a>,
+    ReadStorage<'a, Platform>,
+    WriteStorage<'a, LocalToPlayer>,
+  );
+  fn run(&mut self, data: Self::SystemData) {
+    let (_ents, _pforms, mut _local) = data;
+    
+  }
+}
