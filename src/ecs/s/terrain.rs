@@ -66,9 +66,9 @@ impl<'a> System<'a> for DrawPlatform {
     let mut last_model = &d[0] .2 .0;
     let mut last_texture = &d[0] .3 .0;
     let mut model: &Model = &models.0.get(last_model)
-        .expect(&format!("DrawPlatform: No such Model :{}", last_model));
+        .unwrap_or_else(|| panic!("DrawPlatform: No such Model :{}", last_model));
     let mut texture: &Texture = &textures.0.get(last_texture)
-        .expect(&format!("DrawPlatform: No such Texture :{}", last_texture));
+        .unwrap_or_else(|| panic!("DrawPlatform: No such Texture :{}", last_texture));
     shader.start();
     shader.load_matrix("u_View", &(*view).view);
     // shader.load_vec_3f("light_pos", &(*light).pos); // Unimplemented
