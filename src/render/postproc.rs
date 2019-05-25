@@ -15,13 +15,12 @@ pub struct RenderPostProc {
   pub quad_id: u32,
   pub textures: Vec<Texture>,
 }
-
 impl RenderPostProc {
   pub fn new(effect: &str, quad_id: u32, textures: Vec<Texture>) -> Self {
     Self {
       shader: gen_fog_shader(effect),
-      quad_id: quad_id,
-      textures: textures,
+      quad_id,
+      textures,
     }
   }
   pub fn render(&self) {
