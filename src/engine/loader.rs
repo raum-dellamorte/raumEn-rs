@@ -85,7 +85,7 @@ impl Loader {
     BindBuffer(ARRAY_BUFFER, vbo_id);
     BufferData(ARRAY_BUFFER,
       (data.len() * mem::size_of::<GLfloat>()) as GLsizeiptr,
-      mem::transmute(&data[0]),
+      &data[0] as *const f32 as *const std::ffi::c_void,
       STATIC_DRAW);
     VertexAttribPointer(attrib, step, FLOAT, FALSE, 0, ptr::null());
     BindBuffer(ARRAY_BUFFER, 0_u32);
@@ -97,7 +97,7 @@ impl Loader {
     let _idxs = indices_to_gluints(idxs);
     BufferData(ELEMENT_ARRAY_BUFFER,
       (_idxs.len() * mem::size_of::<GLuint>()) as GLsizeiptr,
-      mem::transmute(&_idxs[0]),
+      &_idxs[0] as *const u32 as *const std::ffi::c_void,
       STATIC_DRAW);
   }}
   pub fn unbind_vao(&self) { unsafe {
@@ -121,7 +121,7 @@ impl Loader {
       BindTexture(TEXTURE_2D, tex_id);
       TexImage2D(
         TEXTURE_2D, 0, RGBA as i32, width as i32, height as i32, 0, RGBA, UNSIGNED_BYTE, 
-        mem::transmute(&img_raw[0])
+        &img_raw[0] as *const u8 as *const std::ffi::c_void
       );
       TexParameteri(TEXTURE_2D, TEXTURE_WRAP_S, REPEAT as i32);
       TexParameteri(TEXTURE_2D, TEXTURE_WRAP_T, REPEAT as i32);
@@ -204,7 +204,7 @@ pub fn verts_tex_coords_to_glfloats(verts: &[RVertex]) -> Vec<GLfloat> {
 pub fn indices_to_gluints(idxs: &[u16]) -> Vec<GLuint> {
   let mut out = Vec::new();
   for idx in idxs {
-    out.push(*idx as GLuint);
+    out.push(u32::from(*idx));
   }
   out
 }
