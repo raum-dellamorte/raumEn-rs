@@ -31,10 +31,10 @@ impl GuiText {
       font: font.to_owned(),
       label: label.to_owned(),
       text: text.to_owned(),
-      position: position,
-      font_size: font_size,
-      line_max_size: line_max_size,
-      is_centered: is_centered,
+      position,
+      font_size,
+      line_max_size,
+      is_centered,
       num_of_lines: 0,
       colour: Vector3f::blank(),
       text_mesh_vao: 0,
@@ -47,7 +47,7 @@ impl GuiText {
     // println!("Attempting to load guitext to vao");
     let mut data: Option<RTextMesh> = None;
     {
-      for font in textmgr.fonts.get_mut(&self.font) {
+      if let Some(font) = textmgr.fonts.get_mut(&self.font) {
         let mut tmp = self.copy_vals();
         data = Some(font.load_text(&mut tmp));
         // println!("  data: {:?}", &data);
