@@ -17,7 +17,7 @@ pub struct HUD {
 impl HUD {
   pub fn new(quad_id: u32) -> Self {
     HUD {
-      quad_id: quad_id,
+      quad_id,
       elements: Vec::new(),
     }
   }
@@ -35,9 +35,9 @@ pub struct GuiObj {
   pub tex_id: u32,
   pub depth_tex_id: u32,
 }
-impl GuiObj {
-  pub fn new() -> Self {
-    GuiObj {
+impl Default for GuiObj {
+  fn default() -> Self {
+    Self {
       pos: Vector2f::new(0.25,0.75),
       pos_last: Vector2f::new(0.0,0.0),
       scale: Vector2f {x: 0.25, y: 0.25},
@@ -49,6 +49,11 @@ impl GuiObj {
       depth_tex_id: 0,
     }
   }
+}
+impl GuiObj {
+  pub fn new() -> Self {
+    Self::default()
+  }
   pub fn transformation(&mut self) -> &Matrix4f {
     self.calc_transformation();
     &self.transmat
@@ -58,9 +63,9 @@ impl GuiObj {
     if self.pos == self.pos_last { return }
     self.pos_last.copy_from_v2f(self.pos);
     self.transmat.set_identity();
-    let x = (&self.pos.x *  2.0_f32) - 1.0_f32;
-    let y = (&self.pos.y * -2.0_f32) + 1.0_f32;
-    self.transmat.translate_v3f(&Vector3f {x: x, y: y, z: 0.0_f32});
+    let x = (self.pos.x *  2.0_f32) - 1.0_f32;
+    let y = (self.pos.y * -2.0_f32) + 1.0_f32;
+    self.transmat.translate_v3f(&Vector3f {x, y, z: 0.0_f32});
     self.transmat.scale(&Vector3f::new(self.scale.x, self.scale.y, 1.0));
   }
 }
