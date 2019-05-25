@@ -51,20 +51,20 @@ impl Ord for ModelComponent {
     if self == other { return Ordering::Equal }
     let mut a: Vec<char> = self.0.chars().collect();
     let mut b: Vec<char> = other.0.chars().collect();
-    while a.len() > 0 && b.len() > 0 {
+    while !a.is_empty() && !b.is_empty() {
       match (a.pop(), b.pop()) {
         (ac,bc) if bc < ac => { return Ordering::Less } 
         (ac,bc) if bc > ac => { return Ordering::Greater } 
         _ => {}
       };
     };
-    return if a.len() == 0 { Ordering::Greater } else { Ordering::Less }
+    if a.is_empty() { Ordering::Greater } else { Ordering::Less }
   }
 }
 impl PartialOrd for ModelComponent {
   fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
     if self == other { return Some(Ordering::Equal) }
-    return if self < other { Some(Ordering::Less) } else { Some(Ordering::Greater) }
+    if self < other { Some(Ordering::Less) } else { Some(Ordering::Greater) }
   }
 }
 
@@ -88,8 +88,8 @@ impl Material {
       name: name.to_string(),
       texture: texture.to_string(),
       lighting: lighting.to_string(),
-      tex_index: tex_index,
-      row_count: row_count,
+      tex_index,
+      row_count,
       offset: Vector2f::blank(),
       multi_tex: false
     };
