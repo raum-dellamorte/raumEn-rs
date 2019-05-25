@@ -51,8 +51,8 @@ impl Fbo {
     let mut out = Fbo {
       width: if width == 0 { w as i32 } else { width },
       height: if height == 0 { h as i32 } else { height },
-      color_type: color_type,
-      depth_type: depth_type,
+      color_type,
+      depth_type,
       frame_buffer_id: 0,
       color_tex_id: 0,
       depth_tex_id: 0,
@@ -128,12 +128,9 @@ impl Fbo {
     self.frame_buffer_id = id;
     BindFramebuffer(FRAMEBUFFER, id);
     let mut buffers = vec![COLOR_ATTACHMENT0];
-    match self.color_type {
-      ColorMultisampleRenderBuffers2 => { buffers.push(COLOR_ATTACHMENT1); }
-      _ => {}
-    }
-    use std::mem;
-    DrawBuffers(buffers.len() as i32, mem::transmute(&buffers[0]));
+    if let ColorMultisampleRenderBuffers2 = self.color_type { buffers.push(COLOR_ATTACHMENT1); }
+    // use std::mem;
+    DrawBuffers(buffers.len() as i32, &buffers[0] as *const u32);
   }}
   fn create_color_texture_attachment(&mut self) { unsafe {
     let id = r_gen_textures();
