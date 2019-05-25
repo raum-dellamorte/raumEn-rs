@@ -7,9 +7,11 @@ pub struct RVertex {
     pub tex_coords: [f32; 2],
     pub is_set: bool,
 }
-
-//impl_vertex!(Vertex, position, normal, tex_coords);
-
+impl Default for RVertex {
+  fn default() -> Self {
+    Self::new()
+  }
+}
 impl RVertex {
   pub fn new() -> Self {
     RVertex {
@@ -26,9 +28,11 @@ pub struct RVertex2D {
   pub position: [f32; 2],
   pub tex_coords: [f32; 2],
 }
-
-//impl_vertex!(Vertex2D, position, tex_coords);
-
+impl Default for RVertex2D {
+  fn default() -> Self {
+    Self::new()
+  }
+}
 impl RVertex2D {
   pub fn new() -> Self {
     RVertex2D {
