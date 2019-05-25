@@ -29,11 +29,10 @@ pub fn round_to<F: Float>(f: F, places: i32) -> F {
   if f == zero { return zero }
   let ten: F = NumCast::from(10).unwrap();
   let p: F = ten.powi(places);
-  let out = (f * p).round() / p;
-  out
+  (f * p).round() / p
 }
 
-pub fn barry_centric(p1: &Vector3f, p2: &Vector3f, p3: &Vector3f, pos: &Vector2f) -> f32 {
+pub fn barry_centric(p1: &Vector3f, p2: &Vector3f, p3: &Vector3f, pos: Vector2f) -> f32 {
   let det: f32 = ((p2.z - p3.z) * (p1.x - p3.x)) + ((p3.x - p2.x) * (p1.z - p3.z));
   let l1: f32 = (((p2.z - p3.z) * (pos.x - p3.x)) + ((p3.x - p2.x) * (pos.y - p3.z))) / det;
   let l2: f32 = (((p3.z - p1.z) * (pos.x - p3.x)) + ((p1.x - p3.x) * (pos.y - p3.z))) / det;
@@ -50,14 +49,14 @@ pub fn create_transformation_matrix_vf3(matrix: &mut Matrix4f, translation: &Vec
   matrix.scale(&Vector3f::new(scale, scale, scale));
 }
 
-pub fn create_transformation_matrix_v2f_ordered(matrix: &mut Matrix4f, translation: &Vector2f, scale: &Vector2f, draw_order: usize) {
+pub fn create_transformation_matrix_v2f_ordered(matrix: &mut Matrix4f, translation: Vector2f, scale: Vector2f, draw_order: usize) {
   matrix.set_identity();
   let depth = -((draw_order as f32) * 0.00001);
   matrix.translate_v3f(&Vector3f::new(translation.x, translation.y, depth));
   matrix.scale(&Vector3f::new(scale.x, scale.y, 1.0_f32));
 }
 
-pub fn create_transformation_matrix_v2f(matrix: &mut Matrix4f, translation: &Vector2f, scale: &Vector2f) {
+pub fn create_transformation_matrix_v2f(matrix: &mut Matrix4f, translation: Vector2f, scale: Vector2f) {
   create_transformation_matrix_v2f_ordered(matrix, translation, scale, 0);
 }
 

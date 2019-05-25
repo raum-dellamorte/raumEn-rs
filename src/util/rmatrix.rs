@@ -70,24 +70,22 @@ impl Matrix4f {
                     0.0, 0.0, 0.0, 0.0_f32];
   }
   
-  pub fn index_assign(&mut self, idx: usize, value: &Option<f32>) {
-    match (idx, *value) {
+  pub fn index_assign(&mut self, idx: usize, value: Option<f32>) {
+    match (idx, value) {
       (i, Some(val)) if i < 16 => self.matrix[i] = val,
       ( _, None ) => (),
       ( _, Some(_) ) => ()
     }
   }
   
-  pub fn from_vec(&mut self, src: [Option<f32>; 16]) {
-    for i in 0..16 {
-      self.index_assign(i, &src[i])
+  pub fn copy_from_vec(&mut self, src: [Option<f32>; 16]) {
+    for (i, val) in src.iter().enumerate() {
+      self.index_assign(i, *val);
     }
   }
   
-  pub fn from_m4f(&mut self, src: &Matrix4f) {
-    for i in 0..16 {
-      self.matrix[i] = src.matrix[i];
-    }
+  pub fn copy_from_m4f(&mut self, src: &Matrix4f) {
+    self.matrix[..16].clone_from_slice(&src.matrix[..16]);
   }
 
   pub fn determinant(&self) -> f32 {
@@ -109,14 +107,14 @@ impl Matrix4f {
     let determinant = self.determinant();
     if determinant == 0.0_f32 { return false }
     let tmp = invert_math(self, 1_f32 / determinant);
-    self.from_vec(tmp);
+    self.copy_from_vec(tmp);
     true
   }
   
   pub fn invert_from(&mut self, src: &Matrix4f) -> bool {
     let determinant = src.determinant();
     if determinant == 0.0_f32 { return false }
-    self.from_vec(invert_math(src, 1_f32 / determinant));
+    self.copy_from_vec(invert_math(src, 1_f32 / determinant));
     true
   }
   
@@ -140,44 +138,44 @@ impl Matrix4f {
   
   pub fn rotate(&mut self, angle: f32, axis: &Vector3f) {
     let tmp = rotate_math(angle, axis, self);
-    self.from_vec(tmp);
+    self.copy_from_vec(tmp);
   }
   
-  pub fn rotate_from(&mut self, angle: f32, axis: &Vector3f, src: &Matrix4f) { self.from_vec(rotate_math(angle, axis, src)); }
+  pub fn rotate_from(&mut self, angle: f32, axis: &Vector3f, src: &Matrix4f) { self.copy_from_vec(rotate_math(angle, axis, src)); }
   
-  pub fn rotate_to(&self, angle: f32, axis: &Vector3f, dest: &mut Matrix4f) { dest.from_vec(rotate_math(angle, axis, self)); }
+  pub fn rotate_to(&self, angle: f32, axis: &Vector3f, dest: &mut Matrix4f) { dest.copy_from_vec(rotate_math(angle, axis, self)); }
   
   pub fn scale(&mut self, vec: &Vector3f) {
     let tmp = scale_math(vec, self);
-    self.from_vec(tmp);
+    self.copy_from_vec(tmp);
   }
   
-  pub fn scale_to(&self, vec: &Vector3f, dest: &mut Matrix4f) { dest.from_vec(scale_math(vec, self)) }
+  pub fn scale_to(&self, vec: &Vector3f, dest: &mut Matrix4f) { dest.copy_from_vec(scale_math(vec, self)) }
   
-  pub fn translate_v2f(&mut self, vec: &Vector2f) {
+  pub fn translate_v2f(&mut self, vec: Vector2f) {
     let tmp = translate_math_v2f(vec, self);
-    self.from_vec(tmp);
+    self.copy_from_vec(tmp);
   }
   
-  pub fn translate_from_v2f(&mut self, vec: &Vector2f, src: &Matrix4f) { self.from_vec(translate_math_v2f(vec, src)) }
+  pub fn translate_from_v2f(&mut self, vec: Vector2f, src: &Matrix4f) { self.copy_from_vec(translate_math_v2f(vec, src)) }
   
-  pub fn translate_to_v2f(&self, vec: &Vector2f, dest: &mut Matrix4f) { dest.translate_from_v2f(vec, self) }
+  pub fn translate_to_v2f(&self, vec: Vector2f, dest: &mut Matrix4f) { dest.translate_from_v2f(vec, self) }
   
   pub fn translate_v3f(&mut self, vec: &Vector3f) {
     let tmp = translate_math_v3f(vec, self);
-    self.from_vec(tmp);
+    self.copy_from_vec(tmp);
   }
   
-  pub fn translate_from_v3f(&mut self, vec: &Vector3f, src: &Matrix4f) { self.from_vec(translate_math_v3f(vec, src)) }
+  pub fn translate_from_v3f(&mut self, vec: &Vector3f, src: &Matrix4f) { self.copy_from_vec(translate_math_v3f(vec, src)) }
   
   pub fn translate_to_v3f(&self, vec: &Vector3f, dest: &mut Matrix4f) { dest.translate_from_v3f(vec, self) }
   
   pub fn transpose(&mut self) {
     let tmp = transpose_math(self);
-    self.from_vec(tmp);
+    self.copy_from_vec(tmp);
   }
   
-  pub fn transpose_from(&mut self, src: &Matrix4f) { self.from_vec(transpose_math(src)); }
+  pub fn transpose_from(&mut self, src: &Matrix4f) { self.copy_from_vec(transpose_math(src)); }
   
   pub fn transpose_to(&self, dest: &mut Matrix4f) { dest.transpose_from(self); }
   
@@ -205,7 +203,7 @@ impl Add for Matrix4f {
 
 impl AddAssign for Matrix4f {
   fn add_assign(&mut self, other: Matrix4f) {
-    self.matrix = self.add(other).matrix.clone();
+    self.matrix = self.add(other).matrix;
   }
 }
 
@@ -224,7 +222,7 @@ impl Sub for Matrix4f {
 
 impl SubAssign for Matrix4f {
   fn sub_assign(&mut self, other: Matrix4f) {
-    self.matrix = self.sub(other).matrix.clone();
+    self.matrix = self.sub(other).matrix;
   }
 }
 
@@ -446,7 +444,7 @@ pub fn translate_math_v3f(vec: &Vector3f, src: &Matrix4f) -> [Option<f32>; 16] {
   ]
 }
 
-pub fn translate_math_v2f(vec: &Vector2f, src: &Matrix4f) -> [Option<f32>; 16] {
+pub fn translate_math_v2f(vec: Vector2f, src: &Matrix4f) -> [Option<f32>; 16] {
   [
     None, None, None, None,
     None, None, None, None,
