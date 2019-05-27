@@ -143,6 +143,7 @@ impl Vector3f {
   //   self.z = other.z;
   // }
   pub fn rotate_y_to(&self, dest: &mut Self, theta: f32) {
+    let theta = theta.to_radians();
     dest.x = ( self.x * theta.cos()) - (self.z * theta.sin());
     dest.y = self.y;
     dest.z = (-self.x * theta.sin()) + (self.z * theta.cos());
