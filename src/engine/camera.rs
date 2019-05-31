@@ -39,6 +39,7 @@ pub struct Camera {
   
   to_pos: Vector3f,
   to_focus_pos: Vector3f,
+  initialised: bool,
   
   pub view_mat: Matrix4f,
 }
@@ -59,6 +60,7 @@ impl Default for Camera {
       mouse_rate: 1.0_f32,
       to_pos: Vector3f {x: 0_f32, y: 0_f32, z: 0_f32},
       to_focus_pos: Vector3f {x: 0_f32, y: 0_f32, z: 0_f32},
+      initialised: false,
       view_mat: Matrix4f::new(),
     }
   }
@@ -107,9 +109,9 @@ impl Camera {
     
     let ry_new = follow_rot.0.y;
     let ry_diff = self.focus_ry - ry_new;
-    if ry_diff.abs() > 0.01 {
-      self.focus_ry = drift_to_zero(ry_diff, rate, 0.1) + ry_new;
-    }
+    self.focus_ry = if self.initialised && ry_diff.abs() > 0.01 {
+      drift_to_zero(ry_diff, rate, 1.0) + ry_new
+    } else { ry_new };
     self.yaw = 180_f32 - (self.focus_ry + self.focus_angle);
     
     let theta = self.focus_ry + self.focus_angle;
@@ -117,7 +119,14 @@ impl Camera {
     let z_offset = h_dist * theta.to_radians().cos();
     self.pos.x = follow_pos.0.x - x_offset;
     self.pos.z = follow_pos.0.z - z_offset;
-    self.pos.y = follow_pos.0.y + v_dist;
+    let y_new = follow_pos.0.y + v_dist;
+    let y_diff = self.pos.y - y_new;
+    self.pos.y = if self.initialised && y_diff.abs() > 0.05 {
+      drift_to_zero(y_diff, rate, 2.0) + y_new
+    } else {
+      self.initialised = true;
+      y_new
+    };
   }
 
   fn calc_h_distance(&self) -> f32 {self.dist_from_focus_pos * self.pitch.to_radians().cos()}
