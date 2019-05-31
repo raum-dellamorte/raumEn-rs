@@ -5,7 +5,10 @@ use {
     Component, VecStorage, DenseVecStorage
   },
   util::{
-    Vector3f, // Vector4f,
+    RVec,
+    Vector3f,
+    Quaternion,
+    Matrix4f,
     modulo,
   },
 };
@@ -105,7 +108,7 @@ impl JumpArc {
   pub fn new() -> Self {
     Self::default()
   }
-  pub fn init(&mut self, _orig: &Vector3f, _dest: &Vector3f) {
+  pub fn init(&mut self, _orig: Vector3f, _dest: Vector3f) {
     {
       let (orig, last, dest, time) = (
         &mut self.orig, &mut self.last, &mut self.dest, &mut self.time
@@ -119,16 +122,16 @@ impl JumpArc {
     }
     println!("{:?}", self);
   }
-  pub fn calc_pos(&mut self, delta: f32) -> &Vector3f {
+  pub fn calc_pos(&mut self, delta: f32) -> Vector3f {
     if !self.fin {
       let (orig, dest, last, current, time) = (
         &self.orig, &self.dest, &mut self.last, &mut self.current, &mut self.time
       );
       *time += delta; // 5_f32 * 
-      last.copy_from_v3f(current);
+      last.copy_from_v3f(*current);
       if *time >= Self::JUMPTIME {
         *time = Self::JUMPTIME;
-        current.copy_from_v3f(dest);
+        current.copy_from_v3f(*dest);
         self.fin = true;
       } else {
         let percent = *time / Self::JUMPTIME;
@@ -140,7 +143,7 @@ impl JumpArc {
       }
     }
     self.delta.copy_from_f32(self.current.x - self.last.x, self.current.y - self.last.y, self.current.z - self.last.z);
-    &self.delta
+    self.delta
   }
   pub fn check_peak(&mut self) -> bool {
     if self.peak {
@@ -152,15 +155,88 @@ impl JumpArc {
   }
 }
 
+// #[derive(Component, Debug)]
+// #[storage(VecStorage)]
+// pub enum MovementType {
+//   MoveForward,
+//   MoveBackward,
+//   StrafeLeft,
+//   StrafeRight,
+//   TurnLeft,
+//   TurnRight,
+//   Jump,
+//   // JumpForward,
+//   // JumpBackward,
+//   // JumpLeft,
+//   // JumpRight,
+// }
+
 #[derive(Component, Debug)]
-#[storage(VecStorage)]
-pub enum MovementType {
-  MoveForward,
-  MoveBackward,
-  StrafeLeft,
-  StrafeRight,
-  // JumpForward,
-  // JumpBackward,
-  // JumpLeft,
-  // JumpRight,
+#[storage(DenseVecStorage)]
+pub struct Rotator {
+  q: Quaternion,
+  q1: Quaternion,
+  p: Quaternion,
+  axis: Vector3f,
+  theta: f32,
+  mag: f32,
+}
+impl Default for Rotator {
+  fn default() -> Self {
+    Self {
+      q: Quaternion::new(1.,0.,0.,0.),
+      q1: Quaternion::new(1.,0.,0.,0.),
+      p: Quaternion::new(0.,0.,0.,0.),
+      axis: crate::util::YVEC,
+      theta: 0.,
+      mag: 1.,
+    }
+  }
+}
+impl Rotator {
+  pub fn calibrate(&mut self) -> &mut Self {
+    if (self.p.len_sqr() - 1.).abs() > 0.00001 {
+      self.mag = self.p.len();
+      if self.mag != 0. { self.p.divscale(self.mag); }
+    };
+    self
+  }
+  pub fn set_point(&mut self, point: Vector3f) -> &mut Self {
+    self.p.w = 0.;
+    self.p.x = point.x;
+    self.p.y = point.y;
+    self.p.z = point.z;
+    self
+  }
+  pub fn set_axis(&mut self, axis: Vector3f) -> &mut Self {
+    self.axis = axis;
+    if (self.axis.len_sqr() - 1.).abs() > 0.0001 {
+      let mag = self.axis.len();
+      if mag != 0. { self.axis.divscale(mag); }
+    };
+    self
+  }
+  pub fn set_angle(&mut self, theta: f32) -> &mut Self {
+    self.theta = theta;
+    self
+  }
+  pub fn rotate(&mut self) -> &mut Self {
+    let theta = self.theta.to_radians() / 2.;
+    self.q.w = theta.cos();
+    self.q.x = self.axis.x * theta.sin();
+    self.q.y = self.axis.y * theta.sin();
+    self.q.z = self.axis.z * theta.sin();
+    self.q1 = self.q.conjugate();
+    self.p = (self.q * self.p) * self.q1;
+    self
+  }
+  pub fn get_point(&mut self, dest: &mut Vector3f) -> &mut Self {
+    dest.x = self.p.x * self.mag;
+    dest.y = self.p.y * self.mag;
+    dest.z = self.p.z * self.mag;
+    self
+  }
+  pub fn get_matrix(&self, dest: &mut Matrix4f) {
+    dest.gen_from_quat(self.p);
+  }
 }

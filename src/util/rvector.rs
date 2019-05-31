@@ -4,7 +4,7 @@
 
 use {
   std::{
-    ops::{Add, AddAssign, Sub, SubAssign},
+    ops::{Add, AddAssign, Sub, SubAssign, Neg, Mul},
     fmt,
   },
 }; // , Div, DivAssign, Mul, MulAssign
@@ -22,12 +22,12 @@ pub struct Vector3f {
   pub z: f32,
 }
 
-#[derive(Debug, Copy, Clone)]
-pub struct Vector4f {
+#[derive(Clone,Copy,Debug)]
+pub struct Quaternion {
+  pub w: f32,
   pub x: f32,
   pub y: f32,
   pub z: f32,
-  pub w: f32,
 }
 
 pub const XVEC: Vector3f = Vector3f {x: 1.0_f32, y: 0.0_f32, z: 0.0_f32};
@@ -35,25 +35,32 @@ pub const YVEC: Vector3f = Vector3f {x: 0.0_f32, y: 1.0_f32, z: 0.0_f32};
 pub const ZVEC: Vector3f = Vector3f {x: 0.0_f32, y: 0.0_f32, z: 1.0_f32};
 
 pub trait RVec {
+  fn sum(&self) -> f32;
   fn len_sqr(&self) -> f32;
   fn len(&self) -> f32 { ((self.len_sqr() as f32).sqrt() as f32) }
   fn scale(&mut self, scale: f32);
+  fn divscale(&mut self, scale: f32);
   fn negate(&mut self);
   fn normalize(&mut self) {
-    let l = self.len();
-    if l != 0.0_f32 {
-      self.scale(1.0_f32 / l)
+    let mag = self.len();
+    if mag != 0.0_f32 {
+      self.divscale(mag);
     } else {
-      panic!("Zero length vector")
+      panic!("Called normalize on zero length vector");
     }
   }
 }
 
 impl RVec for Vector2f {
+  fn sum(&self) -> f32 { self.x + self.y }
   fn len_sqr(&self) -> f32 { (self.x * self.x) + (self.y * self.y) }
   fn scale(&mut self, scale: f32) {
     self.x *= scale;
     self.y *= scale;
+  }
+  fn divscale(&mut self, scale: f32) {
+    self.x /= scale;
+    self.y /= scale;
   }
   fn negate(&mut self) {
     self.x = -self.x;
@@ -62,11 +69,17 @@ impl RVec for Vector2f {
 }
 
 impl RVec for Vector3f {
+  fn sum(&self) -> f32 { self.x + self.y + self.z }
   fn len_sqr(&self) -> f32 { (self.x * self.x) + (self.y * self.y) +  (self.z * self.z) }
   fn scale(&mut self, scale: f32) {
     self.x *= scale;
     self.y *= scale;
     self.z *= scale;
+  }
+  fn divscale(&mut self, scale: f32) {
+    self.x /= scale;
+    self.y /= scale;
+    self.z /= scale;
   }
   fn negate(&mut self) {
     self.x = -self.x;
@@ -75,13 +88,20 @@ impl RVec for Vector3f {
   }
 }
 
-impl RVec for Vector4f {
+impl RVec for Quaternion {
+  fn sum(&self) -> f32 { self.x + self.y + self.z + self.w }
   fn len_sqr(&self) -> f32 { (self.x * self.x) + (self.y * self.y) +  (self.z * self.z) + (self.w * self.w)}
   fn scale(&mut self, scale: f32) {
+    self.w *= scale;
     self.x *= scale;
     self.y *= scale;
     self.z *= scale;
-    self.w *= scale;
+  }
+  fn divscale(&mut self, n: f32) {
+    self.w /= n;
+    self.x /= n;
+    self.y /= n;
+    self.z /= n;
   }
   fn negate(&mut self) {
     self.x = -self.x;
@@ -112,7 +132,7 @@ impl Vector2f {
 impl Vector3f {
   //#[derive_keyword_argument_macro("new", x=0.0, y=0.0, z=0.0)]
   pub fn new(x: f32, y: f32, z: f32) -> Self { Self {x, y, z} }
-  pub fn new_from_v3f(other: &Vector3f) -> Self { Self { x: other.x, y: other.y, z: other.z, } }
+  pub fn new_from_v3f(other: Vector3f) -> Self { Self { x: other.x, y: other.y, z: other.z, } }
   pub fn new_isize(x: isize, y: isize, z: isize) -> Self { Self {x: x as f32, y: y as f32, z: z as f32} }
   pub fn blank() -> Self { Vector3f::new_isize(0,0,0) }
   pub fn copy_from_isize(&mut self, x: isize, y: isize, z: isize) {
@@ -125,28 +145,31 @@ impl Vector3f {
     self.y = y;
     self.z = z;
   }
-  pub fn copy_from_v3f(&mut self, other: &Vector3f) {
+  pub fn copy_from_v3f(&mut self, other: Vector3f) {
     self.x = other.x;
     self.y = other.y;
     self.z = other.z;
   }
-  // pub fn xy_from_v3f(&mut self, other: &Vector3f) {
+  // pub fn xy_from_v3f(&mut self, other: Vector3f) {
   //   self.x = other.x;
   //   self.y = other.y;
   // }
-  pub fn xz_from_v3f(&mut self, other: &Vector3f) {
+  pub fn xz_from_v3f(&mut self, other: Vector3f) {
     self.x = other.x;
     self.z = other.z;
   }
-  // pub fn yz_from_v3f(&mut self, other: &Vector3f) {
+  // pub fn yz_from_v3f(&mut self, other: Vector3f) {
   //   self.y = other.y;
   //   self.z = other.z;
   // }
   pub fn rotate_y_to(&self, dest: &mut Self, theta: f32) {
     let theta = theta.to_radians();
-    dest.x = ( self.x * theta.cos()) - (self.z * theta.sin());
+    let dist = ((self.x * self.x) + (self.z * self.z)).sqrt();
+    let x = if self.x < 0.0 { -1.0 } else { 1.0 };
+    let z = if self.z < 0.0 { -1.0 } else { 1.0 };
+    dest.x = x * dist * theta.sin(); // (self.z * theta.cos()) - (self.x * theta.sin());
     dest.y = self.y;
-    dest.z = (-self.x * theta.sin()) + (self.z * theta.cos());
+    dest.z = z * dist * theta.cos(); // (self.x * theta.cos()) - (self.z * theta.sin());
   }
   pub fn xz_from_dist_rot_offset(&mut self, other: &Self, dist: f32, rot: f32) {
     let ry = rot.to_radians();
@@ -213,21 +236,51 @@ impl Vector3f {
   }
 }
 
-impl Vector4f {
-  fn new() -> Self { Vector4f {x: 0.0_f32, y: 0.0_f32, z: 0.0_f32, w: 0.0_f32} }
-  fn to_slice(&self) -> [f32; 4] { [self.x, self.y, self.z, self.w] }
+impl Default for Quaternion {
+  fn default() -> Self { Self::new(1.,0.,0.,0.) }
+}
+impl Quaternion {
+  pub fn new(w: f32, x: f32, y: f32, z: f32) -> Quaternion {
+    Self { w, x, y, z, }
+  }
+  pub fn normalize(&mut self) {
+    let n = self.len();
+    if n == 0. { return }
+    self.divscale(n);
+  }
   fn scale_to(&self, dest: &mut Self, scale: f32) {
+    (*dest).w = self.w * scale;
     (*dest).x = self.x * scale;
     (*dest).y = self.y * scale;
     (*dest).z = self.z * scale;
-    (*dest).w = self.w * scale;
   }
-  fn negate_to(&self, dest: &mut Self) {
+  fn divscale_to(&self, dest: &mut Self, scale: f32) {
+    (*dest).w = self.w * scale;
+    (*dest).x = self.x * scale;
+    (*dest).y = self.y * scale;
+    (*dest).z = self.z * scale;
+  }
+  pub fn conjugate(&self) -> Quaternion {
+    Self {
+      w: self.w,
+      x: -self.x,
+      y: -self.y,
+      z: -self.z,
+    }
+  }
+  fn conjugate_to(&self, dest: &mut Self) {
+    (*dest).w = self.w;
     (*dest).x = -self.x;
     (*dest).y = -self.y;
     (*dest).z = -self.z;
-    (*dest).w = -self.w;
   }
+  fn negate_to(&self, dest: &mut Self) {
+    (*dest).w = -self.w;
+    (*dest).x = -self.x;
+    (*dest).y = -self.y;
+    (*dest).z = -self.z;
+  }
+  fn to_slice(&self) -> [f32; 4] { [self.w, self.x, self.y, self.z] }
 }
 
 impl fmt::Display for Vector2f {
@@ -242,9 +295,9 @@ impl fmt::Display for Vector3f {
   }
 }
 
-impl fmt::Display for Vector4f {
-  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    write!(f, "Vector4f(x:{}, y:{}, z:{}, w:{})", self.x, self.y, self.z, self.w)
+impl fmt::Display for Quaternion {
+  fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+    write!(f, "({} + {}i + {}j + {}k)", self.w, self.x, self.y, self.z)
   }
 }
 
@@ -262,12 +315,12 @@ impl PartialEq for Vector3f {
 }
 impl Eq for Vector3f {}
 
-impl PartialEq for Vector4f {
+impl PartialEq for Quaternion {
   fn eq(&self, other: &Self) -> bool {
-    self.x == other.x && self.y == other.y && self.z == other.z && self.w == other.w
+    self.w == other.w && self.x == other.x && self.y == other.y && self.z == other.z
   }
 }
-impl Eq for Vector4f {}
+impl Eq for Quaternion {}
 
 impl Add for &Vector2f {
   type Output = Vector2f;
@@ -277,19 +330,51 @@ impl Add for &Vector2f {
   }
 }
 
-impl Add for &Vector3f {
+impl Add for Vector3f {
   type Output = Vector3f;
   
-  fn add(self, other: &Vector3f) -> Vector3f {
+  fn add(self, other: Vector3f) -> Vector3f {
     Vector3f {x: self.x + other.x, y: self.y + other.y, z: self.z + other.z}
   }
 }
 
-impl Add for &Vector4f {
-  type Output = Vector4f;
+impl Add for Quaternion {
+  type Output = Quaternion;
   
-  fn add(self, other: &Vector4f) -> Vector4f {
-    Vector4f {x: self.x + other.x, y: self.y + other.y, z: self.z + other.z, w: self.w + other.w}
+  #[inline]
+  fn add(self, other: Quaternion) -> Self::Output {
+    Quaternion {
+      w: self.w + other.w,
+      x: self.x + other.x,
+      y: self.y + other.y,
+      z: self.z + other.z,
+    }
+  }
+}
+impl Add<f32> for Quaternion {
+  type Output = Quaternion;
+  
+  #[inline]
+  fn add(self, other: f32) -> Self::Output {
+    Quaternion {
+      w: self.w + other,
+      x: self.x,
+      y: self.y,
+      z: self.z,
+    }
+  }
+}
+impl Add<Quaternion> for f32 {
+  type Output = Quaternion;
+  
+  #[inline]
+  fn add(self, other: Quaternion) -> Self::Output {
+    Quaternion {
+      w: other.w + self,
+      x: other.x,
+      y: other.y,
+      z: other.z,
+    }
   }
 }
 
@@ -308,12 +393,12 @@ impl AddAssign for Vector3f {
   }
 }
 
-impl AddAssign for Vector4f {
-  fn add_assign(&mut self, other: Vector4f) {
+impl AddAssign for Quaternion {
+  fn add_assign(&mut self, other: Quaternion) {
+    self.w += other.w;
     self.x += other.x;
     self.y += other.y;
     self.z += other.z;
-    self.w += other.w;
   }
 }
 
@@ -325,19 +410,51 @@ impl Sub for &Vector2f {
   }
 }
 
-impl Sub for &Vector3f {
+impl Sub for Vector3f {
   type Output = Vector3f;
   
-  fn sub(self, other: &Vector3f) -> Vector3f {
+  fn sub(self, other: Vector3f) -> Vector3f {
     Vector3f {x: self.x - other.x, y: self.y - other.y, z: self.z - other.z}
   }
 }
 
-impl Sub for &Vector4f {
-  type Output = Vector4f;
+impl Sub for Quaternion {
+  type Output = Quaternion;
   
-  fn sub(self, other: &Vector4f) -> Vector4f {
-    Vector4f {x: self.x - other.x, y: self.y - other.y, z: self.z - other.z, w: self.w - other.w}
+  #[inline]
+  fn sub(self, other: Quaternion) -> Self::Output {
+    Quaternion {
+      w: self.w - other.w,
+      x: self.x - other.x,
+      y: self.y - other.y,
+      z: self.z - other.z,
+    }
+  }
+}
+impl Sub<f32> for Quaternion {
+  type Output = Quaternion;
+  
+  #[inline]
+  fn sub(self, other: f32) -> Self::Output {
+    Quaternion {
+      w: self.w - other,
+      x: self.x,
+      y: self.y,
+      z: self.z,
+    }
+  }
+}
+impl Sub<Quaternion> for f32 {
+  type Output = Quaternion;
+  
+  #[inline]
+  fn sub(self, other: Quaternion) -> Self::Output {
+    Quaternion {
+      w: other.w - self,
+      x: other.x,
+      y: other.y,
+      z: other.z,
+    }
   }
 }
 
@@ -356,11 +473,64 @@ impl SubAssign for Vector3f {
   }
 }
 
-impl SubAssign for Vector4f {
-  fn sub_assign(&mut self, other: Vector4f) {
+impl SubAssign for Quaternion {
+  fn sub_assign(&mut self, other: Quaternion) {
+    self.w -= other.w;
     self.x -= other.x;
     self.y -= other.y;
     self.z -= other.z;
-    self.w -= other.w;
+  }
+}
+
+impl Mul for Quaternion {
+  type Output = Quaternion;
+  
+  #[inline]
+  fn mul(self, rhs: Quaternion) -> Self::Output {
+    Quaternion {
+      w: self.w * rhs.w - self.x * rhs.x - self.y * rhs.y - self.z * rhs.z,
+      x: self.w * rhs.x + self.x * rhs.w + self.y * rhs.z - self.z * rhs.y,
+      y: self.w * rhs.y - self.x * rhs.z + self.y * rhs.w + self.z * rhs.x,
+      z: self.w * rhs.z + self.x * rhs.y - self.y * rhs.x + self.z * rhs.w,
+    }
+  }
+}
+impl Mul<f32> for Quaternion {
+  type Output = Quaternion;
+  
+  #[inline]
+  fn mul(self, other: f32) -> Self::Output {
+    Quaternion {
+      w: self.w * other,
+      x: self.x * other,
+      y: self.y * other,
+      z: self.z * other,
+    }
+  }
+}
+impl Mul<Quaternion> for f32 {
+  type Output = Quaternion;
+  
+  #[inline]
+  fn mul(self, other: Quaternion) -> Self::Output {
+    Quaternion {
+      w: other.w * self,
+      x: other.x * self,
+      y: other.y * self,
+      z: other.z * self,
+    }
+  }
+}
+impl Neg for Quaternion {
+  type Output = Quaternion;
+  
+  #[inline]
+  fn neg(self) -> Self::Output {
+    Quaternion {
+      w: -self.w,
+      x: -self.x,
+      y: -self.y,
+      z: -self.z
+    }
   }
 }

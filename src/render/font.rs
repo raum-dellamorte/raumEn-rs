@@ -82,7 +82,7 @@ impl RenderFont {
                 BindVertexArray(gtext.text_mesh_vao);
                 EnableVertexAttribArray(0);
                 EnableVertexAttribArray(1);
-                self.shader.load_vec_3f("colour", &gtext.colour);
+                self.shader.load_vec_3f("colour", gtext.colour);
                 self.shader.load_vec_2f("translation", gtext.position);
                 DrawArrays(TRIANGLES, 0, gtext.vertex_count as i32);
                 DisableVertexAttribArray(0);

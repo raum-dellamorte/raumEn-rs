@@ -1,4 +1,4 @@
-use util::rvector::{Vector2f, Vector3f, Vector4f};
+use util::rvector::{Vector2f, Vector3f, Quaternion};
 use std::ops::{Add, AddAssign, Sub, SubAssign, Mul, MulAssign}; // , Div, DivAssign
 
 #[derive(Debug, Copy, Clone)]
@@ -87,6 +87,26 @@ impl Matrix4f {
   pub fn copy_from_m4f(&mut self, src: &Matrix4f) {
     self.matrix[..16].clone_from_slice(&src.matrix[..16]);
   }
+  
+  pub fn gen_from_quat(&mut self, q: Quaternion) {
+    self.matrix = [ 
+      q.w.powi(2) + q.x.powi(2) - q.y.powi(2) - q.z.powi(2),
+      (2. * q.x * q.y) - (2. * q.w * q.z),
+      (2. * q.x * q.z) + (2. * q.w * q.y),
+      0.0,
+      
+      (2. * q.x * q.y) + (2. * q.w * q.z),
+      q.w.powi(2) - q.x.powi(2) + q.y.powi(2) - q.z.powi(2),
+      (2. * q.y * q.z) + (2. * q.w * q.x),
+      0.0,
+      
+      (2. * q.x * q.z) - (2. * q.w * q.y),
+      (2. * q.y * q.z) - (2. * q.w * q.x),
+      q.w.powi(2) - q.x.powi(2) - q.y.powi(2) + q.z.powi(2),
+      0.0,
+      
+      0.0, 0.0, 0.0, 1.0_f32];
+  }
 
   pub fn determinant(&self) -> f32 {
     (self.m00() * (
@@ -136,21 +156,21 @@ impl Matrix4f {
   
   pub fn negate_to(&self, dest: &mut Matrix4f) { dest.negate_from(self); }
   
-  pub fn rotate(&mut self, angle: f32, axis: &Vector3f) {
+  pub fn rotate(&mut self, angle: f32, axis: Vector3f) {
     let tmp = rotate_math(angle, axis, self);
     self.copy_from_vec(tmp);
   }
   
-  pub fn rotate_from(&mut self, angle: f32, axis: &Vector3f, src: &Matrix4f) { self.copy_from_vec(rotate_math(angle, axis, src)); }
+  pub fn rotate_from(&mut self, angle: f32, axis: Vector3f, src: &Matrix4f) { self.copy_from_vec(rotate_math(angle, axis, src)); }
   
-  pub fn rotate_to(&self, angle: f32, axis: &Vector3f, dest: &mut Matrix4f) { dest.copy_from_vec(rotate_math(angle, axis, self)); }
+  pub fn rotate_to(&self, angle: f32, axis: Vector3f, dest: &mut Matrix4f) { dest.copy_from_vec(rotate_math(angle, axis, self)); }
   
-  pub fn scale(&mut self, vec: &Vector3f) {
+  pub fn scale(&mut self, vec: Vector3f) {
     let tmp = scale_math(vec, self);
     self.copy_from_vec(tmp);
   }
   
-  pub fn scale_to(&self, vec: &Vector3f, dest: &mut Matrix4f) { dest.copy_from_vec(scale_math(vec, self)) }
+  pub fn scale_to(&self, vec: Vector3f, dest: &mut Matrix4f) { dest.copy_from_vec(scale_math(vec, self)) }
   
   pub fn translate_v2f(&mut self, vec: Vector2f) {
     let tmp = translate_math_v2f(vec, self);
@@ -161,14 +181,14 @@ impl Matrix4f {
   
   pub fn translate_to_v2f(&self, vec: Vector2f, dest: &mut Matrix4f) { dest.translate_from_v2f(vec, self) }
   
-  pub fn translate_v3f(&mut self, vec: &Vector3f) {
+  pub fn translate_v3f(&mut self, vec: Vector3f) {
     let tmp = translate_math_v3f(vec, self);
     self.copy_from_vec(tmp);
   }
   
-  pub fn translate_from_v3f(&mut self, vec: &Vector3f, src: &Matrix4f) { self.copy_from_vec(translate_math_v3f(vec, src)) }
+  pub fn translate_from_v3f(&mut self, vec: Vector3f, src: &Matrix4f) { self.copy_from_vec(translate_math_v3f(vec, src)) }
   
-  pub fn translate_to_v3f(&self, vec: &Vector3f, dest: &mut Matrix4f) { dest.translate_from_v3f(vec, self) }
+  pub fn translate_to_v3f(&self, vec: Vector3f, dest: &mut Matrix4f) { dest.translate_from_v3f(vec, self) }
   
   pub fn transpose(&mut self) {
     let tmp = transpose_math(self);
@@ -369,7 +389,8 @@ fn invert_math(src: &Matrix4f, di: f32) -> [Option<f32>; 16] {
   ]
 }
 
-fn rotate_math(angle: f32, axis: &Vector3f, src: &Matrix4f) -> [Option<f32>; 16] {
+fn rotate_math(angle: f32, axis: Vector3f, src: &Matrix4f) -> [Option<f32>; 16] {
+  // let angle = angle.to_radians();
   let c = angle.cos();
   let s = angle.sin();
   let oneminusc = 1_f32 - c;
@@ -407,7 +428,7 @@ fn rotate_math(angle: f32, axis: &Vector3f, src: &Matrix4f) -> [Option<f32>; 16]
   ]
 }
 
-fn scale_math(vec: &Vector3f, src: &Matrix4f) -> [Option<f32>; 16] {
+fn scale_math(vec: Vector3f, src: &Matrix4f) -> [Option<f32>; 16] {
   [
     Some(src.m00() * vec.x),
     Some(src.m01() * vec.x),
@@ -425,14 +446,14 @@ fn scale_math(vec: &Vector3f, src: &Matrix4f) -> [Option<f32>; 16] {
   ]
 }
 
-pub fn transform(left: &Matrix4f, right: &Vector4f, dest: &mut Vector4f) {
-  dest.x = left.m00() * right.x + left.m10() * right.y + left.m20() * right.z + left.m30() * right.w;
-  dest.y = left.m01() * right.x + left.m11() * right.y + left.m21() * right.z + left.m31() * right.w;
-  dest.z = left.m02() * right.x + left.m12() * right.y + left.m22() * right.z + left.m32() * right.w;
-  dest.w = left.m03() * right.x + left.m13() * right.y + left.m23() * right.z + left.m33() * right.w;
+pub fn transform(left: &Matrix4f, right: Quaternion, dest: &mut Quaternion) { // This is prolly wrong and not needed
+  dest.w = left.m00() * right.w + left.m10() * right.x + left.m20() * right.y + left.m30() * right.z;
+  dest.x = left.m01() * right.w + left.m11() * right.x + left.m21() * right.y + left.m31() * right.z;
+  dest.y = left.m02() * right.w + left.m12() * right.x + left.m22() * right.y + left.m32() * right.z;
+  dest.z = left.m03() * right.w + left.m13() * right.x + left.m23() * right.y + left.m33() * right.z;
 }
 
-pub fn translate_math_v3f(vec: &Vector3f, src: &Matrix4f) -> [Option<f32>; 16] {
+pub fn translate_math_v3f(vec: Vector3f, src: &Matrix4f) -> [Option<f32>; 16] {
   [
     None, None, None, None,
     None, None, None, None,

@@ -50,7 +50,9 @@ use {
         Platform,
         TerrainNodes,
       },
-      position::PlayerLoc,
+      position::{
+        PlayerLoc, // Rotator,
+      },
     },
     e::{
       gen::{
@@ -65,7 +67,6 @@ use {
       },
       position::{
         PlayerInput,
-        ApplyMovement,
         UpdatePos,
         UpdateDeltaVelocity,
         ApplyGravity,
@@ -85,6 +86,7 @@ use {
     InScene,
     Falling,
   },
+  // util::Vector3f,
   // util::rgl::*,
   // entities::{
   //   EntityMgr,
@@ -250,10 +252,9 @@ fn main() {
   
   let mut move_player = DispatcherBuilder::new()
       .with(PlayerInput, "PlayerInput", &[])
-      .with(ApplyMovement, "ApplyMovement", &["PlayerInput"])
       .with(ApplyGravity, "ApplyGravity", &[])
       .with(ApplyRotation, "ApplyRotation", &[])
-      .with(UpdateDeltaVelocity, "UpdateDeltaVelocity", &["ApplyRotation", "ApplyMovement"])
+      .with(UpdateDeltaVelocity, "UpdateDeltaVelocity", &["ApplyRotation", "PlayerInput"])
       .with(Collision, "Collision", &["UpdateDeltaVelocity", "ApplyGravity"])
       .with(UpdatePos, "UpdatePos", &["Collision"])
       .build();

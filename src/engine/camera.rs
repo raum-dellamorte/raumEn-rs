@@ -65,14 +65,14 @@ impl Default for Camera {
 }
 impl Camera {
   pub fn store(&mut self) {
-    self.pos_bak.copy_from_v3f(&self.pos);
+    self.pos_bak.copy_from_v3f(self.pos);
     self.pitch_bak = self.pitch;
     self.yaw_bak = self.yaw;
     self.roll_bak = self.roll;
   }
 
   pub fn restore(&mut self) {
-    self.pos.copy_from_v3f(&self.pos_bak);
+    self.pos.copy_from_v3f(self.pos_bak);
     self.pitch = self.pitch_bak;
     self.yaw = self.yaw_bak;
     self.roll = self.roll_bak;
@@ -133,14 +133,14 @@ impl Camera {
     self.pitch = -self.pitch;
   }
 
-  pub fn dist_to_pos(&mut self, vec: &Vector3f) -> f32 {
+  pub fn dist_to_pos(&mut self, vec: Vector3f) -> f32 {
     vec.sub_to(&self.pos, &mut self.to_pos);
     self.to_pos.len()
   }
 
-  pub fn angle_to_entity(&mut self, focus_pos: &Vector3f, mob: &mut Mob) -> f32 {
+  pub fn angle_to_entity(&mut self, focus_pos: Vector3f, mob: &mut Mob) -> f32 {
     let mut marker = mob.pos.borrow_mut();
-    marker.distance = self.dist_to_pos(&marker.pos);
+    marker.distance = self.dist_to_pos(marker.pos);
     self.to_pos.normalize();
     focus_pos.sub_to(&self.pos, &mut self.to_focus_pos);
     self.to_focus_pos.normalize();
@@ -149,12 +149,12 @@ impl Camera {
   
   pub fn create_view_matrix(&mut self, view_mat: &mut Matrix4f) {
     view_mat.set_identity();
-    view_mat.rotate(self.pitch.to_radians(), &XVEC);
-    view_mat.rotate(self.yaw.to_radians(), &YVEC);
+    view_mat.rotate(self.pitch.to_radians(), XVEC);
+    view_mat.rotate(self.yaw.to_radians(), YVEC);
     let pos = self.pos;
     let mut neg_cam = Vector3f::blank();
     pos.negate_to(&mut neg_cam);
-    view_mat.translate_v3f(&neg_cam);
+    view_mat.translate_v3f(neg_cam);
   }
 }
 

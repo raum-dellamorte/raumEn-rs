@@ -21,7 +21,9 @@ use {
       material::{
         LightingComponent, ModelComponent, TextureComponent,
       },
-      position::Position,
+      position::{
+        Position, Rotation,
+      },
     },
   },
   flags::*,
@@ -47,6 +49,7 @@ impl<'a> System<'a> for DrawTexMods {
     (
       Entities<'a>,
       ReadStorage<'a, Position>,
+      ReadStorage<'a, Rotation>,
       ReadStorage<'a, ModelComponent>,
       ReadStorage<'a, TextureComponent>,
       ReadStorage<'a, LightingComponent>,
@@ -57,19 +60,20 @@ impl<'a> System<'a> for DrawTexMods {
     let (shader, view, models, textures, lightings) = data.0;
     let shader = &shader.shader;
     let mut transform = Matrix4f::new();
-    let _data = (&(data.1).0, &(data.1).1, &(data.1).2, &(data.1).3, &(data.1).4, &(data.1).5);
+    let (e, pos, rot, mc, tc, lc, is_tex_mod) = data.1;
+    let _data = (&e, &pos, &rot, &mc, &tc, &lc, &is_tex_mod);
     let mut d = _data.join().collect::<Vec<_>>();
     if d.is_empty() { return }
     d.sort_by(|&a,&b| {
-      match a.2 .0 .cmp(&b.2 .0) { // .2 is ModelComponent; .0 is the internal String
+      match a.3 .0 .cmp(&b.3 .0) { // .2 is ModelComponent; .0 is the internal String
         Ordering::Equal => {
-          a.3 .0 .cmp(&b.3 .0) // .3 is TextureComponent; .0 is the internal String
+          a.4 .0 .cmp(&b.4 .0) // .3 is TextureComponent; .0 is the internal String
         }
         x => { x }
       }
     });
-    let mut last_model = &d[0] .2 .0;
-    let mut last_texture = &d[0] .3 .0;
+    let mut last_model = &d[0] .3 .0;
+    let mut last_texture = &d[0] .4 .0;
     let mut model: &Model = &models.0.get(last_model)
         .unwrap_or_else(|| panic!("DrawTexMods: No such Model :{}", last_model));
     let mut texture: &Texture = &textures.0.get(last_texture)
@@ -80,7 +84,7 @@ impl<'a> System<'a> for DrawTexMods {
     // shader.load_vec_3f("light_color", &(*light).color);
     r_bind_vaa_3(model);
     r_bind_texture(texture);
-    for (_, p, m, t, l, _) in &d {
+    for (_, p, r, m, t, l, _) in d {
       if m.0 != *last_model {
         model = &models.0.get(&m.0).unwrap();
         last_model = &m.0;
@@ -95,7 +99,8 @@ impl<'a> System<'a> for DrawTexMods {
         lighting.load_to_shader(shader);
       }
       transform.set_identity();
-      transform.translate_v3f(&p.0);
+      transform.translate_v3f(p.0);
+      transform.rotate(r.0.y.to_radians(), crate::util::YVEC);
       // transform.scale(&p.scale(200.0));
       shader.load_matrix("u_Transform", &transform);
       r_draw_triangles(model);

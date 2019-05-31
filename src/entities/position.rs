@@ -65,7 +65,7 @@ impl PosMarker {
   // }
   pub fn move_to_new_pos(&mut self, rate: f32) {
     self.calc_fall(rate);
-    self.pos.copy_from_v3f(&self.new_pos);
+    self.pos.copy_from_v3f(self.new_pos);
   }
   // pub fn move_forward(&mut self, world: &mut Box<World>, forward: bool) {
   //   if self.moving { return }
@@ -208,11 +208,11 @@ impl PosMarker {
   }
   fn calc_transformation(&mut self) {
     self.trans_mat.set_identity();
-    self.trans_mat.translate_v3f(&self.pos);
-    self.trans_mat.rotate(self.rx.to_radians(), &XVEC);
-    self.trans_mat.rotate(self.ry.to_radians(), &YVEC);
-    self.trans_mat.rotate(self.rz.to_radians(), &ZVEC);
-    self.trans_mat.scale(&Vector3f::new(self.scale, self.scale, self.scale));
+    self.trans_mat.translate_v3f(self.pos);
+    self.trans_mat.rotate(self.rx.to_radians(), XVEC);
+    self.trans_mat.rotate(self.ry.to_radians(), YVEC);
+    self.trans_mat.rotate(self.rz.to_radians(), ZVEC);
+    self.trans_mat.scale(Vector3f::new(self.scale, self.scale, self.scale));
   }
   pub fn inc_rot(&mut self, dx: f32, dy: f32, dz: f32) {
     let rx = &mut self.rx; let ry = &mut self.ry; let rz = &mut self.rz;
@@ -269,7 +269,7 @@ impl Feelers {
       ry: 0.0,
     }
   }
-  // pub fn update(&mut self, world: &mut Box<World>, pos: &Vector3f, ry: f32, dist: f32) { // + is left! - is right! Turns are Counter-Clockwise!
+  // pub fn update(&mut self, world: &mut Box<World>, pos: Vector3f, ry: f32, dist: f32) { // + is left! - is right! Turns are Counter-Clockwise!
   //   self.center.from_v3f(pos);
   //   self.forward.xz_from_dist_rot_offset(&self.center, dist, ry);
   //   self.left_45.xz_from_dist_rot_offset(&self.center, dist, modulo(ry + 45.0, 360.0));
@@ -353,7 +353,7 @@ impl JumpArc {
       fin: true,
     }
   }
-  pub fn init(&mut self, _orig: &Vector3f, _dest: &Vector3f) {
+  pub fn init(&mut self, _orig: Vector3f, _dest: Vector3f) {
     {
       let (orig, dest, time) = (&mut self.orig, &mut self.dest, &mut self.time);
       *time = 0_f32;
@@ -363,9 +363,9 @@ impl JumpArc {
     }
     println!("JumpArc\n{:?}", self);
   }
-  pub fn calc_pos(&mut self, delta: f32) -> &Vector3f {
+  pub fn calc_pos(&mut self, delta: f32) -> Vector3f {
     if !self.fin {
-      let (orig, dest, current, time) = (&self.orig, &self.dest, &mut self.current, &mut self.time);
+      let (orig, dest, mut current, time) = (self.orig, self.dest, self.current, &mut self.time);
       *time += 5_f32 * delta;
       if *time >= Self::JUMPTIME {
         *time = Self::JUMPTIME;
@@ -379,6 +379,6 @@ impl JumpArc {
         current.y = y + (Self::PEAK * if percent < 0.5 { percent * 2.0 } else { (1.0 - percent) * 2.0 });
       }
     }
-    &self.current
+    self.current
   }
 }

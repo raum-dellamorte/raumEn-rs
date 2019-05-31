@@ -65,7 +65,7 @@ impl GuiObj {
     self.transmat.set_identity();
     let x = (self.pos.x *  2.0_f32) - 1.0_f32;
     let y = (self.pos.y * -2.0_f32) + 1.0_f32;
-    self.transmat.translate_v3f(&Vector3f {x, y, z: 0.0_f32});
-    self.transmat.scale(&Vector3f::new(self.scale.x, self.scale.y, 1.0));
+    self.transmat.translate_v3f(Vector3f {x, y, z: 0.0_f32});
+    self.transmat.scale(Vector3f::new(self.scale.x, self.scale.y, 1.0));
   }
 }

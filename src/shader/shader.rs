@@ -16,7 +16,7 @@ use std::io::prelude::*;
 use std::path::Path;
 
 use util::rmatrix::Matrix4f;
-use util::{ Vector2f, Vector3f, Vector4f, Arc, Mutex, HashSet };
+use util::{ Vector2f, Vector3f, Quaternion, Arc, Mutex, HashSet };
 
 pub struct ShaderVar {
     var_name: String,
@@ -210,12 +210,12 @@ impl Shader {
     if self.check_id(id, name, "load_bool") { return }
     Uniform1f(id, if value { 1.0 as GLfloat } else { 0.0 as GLfloat })
   }}
-  pub fn load_vec_4f(&self, name: &str, vector: &Vector4f) { unsafe {
+  pub fn load_quaternion(&self, name: &str, quat: Quaternion) { unsafe {
     let id = self.get_uniform_id(name);
-    if self.check_id(id, name, "load_vec_4f") { return }
-    Uniform4f(id, vector.x, vector.y, vector.z, vector.w);
+    if self.check_id(id, name, "load_quaternion") { return }
+    Uniform4f(id, quat.w, quat.x, quat.y, quat.z);
   }}
-  pub fn load_vec_3f(&self, name: &str, vector: &Vector3f) { unsafe {
+  pub fn load_vec_3f(&self, name: &str, vector: Vector3f) { unsafe {
     let id = self.get_uniform_id(name);
     if self.check_id(id, name, "load_vec_3f") { return }
     Uniform3f(id, vector.x, vector.y, vector.z);
