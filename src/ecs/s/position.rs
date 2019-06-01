@@ -128,12 +128,16 @@ impl<'a> System<'a> for PlayerInput {
         None     => (0_f64, 0_f64),
       };
       
+      let mut moved = false;
+      
       if handler.read_kb_multi_any_of(KCS::new(&[Up,    W])) { // Move Forward
         vel.0.z += 10.0 * delta;
         if vel.0.z > 10.0 { vel.0.z = 10.0; }
+        moved = true;
       } else if handler.read_kb_multi_any_of(KCS::new(&[Down,  S])) { // Move Backward
         vel.0.z -= 10.0 * delta;
         if vel.0.z < -10.0 { vel.0.z = -10.0; }
+        moved = true;
       } else {
         vel.0.z = if vel.0.z > 0.1 {
           vel.0.z - (20.0 * delta)
@@ -146,9 +150,11 @@ impl<'a> System<'a> for PlayerInput {
       if handler.read_kb_multi_any_of(KCS::new(&[E])) { // Strafe Right
         vel.0.x -= 10.0 * delta;
         if vel.0.x < -10.0 { vel.0.x = -10.0; }
+        moved = true;
       } else if handler.read_kb_multi_any_of(KCS::new(&[Q])) { // Strafe Left
         vel.0.x += 10.0 * delta;
         if vel.0.x > 10.0 { vel.0.x = 10.0; }
+        moved = true;
       } else {
         vel.0.x = if vel.0.x > 0.1 {
           vel.0.x - (20.0 * delta)
@@ -174,6 +180,9 @@ impl<'a> System<'a> for PlayerInput {
         println!("rot {:?}", rot.0);
       }
       if handler.read_mouse_single(MB::Left) { println!("mouse x: {} y: {}", _mx, _my); } // Fire/Select
+      if moved && falling.get(e).is_none() { 
+        falling.insert(e, Falling).expect("Tried to insert flag Falling"); 
+      }
     }
   }
 }
@@ -196,11 +205,10 @@ impl<'a> System<'a> for Collision {
     let delta = handler.timer.delta; // 
     if delta < 0.0 || delta > 0.04 { return }
     for (e, p, dv, v, pa, _) in (&ents, &mut pos, &dvel, &mut vel, &mut padj, &player).join() {
-      let fpos = &mut (p.0 + dv.0); // future position
-      fpos.x += 0.1;
-      fpos.z += 0.1;
-      let fpos = *fpos;
-      let _p_size = Vector3f::new(1.8, 2.0, 1.8);
+      let mut fpos = p.0 + dv.0; // future position
+      fpos.x += 0.5;
+      fpos.z += 0.5;
+      let _p_size = Vector3f::new(1.0, 2.0, 1.0);
       let mut _t_size = &mut Vector3f::new(2.0, 0.0, 2.0);
       let _p1m = p.0 + _p_size;
       let _p2m = fpos + _p_size;
@@ -227,25 +235,29 @@ impl<'a> System<'a> for Collision {
             // println!("{} = ({} - {}) - 0.001", pa.0.y, dv.0.y, n);
             // panic!("Stop the show!");
           }
-          TerrainCollideType::WallXY(n) => {
+          TerrainCollideType::WallXY(n) if n > 0.05 => {
             // n is how close the foot of the player is to the top of the wall
             // if we're close enough, we should just climb it.
             println!("Collision: WallXY({}) | Player: {} Object {}", n, fpos, _t);
-            // if n <= 0.5 {
-            //   pa.0.y = dv.0.z;
-            // }
-            // v.0.z = 0.0;
+            if n <= 2.0 {
+              pa.0.y += n; // dv.0.z.abs();
+            }
+            pa.0.z = -dv.0.z * 2.;
+            if v.0.y < 0. { v.0.y = 0.1; }
+            v.0.z = 0.0;
             // panic!("Stop the show!");
           }
-          TerrainCollideType::WallYZ(n) => {
+          TerrainCollideType::WallYZ(n) if n > 0.05 => {
             println!("Collision: WallYZ({}) | Player: {} Object {}", n, fpos, _t);
-            // if n <= 0.5 {
-            //   pa.0.y = dv.0.x;
-            // }
-            // v.0.x = 0.0;
+            if n <= 2.0 {
+              pa.0.y = n; // dv.0.x.abs();
+            }
+            pa.0.x = -dv.0.x * 2.;
+            if v.0.y < 0. { v.0.y = 0.0; }
+            v.0.x = 0.0;
             // panic!("Stop the show!");
           }
-          TerrainCollideType::None => {
+          _ => {
             // 
           }
         }
