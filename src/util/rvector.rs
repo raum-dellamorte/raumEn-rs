@@ -162,15 +162,6 @@ impl Vector3f {
   //   self.y = other.y;
   //   self.z = other.z;
   // }
-  pub fn rotate_y_to(&self, dest: &mut Self, theta: f32) {
-    let theta = theta.to_radians();
-    let dist = ((self.x * self.x) + (self.z * self.z)).sqrt();
-    let x = if self.x < 0.0 { -1.0 } else { 1.0 };
-    let z = if self.z < 0.0 { -1.0 } else { 1.0 };
-    dest.x = x * dist * theta.sin(); // (self.z * theta.cos()) - (self.x * theta.sin());
-    dest.y = self.y;
-    dest.z = z * dist * theta.cos(); // (self.x * theta.cos()) - (self.z * theta.sin());
-  }
   pub fn xz_from_dist_rot_offset(&mut self, other: &Self, dist: f32, rot: f32) {
     let ry = rot.to_radians();
     self.x = other.x + (dist * ry.sin());
