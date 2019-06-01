@@ -167,6 +167,9 @@ impl Vector3f {
     self.x = other.x + (dist * ry.sin());
     self.z = other.z + (dist * ry.cos());
   }
+  pub fn to_tuple(&self) -> (f32, f32, f32) {
+    (self.x, self.y, self.z)
+  }
   pub fn is_blank(&self) -> bool {
     self.x == 0.0 &&
     self.y == 0.0 &&
@@ -189,17 +192,17 @@ impl Vector3f {
   pub fn dot(&self, other: &Self) -> f32 {
     self.x * other.x + self.y * other.y + self.z * other.z
   }
-  pub fn cross(&mut self, other: Self) {
+  pub fn cross_self(&mut self, other: Self) {
     self.x = self.y * other.z - self.z * other.y;
     self.y = other.x * self.z - other.z * self.x;
     self.z = self.x * other.y - self.y * other.x;
   }
-  pub fn cross_to(&self, other: &Self, dest: &mut Self) {
+  pub fn cross_to(&self, other: Self, dest: &mut Self) {
     (*dest).x = self.y * other.z - self.z * other.y;
     (*dest).y = other.x * self.z - other.z * self.x;
     (*dest).z = self.x * other.y - self.y * other.x;
   }
-  pub fn cross_to_new(&self, other: &Self) -> Self {
+  pub fn cross(&self, other: Self) -> Self {
     let mut out = Vector3f::blank();
     self.cross_to(other, &mut out);
     out
