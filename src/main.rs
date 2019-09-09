@@ -9,6 +9,7 @@ extern crate glutin;
 extern crate image;
 extern crate num;
 extern crate nalgebra;
+extern crate ncollide3d;
 extern crate time;
 extern crate noise;
 extern crate specs;
@@ -40,7 +41,7 @@ use {
   specs::{
     // Builder, Component, ReadStorage, WriteStorage, System, VecStorage, RunNow,
     DispatcherBuilder, 
-    World, 
+    World, WorldExt, 
   },
   ecs::{
     c::{
@@ -124,22 +125,22 @@ use engine::fbo::DepthType::{
 
 fn gen_world() -> World {
   let mut world = World::new();
-  world.add_resource(ViewMatrix::default());
-  world.add_resource(Display::default());
-  world.add_resource(Loader::default());
-  world.add_resource(Camera::default());
-  world.add_resource(Handler::default());
-  // world.add_resource(DrawModelsWithTextures::default());
-  world.add_resource(LandscapeGen::default());
-  world.add_resource(PlayerLoc::default());
-  world.add_resource(TerrainShader::default());
-  world.add_resource(TexModShader::default());
-  world.add_resource(TerrainNodes::default());
-  world.add_resource(Models::default());
-  world.add_resource(Textures::default());
-  world.add_resource(Lights::default());
-  world.add_resource(Lightings::default());
-  world.add_resource(TextMgr::default());
+  world.insert(ViewMatrix::default());
+  world.insert(Display::default());
+  world.insert(Loader::default());
+  world.insert(Camera::default());
+  world.insert(Handler::default());
+  // world.insert(DrawModelsWithTextures::default());
+  world.insert(LandscapeGen::default());
+  world.insert(PlayerLoc::default());
+  world.insert(TerrainShader::default());
+  world.insert(TexModShader::default());
+  world.insert(TerrainNodes::default());
+  world.insert(Models::default());
+  world.insert(Textures::default());
+  world.insert(Lights::default());
+  world.insert(Lightings::default());
+  world.insert(TextMgr::default());
   world.register::<ActivePlayer>();
   world.register::<InScene>();
   world.register::<Falling>();
@@ -157,7 +158,7 @@ fn gen_world() -> World {
     let quad_vec = vec![-1.0,1.0, -1.0,-1.0, 1.0,1.0, 1.0,-1.0];
     loader.load_to_vao_gui(&quad_vec)
   };
-  world.add_resource(HUD::new(quad));
+  world.insert(HUD::new(quad));
   world
 }
 
@@ -233,22 +234,22 @@ fn main() {
   let mut terrain_gen = DispatcherBuilder::new()
       .with_thread_local(PlatformGen)
       .build();
-  terrain_gen.setup(&mut world.res);
-  terrain_gen.dispatch(&world.res);
+  terrain_gen.setup(&mut world);
+  terrain_gen.dispatch(&world);
   
   world.maintain();
   
   let mut player_gen = DispatcherBuilder::new()
       .with_thread_local(PlayerGen)
       .build();
-  player_gen.setup(&mut world.res);
-  player_gen.dispatch(&world.res);
+  player_gen.setup(&mut world);
+  player_gen.dispatch(&world);
   
   let mut follow_player = DispatcherBuilder::new()
       .with_thread_local(CameraToActivePlayer)
       .build();
-  follow_player.setup(&mut world.res);
-  follow_player.dispatch(&world.res);
+  follow_player.setup(&mut world);
+  follow_player.dispatch(&world);
   
   let mut move_player = DispatcherBuilder::new()
       .with(PlayerInput, "PlayerInput", &[])
@@ -267,8 +268,8 @@ fn main() {
   //     .with_thread_local(Collision)
   //     .with_thread_local(UpdatePos)
   //     .build();
-  move_player.setup(&mut world.res);
-  move_player.dispatch(&world.res);
+  move_player.setup(&mut world);
+  move_player.dispatch(&world);
   
   // world.create_entity()
   //     .with()
@@ -276,16 +277,16 @@ fn main() {
   let mut terrain_draw = DispatcherBuilder::new()
       .with_thread_local(DrawPlatform)
       .build();
-  terrain_draw.setup(&mut world.res);
+  terrain_draw.setup(&mut world);
   
-  terrain_draw.dispatch(&world.res);
+  terrain_draw.dispatch(&world);
   
   let mut texmod_draw = DispatcherBuilder::new()
       .with_thread_local(DrawTexMods)
       .build();
-  texmod_draw.setup(&mut world.res);
+  texmod_draw.setup(&mut world);
   
-  texmod_draw.dispatch(&world.res);
+  texmod_draw.dispatch(&world);
   world.maintain();
   
   // Game loop!
@@ -326,15 +327,15 @@ fn main() {
     }
     // *** Do per frame calculations such as movement
     
-    move_player.dispatch(&world.res);
-    follow_player.dispatch(&world.res);
+    move_player.dispatch(&world);
+    follow_player.dispatch(&world);
     world.maintain();
     
     // *** Drawing phase
     _fbo.bind();
     render_mgr.render(&world);
-    terrain_draw.dispatch(&world.res);
-    texmod_draw.dispatch(&world.res);
+    terrain_draw.dispatch(&world);
+    texmod_draw.dispatch(&world);
     world.maintain();
     _fbo.unbind(&world);
     _fbo.blit_to_fbo(&world, 0, &_fbo_final);

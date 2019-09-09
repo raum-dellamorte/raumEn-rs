@@ -4,7 +4,7 @@ use gl::*;
 // use CVOID;
 
 use {
-  specs::World,
+  specs::{World, WorldExt, },
   // Camera, 
   // GameMgr, 
   // Lights, 

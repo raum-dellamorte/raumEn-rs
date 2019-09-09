@@ -5,7 +5,7 @@ use {
     // types::{ // GLuint, GLfloat, GLenum, GLint, GLchar, GLsizeiptr, GLboolean, 
     // },
   },
-  specs::World,
+  specs::{World, WorldExt, },
   Camera, Display, Loader, TextMgr,
   ecs::{
     c::{

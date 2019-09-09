@@ -7,7 +7,7 @@ use {
     // }, 
   },
   // CVOID,
-  specs::World,
+  specs::{World, WorldExt, },
   HUD,
   shader::{
     Shader,

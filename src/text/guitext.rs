@@ -1,6 +1,6 @@
 
 use {
-  specs::World,
+  specs::{World, WorldExt, },
   Loader,
   text::{
     // RFontType, 

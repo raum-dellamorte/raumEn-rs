@@ -8,7 +8,7 @@ use {
     // },
   },
   CVOID,
-  specs::World,
+  specs::{World, WorldExt, },
   Display,
   util::{
     rgl::*,

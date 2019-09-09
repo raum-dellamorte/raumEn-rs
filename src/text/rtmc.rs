@@ -1,7 +1,7 @@
 
 
 use {
-  specs::World,
+  specs::{World, WorldExt, },
   Display,
   text::{
     // RFontType, 

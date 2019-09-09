@@ -1,6 +1,6 @@
 
 use {
-  specs::World,
+  specs::{World, WorldExt, },
   Display,
   Loader,
   Textures,
