@@ -35,6 +35,86 @@ use {
 
 const GRAVITY: f32 = 10.0;
 
+pub struct PlayerInput;
+impl<'a> System<'a> for PlayerInput {
+  type SystemData = ( Write<'a, Handler>,
+                      Entities<'a>,
+                      WriteStorage<'a, Rotation>,
+                      WriteStorage<'a, Velocity>,
+                      WriteStorage<'a, Falling>,
+                      ReadStorage<'a, ActivePlayer>,
+                    );
+  fn run(&mut self, data: Self::SystemData) {
+    let (mut handler, ents, mut rot, mut vel, mut falling, player) = data;
+    let delta = handler.timer.delta;
+    
+    for (e, rot, vel, _) in (&ents, &mut rot, &mut vel, &player).join() {
+      // Here we have mutible refs to the player's rotation and velocity
+      let (_mx, _my) = match handler.cursor_pos { // check mouse movement
+        Some(xy) => xy,
+        None     => (0_f64, 0_f64),
+      };
+      
+      let mut moved = false; // movement means rechecking whether we're falling so we keep track
+      
+      if handler.read_kb_multi_any_of(KCS::new(&[Up,    W])) { // Move Forward
+        vel.0.z += 10.0 * delta;  // z velocity is 
+        if vel.0.z > 10.0 { vel.0.z = 10.0; }  // TODO: replace hard coded numbers with constants
+        moved = true;
+      } else if handler.read_kb_multi_any_of(KCS::new(&[Down,  S])) { // Move Backward
+        vel.0.z -= 10.0 * delta;
+        if vel.0.z < -10.0 { vel.0.z = -10.0; }
+        moved = true;
+      } else { // if we didn't move forward or backward slow z movement to 0
+        vel.0.z = if vel.0.z > 0.1 {
+          vel.0.z - (20.0 * delta) // TODO: replace hard coded numbers with constants
+        } else if vel.0.z < -0.1 {
+          vel.0.z + (20.0 * delta)
+        } else {
+          0.0
+        }
+      }
+      if handler.read_kb_multi_any_of(KCS::new(&[E])) { // Strafe Right
+        vel.0.x -= 10.0 * delta;
+        if vel.0.x < -10.0 { vel.0.x = -10.0; }
+        moved = true;
+      } else if handler.read_kb_multi_any_of(KCS::new(&[Q])) { // Strafe Left
+        vel.0.x += 10.0 * delta;
+        if vel.0.x > 10.0 { vel.0.x = 10.0; }
+        moved = true;
+      } else { // if we didn't move left or right slow x movement to 0
+        vel.0.x = if vel.0.x > 0.1 {
+          vel.0.x - (20.0 * delta)
+        } else if vel.0.z < -0.1 {
+          vel.0.x + (20.0 * delta)
+        } else {
+          0.0
+        }
+      }
+      if handler.read_kb_multi_any_of(KCS::new(&[Right, D])) { // Turn Right
+        rot.0.y = modulo(rot.0.y - (30_f32 * delta), 360_f32);
+      }
+      if handler.read_kb_multi_any_of(KCS::new(&[Left,  A])) { // Turn Left
+        rot.0.y = modulo(rot.0.y + (30_f32 * delta), 360_f32);
+      }
+      if handler.read_kb_single(KC::new(Space)) { // Jumping... is useless
+        vel.0.y += 10.0;
+        falling.insert(e, Falling).expect("Trying to set Falling flag.");
+      }
+      if handler.read_kb_single(KC::new(I)) {
+        println!("I for Info");
+        println!("vel {:?}", vel.0);
+        println!("rot {:?}", rot.0);
+        println!("falling {:?}", falling.get(e).is_some());
+      }
+      if handler.read_mouse_single(MB::Left) { println!("mouse x: {} y: {}", _mx, _my); } // Fire/Select
+      if moved && falling.get(e).is_none() { 
+        falling.insert(e, Falling).expect("Tried to insert flag Falling"); 
+      }
+    }
+  }
+}
+
 pub struct ApplyGravity;
 impl<'a> System<'a> for ApplyGravity {
   type SystemData = ( Read<'a, Handler>,
@@ -80,109 +160,11 @@ impl<'a> System<'a> for UpdateDeltaVelocity {
                       WriteStorage<'a, DeltaVelocity>,
                     );
   fn run(&mut self, data: Self::SystemData) {
-    let (handler, ent, tvel, mut dvel) = data;
+    let (handler, ent, transform_vel, mut delta_vel) = data;
     let delta = handler.timer.delta;
-    // println!("delta {}", delta);
-    if delta < 0.0 || delta > 0.04 { return }
-    for (_, vel, dvel) in (&ent, &tvel, &mut dvel).join() {
-      vel.0.scale_to(&mut dvel.0, delta);
-    }
-  }
-}
-
-pub struct UpdatePos;
-impl<'a> System<'a> for UpdatePos {
-  type SystemData = (
-                      Entities<'a>,
-                      ReadStorage<'a, DeltaVelocity>,
-                      WriteStorage<'a, PosAdjust>,
-                      WriteStorage<'a, Position>,
-                    );
-  fn run(&mut self, data: Self::SystemData) {
-    let (ent, deltav, mut tvel, mut pos) = data;
-    for (_, dvel, tvel, p) in (&ent, &deltav, &mut tvel, &mut pos).join() {
-      if dvel.0.is_blank() && tvel.0.is_blank() { continue; }
-      p.0 += dvel.0;
-      p.0 += tvel.0;
-      tvel.0.clear();
-    }
-  }
-}
-
-pub struct PlayerInput;
-impl<'a> System<'a> for PlayerInput {
-  type SystemData = ( Write<'a, Handler>,
-                      Entities<'a>,
-                      WriteStorage<'a, Rotation>,
-                      WriteStorage<'a, Velocity>,
-                      WriteStorage<'a, Falling>,
-                      ReadStorage<'a, ActivePlayer>,
-                    );
-  fn run(&mut self, data: Self::SystemData) {
-    let (mut handler, ents, mut rot, mut vel, mut falling, player) = data;
-    let delta = handler.timer.delta;
-    
-    for (e, rot, vel, _) in (&ents, &mut rot, &mut vel, &player).join() {
-      let (_mx, _my) = match handler.cursor_pos {
-        Some(xy) => xy,
-        None     => (0_f64, 0_f64),
-      };
-      
-      let mut moved = false;
-      
-      if handler.read_kb_multi_any_of(KCS::new(&[Up,    W])) { // Move Forward
-        vel.0.z += 10.0 * delta;
-        if vel.0.z > 10.0 { vel.0.z = 10.0; }
-        moved = true;
-      } else if handler.read_kb_multi_any_of(KCS::new(&[Down,  S])) { // Move Backward
-        vel.0.z -= 10.0 * delta;
-        if vel.0.z < -10.0 { vel.0.z = -10.0; }
-        moved = true;
-      } else {
-        vel.0.z = if vel.0.z > 0.1 {
-          vel.0.z - (20.0 * delta)
-        } else if vel.0.z < -0.1 {
-          vel.0.z + (20.0 * delta)
-        } else {
-          0.0
-        }
-      }
-      if handler.read_kb_multi_any_of(KCS::new(&[E])) { // Strafe Right
-        vel.0.x -= 10.0 * delta;
-        if vel.0.x < -10.0 { vel.0.x = -10.0; }
-        moved = true;
-      } else if handler.read_kb_multi_any_of(KCS::new(&[Q])) { // Strafe Left
-        vel.0.x += 10.0 * delta;
-        if vel.0.x > 10.0 { vel.0.x = 10.0; }
-        moved = true;
-      } else {
-        vel.0.x = if vel.0.x > 0.1 {
-          vel.0.x - (20.0 * delta)
-        } else if vel.0.z < -0.1 {
-          vel.0.x + (20.0 * delta)
-        } else {
-          0.0
-        }
-      }
-      if handler.read_kb_multi_any_of(KCS::new(&[Right, D])) { // Turn Right
-        rot.0.y = modulo(rot.0.y - (30_f32 * delta), 360_f32);
-      }
-      if handler.read_kb_multi_any_of(KCS::new(&[Left,  A])) { // Turn Left
-        rot.0.y = modulo(rot.0.y + (30_f32 * delta), 360_f32);
-      }
-      if handler.read_kb_single(KC::new(Space)) { // Jumping... is useless
-        vel.0.y += 10.0;
-        falling.insert(e, Falling).expect("Trying to set Falling flag.");
-      }
-      if handler.read_kb_single(KC::new(I)) {
-        println!("I for Info");
-        println!("vel {:?}", vel.0);
-        println!("rot {:?}", rot.0);
-      }
-      if handler.read_mouse_single(MB::Left) { println!("mouse x: {} y: {}", _mx, _my); } // Fire/Select
-      if moved && falling.get(e).is_none() { 
-        falling.insert(e, Falling).expect("Tried to insert flag Falling"); 
-      }
+    if delta < 0.0 || delta > 0.04 { println!("delta out of bounds: {}", delta); return }
+    for (_e, tvel, dvel) in (&ent, &transform_vel, &mut delta_vel).join() {
+      tvel.0.scale_to(&mut dvel.0, delta);
     }
   }
 }
@@ -266,6 +248,25 @@ impl<'a> System<'a> for Collision {
   }
 }
 
+pub struct UpdatePos;
+impl<'a> System<'a> for UpdatePos {
+  type SystemData = (
+                      Entities<'a>,
+                      ReadStorage<'a, DeltaVelocity>,
+                      WriteStorage<'a, PosAdjust>,
+                      WriteStorage<'a, Position>,
+                    );
+  fn run(&mut self, data: Self::SystemData) {
+    let (ent, deltav, mut tvel, mut pos) = data;
+    for (_e, dvel, tvel, p) in (&ent, &deltav, &mut tvel, &mut pos).join() {
+      if dvel.0.is_blank() && tvel.0.is_blank() { continue; }
+      p.0 += dvel.0;
+      p.0 += tvel.0;
+      tvel.0.clear();
+    }
+  }
+}
+
 #[derive(Debug)]
 enum TerrainCollideType {
   Floor(f32),
@@ -329,10 +330,10 @@ fn terrain_collide(player_min: Vector3f, player_max: Vector3f, terrain_min: Vect
   let from_top = terrain_max.y - player_min.y;
   let head_space = terrain_min.y - player_max.y;
   
-  if xyp { // XY Plane
-    TerrainCollideType::WallXY(from_top)
-  } else if xzp { // XZ Plane
+  if xzp { // XZ Plane
     if nnn || xnn || nnx || xnx { TerrainCollideType::Floor(from_top) } else { TerrainCollideType::Ceiling(head_space) }
+  } else if xyp { // XY Plane
+    TerrainCollideType::WallXY(from_top)
   } else if yzp { // YZ Plane
     TerrainCollideType::WallYZ(from_top)
   } else {
