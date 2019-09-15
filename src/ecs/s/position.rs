@@ -279,15 +279,27 @@ enum TerrainCollideType {
 fn terrain_collide(player_min: Vector3f, player_max: Vector3f, terrain_min: Vector3f, terrain_max: Vector3f) -> TerrainCollideType {
   let pminx = terrain_min.x <= player_min.x && player_min.x < terrain_max.x;
   let pmaxx = terrain_min.x <= player_max.x && player_max.x < terrain_max.x;
-  let xl = if pminx { terrain_max.x - player_min.x } else if pmaxx { player_max.x - terrain_min.x } else { 0.0 };
+  // let tminmaxx = player_min.x <= terrain_min.x && terrain_max.x < player_max.x;
+  let xl = if pminx && pmaxx { player_max.x - player_min.x }
+  else if pminx { terrain_max.x - player_min.x }
+  else if pmaxx { player_max.x - terrain_min.x }
+  else { 0.0 }; // else if tminmaxx { terrain_max.x - terrain_min.x }
   
   let pminy = terrain_min.y <= player_min.y && player_min.y < terrain_max.y;
   let pmaxy = terrain_min.y <= player_max.y && player_max.y < terrain_max.y;
-  let yl = if pminy { terrain_max.y - player_min.y } else if pmaxy { player_max.y - terrain_min.y } else { 0.0 };
+  // let tminmaxy = player_min.y <= terrain_min.y && terrain_max.y < player_max.y;
+  let yl = if pminy && pmaxy { player_max.y - player_min.y }
+  else if pminy { terrain_max.y - player_min.y }
+  else if pmaxy { player_max.y - terrain_min.y }
+  else { 0.0 }; // else if tminmaxy { terrain_max.y - terrain_min.y }
   
   let pminz = terrain_min.z <= player_min.z && player_min.z < terrain_max.z;
   let pmaxz = terrain_min.z <= player_max.z && player_max.z < terrain_max.z;
-  let zl = if pminz { terrain_max.z - player_min.z } else if pmaxz { player_max.z - terrain_min.z } else { 0.0 };
+  // let tminmaxz = player_min.z <= terrain_min.z && terrain_max.z < player_max.z;
+  let zl = if pminz && pmaxz { player_max.z - player_min.z }
+  else if pminz { terrain_max.z - player_min.z }
+  else if pmaxz { player_max.z - terrain_min.z }
+  else { 0.0 }; // else if tminmaxz { terrain_max.z - terrain_min.z }
   
   let allzero = xl == 0.0 && yl == 0.0 && zl == 0.0;
   
