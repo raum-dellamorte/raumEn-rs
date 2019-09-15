@@ -5,6 +5,7 @@
 
 extern crate gl;
 extern crate glutin;
+// extern crate cheddar; 
 #[macro_use] extern crate nom;
 extern crate image;
 extern crate num;
@@ -182,6 +183,8 @@ fn main() {
     load_with(|symbol| windowed_context.context().get_proc_address(symbol) as *const _);
     ClearColor(0.0, 1.0, 0.0, 1.0);
   }
+  
+  // shader::terrain::test_terrain_cheddar();
   
   let mut render_mgr = RenderMgr::new();
   
