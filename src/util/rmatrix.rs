@@ -1,5 +1,12 @@
-use util::rvector::{Vector2f, Vector3f, Quaternion};
-use std::ops::{Add, AddAssign, Sub, SubAssign, Mul, MulAssign}; // , Div, DivAssign
+use {
+  util::rvector::{Vector2f, Vector3f, Quaternion},
+  std::{
+    fmt,
+    ops::{
+      Add, AddAssign, Sub, SubAssign, Mul, MulAssign, // , Div, DivAssign, 
+    },
+  },
+};
 
 #[derive(Debug, Copy, Clone)]
 pub struct Matrix4f {
@@ -198,13 +205,15 @@ impl Matrix4f {
   pub fn transpose_from(&mut self, src: &Matrix4f) { self.copy_from_vec(transpose_math(src)); }
   
   pub fn transpose_to(&self, dest: &mut Matrix4f) { dest.transpose_from(self); }
-  
-  pub fn to_string(&self) -> String {
-    format!("[[{}, {}, {}, {}],\n [{}, {}, {}, {}],\n [{}, {}, {}, {}],\n [{}, {}, {}, {}]]",
+}
+impl fmt::Display for Matrix4f {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
+    write!(f, "[[{}, {}, {}, {}],\n [{}, {}, {}, {}],\n [{}, {}, {}, {}],\n [{}, {}, {}, {}]]",
       self.m00(), self.m01(), self.m02(), self.m03(),
       self.m10(), self.m11(), self.m12(), self.m13(),
       self.m20(), self.m21(), self.m22(), self.m23(),
-      self.m30(), self.m31(), self.m32(), self.m33())
+      self.m30(), self.m31(), self.m32(), self.m33()
+    )
   }
 }
 
