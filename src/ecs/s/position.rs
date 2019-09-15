@@ -190,7 +190,7 @@ impl<'a> System<'a> for Collision {
       let mut fpos = p.0 + dv.0; // future position
       fpos.x += 0.5;
       fpos.z += 0.5;
-      let _p_size = Vector3f::new(1.0, 2.0, 1.0);
+      let _p_size = Vector3f::new(1.9, 2.0, 1.9);
       let mut _t_size = &mut Vector3f::new(2.0, 0.0, 2.0);
       let _p1m = p.0 + _p_size;
       let _p2m = fpos + _p_size;
@@ -279,15 +279,15 @@ enum TerrainCollideType {
 fn terrain_collide(player_min: Vector3f, player_max: Vector3f, terrain_min: Vector3f, terrain_max: Vector3f) -> TerrainCollideType {
   let pminx = terrain_min.x <= player_min.x && player_min.x < terrain_max.x;
   let pmaxx = terrain_min.x <= player_max.x && player_max.x < terrain_max.x;
-  let xl = if pminx { player_min.x - terrain_max.x } else if pmaxx { player_max.x - terrain_min.x } else { 0.0 };
+  let xl = if pminx { terrain_max.x - player_min.x } else if pmaxx { player_max.x - terrain_min.x } else { 0.0 };
   
   let pminy = terrain_min.y <= player_min.y && player_min.y < terrain_max.y;
   let pmaxy = terrain_min.y <= player_max.y && player_max.y < terrain_max.y;
-  let yl = if pminy { player_min.y - terrain_max.y } else if pmaxy { player_max.y - terrain_min.y } else { 0.0 };
+  let yl = if pminy { terrain_max.y - player_min.y } else if pmaxy { player_max.y - terrain_min.y } else { 0.0 };
   
   let pminz = terrain_min.z <= player_min.z && player_min.z < terrain_max.z;
   let pmaxz = terrain_min.z <= player_max.z && player_max.z < terrain_max.z;
-  let zl = if pminz { player_min.z - terrain_max.z } else if pmaxz { player_max.z - terrain_min.z } else { 0.0 };
+  let zl = if pminz { terrain_max.z - player_min.z } else if pmaxz { player_max.z - terrain_min.z } else { 0.0 };
   
   let allzero = xl == 0.0 && yl == 0.0 && zl == 0.0;
   
