@@ -74,9 +74,52 @@ impl ShaderSrc {
   pub fn kind(&self) -> &str {
     match self.kind {
       VERTEX_SHADER => { "Vertex" }
+      GEOMETRY_SHADER => { "Geometry" }
+      // TESS_CONTROL_SHADER => { "Tess Control" }
+      // TESS_EVALUATION_SHADER => { "Tess Evaluation" }
       FRAGMENT_SHADER => { "Fragment" }
+      COMPUTE_SHADER => { "Compute" }
       _ => { "Unknown" }
     }
+  }
+}
+
+pub struct ShaderTypesUsed {
+  pub defaults: bool,
+  pub geometry: bool,
+  // pub tess_control: bool,
+  // pub tess_eval: bool,
+  pub compute: bool, 
+}
+impl Default for ShaderTypesUsed {
+  fn default() -> Self {
+    Self {
+      defaults: true,
+      geometry: false,
+      // tess_control: false,
+      // tess_eval: false,
+      compute: false,
+    }
+  }
+}
+impl ShaderTypesUsed {
+  pub fn use_geometry(&mut self) -> &mut Self {
+    self.defaults = true;
+    self.compute = false;
+    self.geometry = true;
+    self
+  }
+  // pub fn use_tesselation(&mut self) -> &mut Self {
+  //   // TODO: Tessellation
+  //   self
+  // }
+  pub fn use_compute(&mut self) -> &mut Self {
+    self.defaults = false;
+    self.compute = true;
+    self.geometry = false;
+    // self.tess_control = false;
+    // self.tess_eval = false;
+    self
   }
 }
 
@@ -84,6 +127,7 @@ pub struct Shader {
   pub name: String,
   pub program: GLuint,
   pub done: bool,
+  pub shader_types_used: ShaderTypesUsed,
   pub shaders: Vec<ShaderSrc>,
   pub vars: Vec<ShaderVar>,
   pub unis: Vec<ShaderUni>,
@@ -94,20 +138,44 @@ impl Shader {
   pub fn new(name: &str) -> Self {
     Shader { 
       name: name.to_string(), program: 0, done: false,
+      shader_types_used: ShaderTypesUsed::default(),
       shaders: Vec::new(), vars: Vec::new(), unis: Vec::new(), 
       unis_unavailable: Arc::new(Mutex::new(HashSet::new())),
     }
   }
-  pub fn load_defaults(&mut self) -> &mut Self {
+  pub fn use_geometry(&mut self) -> &mut Self {
+    self.shader_types_used.use_geometry();
     self
-    .load_vert_shader()
-    .load_frag_shader()
-    .compile_shaders()
+  }
+  // pub fn use_tesselation(&mut self) -> &mut Self {
+  //   // TODO: Tessellation
+  //   self.shader_types_used.use_tesselation();
+  //   self
+  // }
+  pub fn use_compute(&mut self) -> &mut Self {
+    self.shader_types_used.use_compute();
+    self
+  }
+  pub fn load_defaults(&mut self) -> &mut Self {
+    if self.shader_types_used.defaults {
+      self.load_vert_shader();
+    }
+    if self.shader_types_used.geometry {
+      self.load_geom_shader();
+    }
+    if self.shader_types_used.defaults {
+      self.load_frag_shader();
+    }
+    self.compile_shaders()
     .link()
     .gen_uniforms();
     self.start();
     self.connect_sampler_uniforms();
     self.stop();
+    self
+  }
+  pub fn load_with_shaders(&mut self) -> &mut Self {
+    
     self
   }
   pub fn add_attributes(&mut self, names: Vec<&str>) -> &mut Self {
@@ -233,6 +301,9 @@ impl Shader {
   pub fn load_vert_shader(&mut self) -> &mut Self {
     self.add_shader(VERTEX_SHADER)
   }
+  pub fn load_geom_shader(&mut self) -> &mut Self {
+    self.add_shader(GEOMETRY_SHADER)
+  }
   pub fn load_frag_shader(&mut self) -> &mut Self {
     self.add_shader(FRAGMENT_SHADER)
   }
@@ -351,7 +422,11 @@ pub fn get_uniform_location(program: GLuint, name: &str) -> GLint {
 pub fn get_ext(kind: GLenum) -> String {
   match kind {
     VERTEX_SHADER => { "glslv".to_string() }
+    GEOMETRY_SHADER => { "glslg".to_string() }
+    TESS_CONTROL_SHADER => { "glsltc".to_string() }    // TODO: Tessellation Control Shaders
+    TESS_EVALUATION_SHADER => { "glslte".to_string() } // TODO: Tessellation Evaluation Shaders
     FRAGMENT_SHADER => { "glslf".to_string() }
-    _ => panic!("Unknown Shader Type for file extension.")
+    COMPUTE_SHADER => { "glslc".to_string() }
+    _ => panic!("shader::get_ext(): Unknown Shader Type")
   }
 }
