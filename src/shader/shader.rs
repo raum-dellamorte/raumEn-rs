@@ -143,6 +143,20 @@ impl Shader {
       unis_unavailable: Arc::new(Mutex::new(HashSet::new())),
     }
   }
+  pub fn start(&self) { unsafe {
+    UseProgram(self.program);
+  }}
+  pub fn stop(&self) { unsafe {
+    UseProgram(0);
+  }}
+  pub fn clean_up(&self) { unsafe {
+    self.stop();
+    for shader in &self.shaders {
+      DetachShader(self.program, shader.id);
+      DeleteShader(shader.id);
+    }
+    DeleteProgram(self.program);
+  }}
   pub fn use_geometry(&mut self) -> &mut Self {
     self.shader_types_used.use_geometry();
     self
@@ -298,21 +312,6 @@ impl Shader {
     if self.check_id(id, name, "load_matrix") { return }
     UniformMatrix4fv(id, 1, 0, &matrix.matrix[0] as *const f32 );
   }}
-  pub fn load_vert_shader(&mut self) -> &mut Self {
-    self.add_shader(VERTEX_SHADER)
-  }
-  pub fn load_geom_shader(&mut self) -> &mut Self {
-    self.add_shader(GEOMETRY_SHADER)
-  }
-  pub fn load_frag_shader(&mut self) -> &mut Self {
-    self.add_shader(FRAGMENT_SHADER)
-  }
-  pub fn start(&self) { unsafe {
-    UseProgram(self.program);
-  }}
-  pub fn stop(&self) { unsafe {
-    UseProgram(0);
-  }}
   fn check_id(&self, id: GLint, name: &str, caller: &str) -> bool {
     let mut unis_unavailable = self.unis_unavailable.lock().unwrap();
     let test = unis_unavailable.contains(name);
@@ -323,14 +322,15 @@ impl Shader {
     }
     false
   }
-  pub fn clean_up(&self) { unsafe {
-    self.stop();
-    for shader in &self.shaders {
-      DetachShader(self.program, shader.id);
-      DeleteShader(shader.id);
-    }
-    DeleteProgram(self.program);
-  }}
+  fn load_vert_shader(&mut self) -> &mut Self {
+    self.add_shader(VERTEX_SHADER)
+  }
+  fn load_geom_shader(&mut self) -> &mut Self {
+    self.add_shader(GEOMETRY_SHADER)
+  }
+  fn load_frag_shader(&mut self) -> &mut Self {
+    self.add_shader(FRAGMENT_SHADER)
+  }
   pub fn add_shader(&mut self, shader_type: GLenum) -> &mut Self {
     if self.done { return self }
     let shader_id;
