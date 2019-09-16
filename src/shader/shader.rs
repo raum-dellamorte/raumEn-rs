@@ -173,12 +173,14 @@ impl Shader {
   pub fn load_defaults(&mut self) -> &mut Self {
     if self.shader_types_used.defaults {
       self.load_vert_shader();
-    }
-    if self.shader_types_used.geometry {
-      self.load_geom_shader();
-    }
-    if self.shader_types_used.defaults {
+      if self.shader_types_used.geometry {
+        self.load_geom_shader();
+      }
       self.load_frag_shader();
+    } else if self.shader_types_used.compute {
+      self.load_comp_shader();
+    } else {
+      panic!("Shader: shader_types_used in unsupported state. Not a Vertex -> .. -> Fragment chain or a Compute shader")
     }
     self.compile_shaders()
     .link()
@@ -330,6 +332,9 @@ impl Shader {
   }
   fn load_frag_shader(&mut self) -> &mut Self {
     self.add_shader(FRAGMENT_SHADER)
+  }
+  fn load_comp_shader(&mut self) -> &mut Self {
+    self.add_shader(COMPUTE_SHADER)
   }
   pub fn add_shader(&mut self, shader_type: GLenum) -> &mut Self {
     if self.done { return self }
