@@ -27,7 +27,7 @@ pub fn gen_texmod_shader() -> Shader {
     "light_color", 
     // "attenuation"
   ))
-  .load_defaults();
+  .setup();
   println!("Created model shader.");
   out
 }

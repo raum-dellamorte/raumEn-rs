@@ -13,7 +13,7 @@ pub fn gen_fog_shader(effect: &str) -> Shader {
     ("color_texture", 0), 
     ("depth_map", 1),
   ))
-  .load_defaults();
+  .setup();
   println!("Created PostProc shader.");
   shader
 }

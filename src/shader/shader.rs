@@ -103,17 +103,21 @@ impl Default for ShaderTypesUsed {
   }
 }
 impl ShaderTypesUsed {
-  pub fn use_geometry(&mut self) -> &mut Self {
+  pub fn with_geometry(&mut self) -> &mut Self {
     self.defaults = true;
     self.compute = false;
     self.geometry = true;
     self
   }
-  // pub fn use_tesselation(&mut self) -> &mut Self {
+  // pub fn with_tess_control(&mut self) -> &mut Self {
   //   // TODO: Tessellation
   //   self
   // }
-  pub fn use_compute(&mut self) -> &mut Self {
+  // pub fn with_tess_evaluation(&mut self) -> &mut Self {
+  //   // TODO: Tessellation
+  //   self
+  // }
+  pub fn with_compute(&mut self) -> &mut Self {
     self.defaults = false;
     self.compute = true;
     self.geometry = false;
@@ -157,20 +161,21 @@ impl Shader {
     }
     DeleteProgram(self.program);
   }}
-  pub fn use_geometry(&mut self) -> &mut Self {
-    self.shader_types_used.use_geometry();
+  pub fn with_geometry(&mut self) -> &mut Self {
+    self.shader_types_used.with_geometry();
     self
   }
-  // pub fn use_tesselation(&mut self) -> &mut Self {
+  // pub fn with_tesselation(&mut self) -> &mut Self {
   //   // TODO: Tessellation
-  //   self.shader_types_used.use_tesselation();
+  //   self.shader_types_used.with_tess_control();
+  //   self.shader_types_used.with_tess_evaluation();
   //   self
   // }
-  pub fn use_compute(&mut self) -> &mut Self {
-    self.shader_types_used.use_compute();
+  pub fn with_compute(&mut self) -> &mut Self {
+    self.shader_types_used.with_compute();
     self
   }
-  pub fn load_defaults(&mut self) -> &mut Self {
+  pub fn setup(&mut self) -> &mut Self {
     if self.shader_types_used.defaults {
       self.load_vert_shader();
       if self.shader_types_used.geometry {

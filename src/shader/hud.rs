@@ -16,7 +16,7 @@ pub fn gen_hud_shader() -> Shader {
     ("guiTexture", 0), 
     ("depthMap", 1),
   ))
-  .load_defaults();
+  .setup();
   println!("Created HUD shader.");
   shader
 }

@@ -10,7 +10,7 @@ pub fn gen_font_shader() -> Shader {
     "colour", 
     "fontAtlas", 
   ))
-  .load_defaults();
+  .setup();
   println!("Created font shader.");
   out
 }
