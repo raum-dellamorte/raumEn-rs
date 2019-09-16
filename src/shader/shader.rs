@@ -190,10 +190,6 @@ impl Shader {
     self.stop();
     self
   }
-  pub fn load_with_shaders(&mut self) -> &mut Self {
-    
-    self
-  }
   pub fn add_attributes(&mut self, names: Vec<&str>) -> &mut Self {
     for name in names {
       self.add_attribute(name);
