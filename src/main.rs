@@ -1,10 +1,13 @@
 #![recursion_limit="128"]
 #![allow(clippy::type_complexity, clippy::module_inception, clippy::too_many_arguments, clippy::len_without_is_empty)]
+#![feature(proc_macro_hygiene)]
 // #![feature(nightly)]
 // #![allow(unused_imports,dead_code)]
 
 extern crate gl;
 extern crate glutin;
+extern crate glsl;
+extern crate glsl_quasiquote;
 // extern crate cheddar; 
 #[macro_use] extern crate nom;
 extern crate image;

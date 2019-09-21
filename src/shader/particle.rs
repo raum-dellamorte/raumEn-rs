@@ -2,6 +2,8 @@
 
 use {
   gl::{VERTEX_SHADER, GEOMETRY_SHADER, FRAGMENT_SHADER, },
+  glsl::syntax::TranslationUnit,
+  glsl_quasiquote::glsl,
   shader::{
     Shader, ShaderConf,
     glslmaker::GlslMaker,

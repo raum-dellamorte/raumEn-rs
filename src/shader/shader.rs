@@ -4,6 +4,7 @@ use {
     *,
     types::{GLenum, GLuint, GLint, GLfloat, }, // GLchar, GLsizeiptr, GLboolean, 
   },
+  glsl::syntax::TranslationUnit,
   std::{
     ptr,
     str,
@@ -36,6 +37,14 @@ impl ShaderConf {
       shader_types_used: ShaderTypesUsed::default(),
       shader_src: HashMap::new(), vars: Vec::new(), unis: Vec::new(),
     }
+  }
+  pub fn with_translation_unit(self, shader_type: GLenum, tu: TranslationUnit) -> Self {
+    let mut _self = self;
+    let mut glsl_code = String::new();
+    glsl::transpiler::glsl::show_translation_unit(&mut glsl_code, &tu);
+    println!("GLSL Translation Unit Test:\n{}", glsl_code);
+
+    _self
   }
   pub fn with_geometry(self) -> Self {
     let mut _self = self;
