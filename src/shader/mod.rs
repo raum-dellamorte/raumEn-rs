@@ -1,5 +1,6 @@
 pub mod shader;
 pub mod font;
+pub mod glslmaker;
 pub mod hud;
 pub mod particle;
 pub mod postproc;
