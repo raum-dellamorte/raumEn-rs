@@ -1,6 +1,6 @@
 
 
-use shader::Shader;
+use shader::{Shader, ShaderConf, };
 
 pub struct TerrainShader{pub shader: Shader}
 impl Default for TerrainShader {
@@ -10,26 +10,27 @@ impl Default for TerrainShader {
 }
 
 pub fn gen_terrain_shader() -> Shader {
-  let mut out = Shader::new("terrain");
-  out.add_attributes(vec!("a_Pos", "a_TexCoord", "a_Norm"))
-  .add_uniforms(vec!(
-    "u_Transform", "u_Projection", "u_View", "t_Texture", 
-    // "use_fake_lighting", 
-    // "row_count", 
-    // "offset", 
-    // "player_loc", 
-    // "sky_color", 
-    "shine_damper", 
-    "reflectivity", 
-    // "plane", 
-    // "use_clip_plane", 
-    "light_pos", 
-    "light_color", 
-    // "attenuation"
-  ))
-  .setup();
+  let mut shader = Shader::new(ShaderConf::new("terrain")
+      .with_attributes(vec!("a_Pos", "a_TexCoord", "a_Norm"))
+      .with_uniforms(vec!(
+        "u_Transform", "u_Projection", "u_View", "t_Texture",
+        // "use_fake_lighting",
+        // "row_count",
+        // "offset",
+        // "player_loc",
+        // "sky_color",
+        "shine_damper",
+        "reflectivity",
+        // "plane",
+        // "use_clip_plane",
+        "light_pos",
+        "light_color",
+        // "attenuation"
+      ))
+  );
+  shader.setup();
   println!("Created terrain shader.");
-  out
+  shader
 }
 
 // use {

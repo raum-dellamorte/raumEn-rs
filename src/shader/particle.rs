@@ -3,7 +3,7 @@
 use {
   gl::{VERTEX_SHADER, GEOMETRY_SHADER, FRAGMENT_SHADER, },
   shader::{
-    Shader,
+    Shader, ShaderConf,
     glslmaker::GlslMaker,
   },
 };
@@ -16,17 +16,33 @@ impl Default for ParticleShader {
 }
 
 pub fn gen_particle_shader() -> Shader {
-  let mut out = Shader::new("particle");
-  out.add_attribute("pos")
-  .add_uniforms(vec!(
-    "u_Transform", "u_Projection", "u_View", "u_Texture", 
-    "row_count", 
-    "offset", 
-    "light_pos", 
-    "light_color", 
-    // "attenuation"
-  ))
-  .setup();
+  let _tu: TranslationUnit = glsl!{
+    in vec3 pos;
+    
+    uniform u_transform;
+    uniform u_projection;
+    uniform u_view;
+    uniform u_texture;
+    
+    void main() {
+      
+    }
+  };
+  let mut _particle_vertex = String::new();
+  glsl::transpiler::glsl::show_translation_unit(&mut _particle_vertex, &_tu);
+  let mut shader = Shader::new(
+    ShaderConf::new("particle")
+      .with_attribute("pos")
+      .with_uniforms(vec!(
+        "u_Transform", "u_Projection", "u_View", "u_Texture",
+        "row_count",
+        "offset",
+        "light_pos",
+        "light_color",
+        // "attenuation"
+      ))
+  );
+  shader.setup();
   let mut _test = GlslMaker::default();
   _test.with_stage(VERTEX_SHADER, |_parent,stage| {
     stage.with_in("pos")
@@ -55,5 +71,5 @@ pub fn gen_particle_shader() -> Shader {
   ;
   println!("{:?}", _test);
   println!("Created particle shader.");
-  out
+  shader
 }

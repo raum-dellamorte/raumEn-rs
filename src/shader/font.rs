@@ -1,16 +1,17 @@
 
 
-use shader::Shader;
+use shader::{Shader, ShaderConf, };
 pub fn gen_font_shader() -> Shader {
-  let mut out = Shader::new("font");
-  out.add_attributes(vec!("a_Pos", "a_TexCoord"))
-  .add_uniforms(vec!(
-    "translation",
-    "offset", 
-    "colour", 
-    "fontAtlas", 
-  ))
-  .setup();
+  let mut shader = Shader::new(ShaderConf::new("font")
+      .with_attributes(vec!("a_Pos", "a_TexCoord"))
+      .with_uniforms(vec!(
+        "translation",
+        "offset",
+        "colour",
+        "fontAtlas",
+      ))
+  );
+  shader.setup();
   println!("Created font shader.");
-  out
+  shader
 }

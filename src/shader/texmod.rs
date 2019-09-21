@@ -1,6 +1,6 @@
 
 
-use shader::Shader;
+use shader::{Shader, ShaderConf, };
 
 pub struct TexModShader{pub shader: Shader}
 impl Default for TexModShader {
@@ -10,26 +10,27 @@ impl Default for TexModShader {
 }
 
 pub fn gen_texmod_shader() -> Shader {
-  let mut out = Shader::new("model");
-  out.add_attributes(vec!("a_Pos", "a_TexCoord", "a_Norm"))
-  .add_uniforms(vec!(
-    "u_Transform", "u_Projection", "u_View", "t_Texture", 
-    // "use_fake_lighting", 
-    "row_count", 
-    "offset", 
-    // "player_loc", 
-    "color_id", 
-    "shine_damper", 
-    "reflectivity", 
-    // "plane", 
-    // "use_clip_plane", 
-    "light_pos", 
-    "light_color", 
-    // "attenuation"
-  ))
-  .setup();
+  let mut shader = Shader::new(ShaderConf::new("model")
+      .with_attributes(vec!("a_Pos", "a_TexCoord", "a_Norm"))
+      .with_uniforms(vec!(
+        "u_Transform", "u_Projection", "u_View", "t_Texture",
+        // "use_fake_lighting",
+        "row_count",
+        "offset",
+        // "player_loc",
+        "color_id",
+        "shine_damper",
+        "reflectivity",
+        // "plane",
+        // "use_clip_plane",
+        "light_pos",
+        "light_color",
+        // "attenuation"
+      ))
+  );
+  shader.setup();
   println!("Created model shader.");
-  out
+  shader
 }
 
 /*
