@@ -1,22 +1,25 @@
 
-use gl::*;
-use gl::types::{GLenum, GLuint, GLint, GLfloat, }; // GLchar, GLsizeiptr, GLboolean, 
-// use std::mem;
-use std::ptr;
-use std::str;
-use std::str::from_utf8;
-use std::ffi::CStr;
-use std::ffi::CString;
-// use std::mem::transmute;
-// use cgmath::{Matrix, Matrix4, };
-
-use std::fs::File;
-use std::io::BufReader;
-use std::io::prelude::*;
-use std::path::Path;
-
-use util::rmatrix::Matrix4f;
-use util::{ Vector2f, Vector3f, Quaternion, Arc, Mutex, HashSet };
+use {
+  gl::{
+    *,
+    types::{GLenum, GLuint, GLint, GLfloat, }, // GLchar, GLsizeiptr, GLboolean, 
+  },
+  std::{
+    ptr,
+    str,
+    str::from_utf8,
+    // mem,
+    // mem::transmute;
+    ffi::{CStr, CString, },
+    fs::File,
+    io::{BufReader, prelude::*, },
+    path::Path,
+  },
+  util::{
+    rmatrix::Matrix4f,
+    Vector2f, Vector3f, Quaternion, Arc, Mutex, HashSet, 
+  },
+};
 
 pub struct ShaderVar {
     var_name: String,
