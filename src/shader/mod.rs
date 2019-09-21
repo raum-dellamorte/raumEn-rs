@@ -1,6 +1,7 @@
 pub mod shader;
 pub mod font;
 pub mod hud;
+pub mod particle;
 pub mod postproc;
 pub mod terrain;
 pub mod texmod;
