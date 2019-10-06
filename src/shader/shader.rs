@@ -38,7 +38,7 @@ impl ShaderConf {
       shader_src: HashMap::new(), vars: Vec::new(), unis: Vec::new(),
     }
   }
-  pub fn with_translation_unit(self, shader_type: GLenum, tu: TranslationUnit) -> Self {
+  pub fn with_translation_unit(self, _shader_type: GLenum, tu: TranslationUnit) -> Self {
     let mut _self = self;
     let mut glsl_code = String::new();
     glsl::transpiler::glsl::show_translation_unit(&mut glsl_code, &tu);
@@ -304,7 +304,7 @@ impl Shader {
   }
   pub fn get_uniform_id(&self, name: &str) -> GLint {
     for uni in &self.conf.unis {
-      if uni.var_name == name.to_string() {
+      if uni.var_name == name {
         return uni.var_id
       }
     }
