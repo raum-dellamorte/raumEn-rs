@@ -9,6 +9,7 @@ pub mod texmod;
 //pub mod compute;
 
 pub use shader::shader::*;
+pub use shader::particle::ParticleShader;
 pub use shader::texmod::TexModShader;
 pub use shader::terrain::TerrainShader;
 pub use shader::font::gen_font_shader;

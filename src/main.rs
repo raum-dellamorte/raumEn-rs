@@ -91,6 +91,12 @@ use {
     InScene,
     Falling,
   },
+  shader::{
+    Shader,
+    // ParticleShader,
+    TerrainShader,
+    TexModShader,
+  },
   // util::Vector3f,
   // util::rgl::*,
   // entities::{
@@ -107,11 +113,6 @@ pub use {
   text::TextMgr,
   render::{
     RenderMgr, RenderPostProc,
-  },
-  shader::{
-    Shader,
-    TerrainShader,
-    TexModShader,
   },
 };
 
@@ -137,6 +138,7 @@ fn gen_world() -> World {
   // world.insert(DrawModelsWithTextures::default());
   world.insert(LandscapeGen::default());
   world.insert(PlayerLoc::default());
+//  world.insert(ParticleShader::default());
   world.insert(TerrainShader::default());
   world.insert(TexModShader::default());
   world.insert(TerrainNodes::default());
