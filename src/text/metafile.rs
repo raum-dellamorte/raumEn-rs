@@ -12,11 +12,13 @@ use {
     str::FromStr,
   },
   nom::{
-    space, 
-    digit, 
-    float, 
-    // alpha, 
-    // alphanumeric, 
+    character::complete::{
+      space1 as space,
+      digit1 as digit,
+      // alpha1, 
+      // alphanumeric1, 
+    },
+    number::complete::float,
   },
   eof,
   // GameMgr,
@@ -62,7 +64,11 @@ fn get_info(tstr: &str) -> ( InfoVars ) {
   let eofs = eof(tstr);
   match _get_info(&eofs) {
     Ok((_, result)) => { result }
-    Err(e) => panic!("{}", e)
+    Err(e) => { match e {
+      nom::Err::Error((s,e)) => { panic!("{:?} {}", e,s) }
+      nom::Err::Failure((s,e)) => { panic!("{:?} {}", e,s) }
+      nom::Err::Incomplete(e) => { panic!("{:?}", e) }
+    }}
   }
 }
 named!(_get_info<&str, ( InfoVars ) >,
@@ -104,7 +110,11 @@ fn get_common(tstr: &str) -> CommonVars {
   let eofs = eof(tstr);
   match _get_common(&eofs) {
     Ok((_, result)) => { result }
-    Err(e) => panic!("{}", e)
+    Err(e) => { match e {
+      nom::Err::Error((s,e)) => { panic!("{:?} {}", e,s) }
+      nom::Err::Failure((s,e)) => { panic!("{:?} {}", e,s) }
+      nom::Err::Incomplete(e) => { panic!("{:?}", e) }
+    }}
   }
 }
 named!(_get_common<&str, ( CommonVars ) >,
@@ -134,7 +144,11 @@ fn get_page(tstr: &str) -> PageVars {
   let eofs = eof(tstr);
   match _get_page(&eofs) {
     Ok((_, result)) => { result }
-    Err(e) => panic!("{}", e)
+    Err(e) => { match e {
+      nom::Err::Error((s,e)) => { panic!("{:?} {}", e,s) }
+      nom::Err::Failure((s,e)) => { panic!("{:?} {}", e,s) }
+      nom::Err::Incomplete(e) => { panic!("{:?}", e) }
+    }}
   }
 }
 named!(_get_page<&str, ( PageVars ) >,
@@ -155,7 +169,11 @@ fn get_char_count(tstr: &str) -> ( u32 ) {
   let eofs = eof(tstr);
   match _get_char_count(&eofs) {
     Ok((_, result)) => { result }
-    Err(e) => panic!("{}", e)
+    Err(e) => { match e {
+      nom::Err::Error((s,e)) => { panic!("{:?} {}", e,s) }
+      nom::Err::Failure((s,e)) => { panic!("{:?} {}", e,s) }
+      nom::Err::Incomplete(e) => { panic!("{:?}", e) }
+    }}
   }
 }
 named!(_get_char_count<&str, ( u32 ) >,
@@ -186,7 +204,11 @@ fn get_char(tstr: &str) -> CharVars {
   let eofs = eof(tstr);
   match _get_char(&eofs) {
     Ok((_, result)) => { result }
-    Err(e) => panic!("{}", e)
+    Err(e) => { match e {
+      nom::Err::Error((s,e)) => { panic!("{:?} {}", e,s) }
+      nom::Err::Failure((s,e)) => { panic!("{:?} {}", e,s) }
+      nom::Err::Incomplete(e) => { panic!("{:?}", e) }
+    }}
   }
 }
 named!(_get_char<&str, ( CharVars ) >,

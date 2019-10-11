@@ -16,7 +16,13 @@ use {
   //   // Matrix4,
   // },
   nom::{
-    space, float, digit,
+    character::complete::{
+      space1 as space,
+      digit1 as digit,
+      // alpha1, 
+      // alphanumeric1, 
+    },
+    number::complete::float,
   },
   crate::{
     eof,
@@ -41,7 +47,11 @@ fn get_v(tstr: &str) -> (f32, f32, f32) {
   let eofs = eof(tstr);
   match _get_v(&eofs) {
     Ok((_, result)) => { result }
-    Err(e) => panic!("{}", e)
+    Err(e) => { match e {
+      nom::Err::Error((s,e)) => { panic!("{:?} {}", e,s) }
+      nom::Err::Failure((s,e)) => { panic!("{:?} {}", e,s) }
+      nom::Err::Incomplete(e) => { panic!("{:?}", e) }
+    }}
   }
 }
 named!(_get_v<&str, (f32, f32, f32) >,
@@ -61,7 +71,11 @@ fn get_vt(tstr: &str) -> (f32, f32) {
   let eofs = eof(tstr);
   match _get_vt(&eofs) {
     Ok((_, result)) => { result }
-    Err(e) => panic!("{}", e)
+    Err(e) => { match e {
+      nom::Err::Error((s,e)) => { panic!("{:?} {}", e,s) }
+      nom::Err::Failure((s,e)) => { panic!("{:?} {}", e,s) }
+      nom::Err::Incomplete(e) => { panic!("{:?}", e) }
+    }}
   }
 }
 named!(_get_vt<&str, (f32, f32) >,
@@ -79,7 +93,11 @@ fn get_vn(tstr: &str) -> (f32, f32, f32) {
   let eofs = eof(tstr);
   match _get_vn(&eofs) {
     Ok((_, result)) => { result }
-    Err(e) => panic!("{}", e)
+    Err(e) => { match e {
+      nom::Err::Error((s,e)) => { panic!("{:?} {}", e,s) }
+      nom::Err::Failure((s,e)) => { panic!("{:?} {}", e,s) }
+      nom::Err::Incomplete(e) => { panic!("{:?}", e) }
+    }}
   }
 }
 named!(_get_vn<&str, (f32, f32, f32) >,
@@ -117,7 +135,11 @@ fn get_f(tstr: &str) -> ( (usize,  usize,  usize), (usize, usize, usize), (usize
   let eofs = eof(tstr);
   match _get_f(&eofs) {
     Ok((_, result)) => { result }
-    Err(e) => panic!("{}", e)
+    Err(e) => { match e {
+      nom::Err::Error((s,e)) => { panic!("{:?} {}", e,s) }
+      nom::Err::Failure((s,e)) => { panic!("{:?} {}", e,s) }
+      nom::Err::Incomplete(e) => { panic!("{:?}", e) }
+    }}
   }
 }
 named!(_get_f<&str, ( (usize,  usize,  usize), (usize, usize, usize), (usize, usize, usize) ) >,
