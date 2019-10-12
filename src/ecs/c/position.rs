@@ -179,6 +179,7 @@ pub struct Rotator {
   axis: Vector3f,
   theta: f32,
   mag: f32,
+  ops: u32,
 }
 impl Default for Rotator {
   fn default() -> Self {
@@ -189,6 +190,7 @@ impl Default for Rotator {
       axis: crate::util::YVEC,
       theta: 0.,
       mag: 1.,
+      ops: 0,
     }
   }
 }
@@ -198,6 +200,13 @@ impl Rotator {
       self.mag = self.p.len();
       if self.mag != 0. { self.p.divscale(self.mag); }
     };
+    self
+  }
+  pub fn auto_cal(&mut self) -> &mut Self {
+    if self.ops > 10_0000 { // 十万
+      self.calibrate();
+      self.ops = 0;
+    }
     self
   }
   pub fn set_axis(&mut self, axis: Vector3f) -> &mut Self {
@@ -227,6 +236,7 @@ impl Rotator {
     self.q.z = self.axis.z * theta.sin();
     self.q1 = self.q.conjugate();
     self.p = (self.q * self.p) * self.q1;
+    self.ops += 1;
     self
   }
   pub fn get_point(&mut self, dest: &mut Vector3f) -> &mut Self {

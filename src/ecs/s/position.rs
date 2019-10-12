@@ -145,6 +145,7 @@ impl<'a> System<'a> for ApplyRotation {
     let (ent, mut rtr, rot, vel, mut tvel) = data;
     for (_, rot, vel, tvel) in (&ent, &rot, &vel, &mut tvel).join() {
       rtr.ry
+        .auto_cal()
         .set_point(vel.0)
         .set_angle(rot.0.y)
         .rotate()
