@@ -200,19 +200,19 @@ impl Rotator {
     };
     self
   }
-  pub fn set_point(&mut self, point: Vector3f) -> &mut Self {
-    self.p.w = 0.;
-    self.p.x = point.x;
-    self.p.y = point.y;
-    self.p.z = point.z;
-    self
-  }
   pub fn set_axis(&mut self, axis: Vector3f) -> &mut Self {
     self.axis = axis;
     if (self.axis.len_sqr() - 1.).abs() > 0.0001 {
       let mag = self.axis.len();
       if mag != 0. { self.axis.divscale(mag); }
     };
+    self
+  }
+  pub fn set_point(&mut self, point: Vector3f) -> &mut Self {
+    self.p.w = 0.;
+    self.p.x = point.x;
+    self.p.y = point.y;
+    self.p.z = point.z;
     self
   }
   pub fn set_angle(&mut self, theta: f32) -> &mut Self {
