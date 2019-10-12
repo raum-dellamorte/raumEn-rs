@@ -158,6 +158,49 @@ impl<'a> System<'a> for PlayerGen {
   }
 }
 
+pub struct ParticleGen;
+impl<'a> System<'a> for ParticleGen {
+  type SystemData = (
+    // Read<'a, >,
+    // Write<'a, >,
+    Entities<'a>,
+    // WriteStorage<'a, Position>,
+    // WriteStorage<'a, Velocity>,
+    // WriteStorage<'a, TransformVelocity>,
+    // WriteStorage<'a, DeltaVelocity>,
+    // WriteStorage<'a, PosAdjust>,
+    // WriteStorage<'a, ModelComponent>,
+    // WriteStorage<'a, TextureComponent>,
+    // WriteStorage<'a, LightingComponent>,
+    // WriteStorage<'a, JumpArc>,
+    // WriteStorage<'a, ActivePlayer>,
+    // WriteStorage<'a, Falling>,
+    // WriteStorage<'a, IsTexMod>,
+  );
+  fn run(&mut self, _data: Self::SystemData) {
+    // let ( ents, mut pos, 
+    //       mut vel, mut transvel, mut dvel, mut tvel, 
+    //       mut mod_c, mut tex_c, mut ltg_c, mut jump_arcs,
+    //       mut player, mut fall, mut texmod) = _data;
+    // let ent = ents.create();
+    
+    // pos.insert(ent, Position {0: Vector3f {x: ploc.0 as f32, y: 20.0, z: ploc.1 as f32}}).expect("Failed to insert new Position");
+    // transvel.insert(ent, TransformVelocity {0: Vector3f::blank()}).expect("Failed to insert new TransformVelocity");
+    // vel.insert(ent, Velocity {0: Vector3f::blank()}).expect("Failed to insert new Velocity");
+    // dvel.insert(ent, DeltaVelocity {0: Vector3f::blank()}).expect("Failed to insert new DeltaVelocity");
+    // tvel.insert(ent, PosAdjust {0: Vector3f::blank()}).expect("Failed to insert new PosAdjust");
+    // mod_c.insert(ent, ModelComponent("player".to_owned())).expect("Failed to insert new ModelComponent");
+    // tex_c.insert(ent, TextureComponent("dirt".to_owned())).expect("Failed to insert new TextureComponent");
+    // ltg_c.insert(ent, LightingComponent("flat".to_owned())).expect("Failed to insert new LightingComponent");
+    // jump_arcs.insert(ent, JumpArc::new()).expect("Failed to insert new JumpArc");
+    // player.insert(ent, ActivePlayer).expect("Failed to insert flag ActivePlayer");
+    // fall.insert(ent, Falling).expect("Failed to insert flag Falling");
+    // texmod.insert(ent, IsTexMod).expect("Failed to insert flag IsTexMod");
+    
+    // println!("Mobs made");
+  }
+}
+
 pub struct EntityGen;
 impl<'a> System<'a> for EntityGen {
   type SystemData = (
