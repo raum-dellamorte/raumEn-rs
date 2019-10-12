@@ -65,7 +65,6 @@ pub struct DeltaVelocity(pub Vector3f);
 #[derive(Component, Debug)]
 #[storage(VecStorage)]
 pub struct PosAdjust(pub Vector3f);
-
 impl PosAdjust {
   pub fn clear(&mut self) {
     self.0.clear();
