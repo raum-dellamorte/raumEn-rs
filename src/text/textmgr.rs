@@ -57,25 +57,18 @@ impl TextMgr {
       font = text.font.clone();
     }
     // println!("Text font: {}", font);
-    if text.is_some() {
-      self.texts.insert(label.to_owned(), text.unwrap());
+    if let Some(text) = text {
+      self.texts.insert(label.to_owned(), text);
     }
-    let mut hs: Option<HashSet<String>> = None;
     if !font.is_empty() {
-      let text_batch = self.active_text.get_mut(&font);
-      if text_batch.is_none() {
-        let mut _hs = HashSet::new();
-        _hs.insert(label.to_owned());
-        hs = Some(_hs)
-      } else {
-        let hs = text_batch.unwrap();
-        hs.insert(label.to_owned());
-        // hs = Some(*_hs)
+      match self.active_text.get_mut(&font) {
+        Some(hs) => { hs.insert(label.to_owned()); }
+        None => {
+          let mut hs = HashSet::new();
+          hs.insert(label.to_owned());
+          self.active_text.insert(font, hs);
+        }
       }
-    }
-    if hs.is_some() {
-      // println!("Adding text {} to active_text", label);
-      self.active_text.insert(font, hs.unwrap());
     }
   }
   pub fn disable_label(&mut self, label: &str) {
@@ -98,9 +91,7 @@ impl TextMgr {
     if let Some(ref mut text) = text {
       text.update_text(self, world, new_text);
     }
-    if text.is_some() {
-      self.texts.insert(label.to_owned(), text.unwrap());
-    }
+    if let Some(text) = text { self.texts.insert(label.to_owned(), text); }
   }
   pub fn update_size(&mut self, world: &World) {
     let mut fonts = Vec::new();
@@ -112,9 +103,7 @@ impl TextMgr {
       if let Some(ref mut fnt) = fnt {
         fnt.update_size(world);
       }
-      if fnt.is_some() {
-        self.fonts.insert(font.to_owned(), fnt.unwrap());
-      }
+      if let Some(fnt) = fnt { self.fonts.insert(font.to_owned(), fnt); }
     }
     let mut labels = Vec::new();
     for label in self.texts.keys() {
@@ -125,9 +114,7 @@ impl TextMgr {
       if let Some(ref mut text) = text {
         text.update_size(self, world);
       }
-      if text.is_some() {
-        self.texts.insert(label.to_owned(), text.unwrap());
-      }
+      if let Some(text) = text { self.texts.insert(label.to_owned(), text); }
     }
   }
 }

@@ -101,10 +101,9 @@ impl RWord {
     }
   }
   pub fn add_char(&mut self, char: Option<&RChar>) {
-    if char.is_some() {
-      let char = char.unwrap();
-      self.width += char.x_advance * self.font_size;
-      self.chars.push((*char).clone());
+    if let Some(character) = char {
+      self.width += character.x_advance * self.font_size;
+      self.chars.push((*character).clone());
     }
   }
 }
