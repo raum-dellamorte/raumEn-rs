@@ -203,6 +203,11 @@ impl Rotator {
     self
   }
   pub fn auto_cal(&mut self) -> &mut Self {
+    // The way I'm using the rotator I think this is completely unnecessary
+    // self.p is getting overwritten all the time, so there's no reason to 
+    // normalize it.  The math seems to work fine without being normalized.
+    // It seemed like a good idea at the time.  I just wasn't paying
+    // attention to what is actually happening.
     if self.ops > 10_0000 { // 十万
       self.calibrate();
       self.ops = 0;
