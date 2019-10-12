@@ -121,7 +121,6 @@ impl<'a> System<'a> for PlayerGen {
     Entities<'a>,
     WriteStorage<'a, Position>,
     WriteStorage<'a, Rotation>,
-    WriteStorage<'a, Rotator>,
     WriteStorage<'a, Velocity>,
     WriteStorage<'a, TransformVelocity>,
     WriteStorage<'a, DeltaVelocity>,
@@ -135,17 +134,14 @@ impl<'a> System<'a> for PlayerGen {
     WriteStorage<'a, IsTexMod>,
   );
   fn run(&mut self, _data: Self::SystemData) {
-    let ( ploc, ents, mut pos, mut rot, mut rtr, 
+    let ( ploc, ents, mut pos, mut rot, 
           mut vel, mut transvel, mut dvel, mut tvel, 
           mut mod_c, mut tex_c, mut ltg_c, mut jump_arcs,
           mut player, mut fall, mut texmod) = _data;
     let ent = ents.create();
     
-    let mut r = Rotator::default();
-    r.set_axis(crate::util::YVEC);
     
     pos.insert(ent, Position {0: Vector3f {x: ploc.0 as f32, y: 20.0, z: ploc.1 as f32}}).expect("Failed to insert new Position");
-    rtr.insert(ent, r).expect("Failed to insert new Rotator");
     rot.insert(ent, Rotation {0: Vector3f::blank()}).expect("Failed to insert new Rotation");
     transvel.insert(ent, TransformVelocity {0: Vector3f::blank()}).expect("Failed to insert new TransformVelocity");
     vel.insert(ent, Velocity {0: Vector3f::blank()}).expect("Failed to insert new Velocity");
