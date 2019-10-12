@@ -239,3 +239,22 @@ impl Rotator {
     dest.gen_from_quat(self.p);
   }
 }
+
+pub struct Rotators {
+  pub rx: Rotator,
+  pub ry: Rotator,
+  pub rz: Rotator,
+  pub rstrange: Rotator,
+}
+impl Default for Rotators {
+  fn default() -> Self {
+    let mut rx = Rotator::default();
+    rx.set_axis(crate::util::XVEC);
+    let mut rz = Rotator::default();
+    rz.set_axis(crate::util::ZVEC);
+    Self {
+      rx, ry: Rotator::default(), rz,
+      rstrange: Rotator::default(),
+    }
+  }
+}

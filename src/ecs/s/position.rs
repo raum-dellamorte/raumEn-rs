@@ -136,15 +136,16 @@ pub struct ApplyRotation;
 impl<'a> System<'a> for ApplyRotation {
   type SystemData = (
                       Entities<'a>,
-                      WriteStorage<'a, Rotator>,
+                      Write<'a, Rotators>,
                       ReadStorage<'a, Rotation>,
                       ReadStorage<'a, Velocity>,
                       WriteStorage<'a, TransformVelocity>,
                     );
   fn run(&mut self, data: Self::SystemData) {
     let (ent, mut rtr, rot, vel, mut tvel) = data;
-    for (_, rt, rot, vel, tvel) in (&ent, &mut rtr, &rot, &vel, &mut tvel).join() {
-      rt.set_point(vel.0)
+    for (_, rot, vel, tvel) in (&ent, &rot, &vel, &mut tvel).join() {
+      rtr.ry
+        .set_point(vel.0)
         .set_angle(rot.0.y)
         .rotate()
         .get_point(&mut tvel.0);

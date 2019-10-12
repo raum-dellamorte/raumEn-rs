@@ -56,7 +56,7 @@ use {
         TerrainNodes,
       },
       position::{
-        PlayerLoc, // Rotator,
+        PlayerLoc, Rotators,
       },
     },
     e::{
@@ -137,6 +137,7 @@ fn gen_world() -> World {
   world.insert(Handler::default());
   // world.insert(DrawModelsWithTextures::default());
   world.insert(LandscapeGen::default());
+  world.insert(Rotators::default());
   world.insert(PlayerLoc::default());
 //  world.insert(ParticleShader::default());
   world.insert(TerrainShader::default());
