@@ -15,6 +15,7 @@ extern crate num;
 extern crate nalgebra;
 extern crate ncollide3d;
 extern crate time;
+extern crate rand;
 extern crate noise;
 extern crate specs;
 #[macro_use] extern crate specs_derive;

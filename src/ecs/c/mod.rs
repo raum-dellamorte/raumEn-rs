@@ -3,6 +3,7 @@ pub mod bounding;
 pub mod lighting;
 pub mod material;
 pub mod model;
+pub mod particle;
 pub mod position;
 pub mod terrain;
 pub mod texture;
