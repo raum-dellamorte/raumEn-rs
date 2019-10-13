@@ -72,6 +72,10 @@ impl PosAdjust {
   }
 }
 
+#[derive(Component, Debug)]
+#[storage(VecStorage)]
+pub struct ScaleFloat(pub f32);
+
 #[derive(Debug)]
 pub struct PlayerLoc(pub i32,pub i32);
 impl Default for PlayerLoc { fn default() -> Self { Self(0,0) } }
