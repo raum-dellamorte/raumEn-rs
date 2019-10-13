@@ -15,18 +15,18 @@ pub struct GuiText {
   pub font: String,
   pub label: String,
   pub text: String,
-  pub position: Vector2f,
+  pub position: Vector2f<f32>,
   pub font_size: f32,
   pub line_max_size: f32,
   pub is_centered: bool,
   pub num_of_lines: u32,
-  pub colour: Vector3f,
+  pub colour: Vector3f<f32>,
   pub text_mesh_vao: u32,
   pub vertex_count: u32,
   pub loaded: bool,
 }
 impl GuiText {
-  pub fn new(font: &str, label: &str, text: &str, position: Vector2f, font_size: f32, line_max_size: f32, is_centered: bool) -> Self {
+  pub fn new(font: &str, label: &str, text: &str, position: Vector2f<f32>, font_size: f32, line_max_size: f32, is_centered: bool) -> Self {
     Self {
       font: font.to_owned(),
       label: label.to_owned(),
@@ -76,7 +76,7 @@ impl GuiText {
     // println!("Reloading GuiText");
     self.load(textmgr, world);
   }
-  pub fn set_colour(&mut self, r: f32, g: f32, b: f32) { self.colour.copy_from_f32(r, g, b); }
+  pub fn set_colour(&mut self, r: f32, g: f32, b: f32) { self.colour.copy_from_float(r, g, b); }
   pub fn set_mesh_info(&mut self, vao: u32, vert_count: u32) {
     self.text_mesh_vao = vao;
     self.vertex_count = vert_count;

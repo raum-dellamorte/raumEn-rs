@@ -5,7 +5,8 @@ use {
     Component, VecStorage, DenseVecStorage
   },
   util::{
-    RVec,
+    RVec, RFloat,
+    NumCast, Zero, 
     Vector3f,
     Quaternion,
     Matrix4f,
@@ -15,7 +16,7 @@ use {
 
 #[derive(Component, Debug)]
 #[storage(VecStorage)]
-pub struct Position(pub Vector3f);
+pub struct Position(pub Vector3f<f32>);
 impl Position {
   pub fn to_grid(&self) -> (i32, i32) {
     let x = self.0 .x.round() as i32;
@@ -48,23 +49,23 @@ fn grid_move(x: f32, z: f32, dist: f32, ry: f32) -> (i32, i32) {
 
 #[derive(Component, Debug)]
 #[storage(VecStorage)]
-pub struct Rotation(pub Vector3f);
+pub struct Rotation(pub Vector3f<f32>);
 
 #[derive(Component, Debug)]
 #[storage(VecStorage)]
-pub struct Velocity(pub Vector3f);
+pub struct Velocity(pub Vector3f<f32>);
 
 #[derive(Component, Debug)]
 #[storage(VecStorage)]
-pub struct TransformVelocity(pub Vector3f);
+pub struct TransformVelocity(pub Vector3f<f32>);
 
 #[derive(Component, Debug)]
 #[storage(VecStorage)]
-pub struct DeltaVelocity(pub Vector3f);
+pub struct DeltaVelocity(pub Vector3f<f32>);
 
 #[derive(Component, Debug)]
 #[storage(VecStorage)]
-pub struct PosAdjust(pub Vector3f);
+pub struct PosAdjust(pub Vector3f<f32>);
 impl PosAdjust {
   pub fn clear(&mut self) {
     self.0.clear();
@@ -78,11 +79,11 @@ impl Default for PlayerLoc { fn default() -> Self { Self(0,0) } }
 #[derive(Component, Debug)]
 #[storage(DenseVecStorage)]
 pub struct JumpArc {
-  pub orig: Vector3f,
-  pub dest: Vector3f,
-  pub last: Vector3f,
-  pub current: Vector3f,
-  pub delta: Vector3f,
+  pub orig: Vector3f<f32>,
+  pub dest: Vector3f<f32>,
+  pub last: Vector3f<f32>,
+  pub current: Vector3f<f32>,
+  pub delta: Vector3f<f32>,
   pub time: f32,
   pub fin: bool,
   peak: bool,
@@ -107,7 +108,7 @@ impl JumpArc {
   pub fn new() -> Self {
     Self::default()
   }
-  pub fn init(&mut self, _orig: Vector3f, _dest: Vector3f) {
+  pub fn init(&mut self, _orig: Vector3f<f32>, _dest: Vector3f<f32>) {
     {
       let (orig, last, dest, time) = (
         &mut self.orig, &mut self.last, &mut self.dest, &mut self.time
@@ -121,7 +122,7 @@ impl JumpArc {
     }
     println!("{:?}", self);
   }
-  pub fn calc_pos(&mut self, delta: f32) -> Vector3f {
+  pub fn calc_pos(&mut self, delta: f32) -> Vector3f<f32> {
     if !self.fin {
       let (orig, dest, last, current, time) = (
         &self.orig, &self.dest, &mut self.last, &mut self.current, &mut self.time
@@ -141,7 +142,7 @@ impl JumpArc {
         current.y = y + (Self::PEAK * if percent < 0.5 { percent * 2.0 } else { (1.0 - percent) * 2.0 });
       }
     }
-    self.delta.copy_from_f32(self.current.x - self.last.x, self.current.y - self.last.y, self.current.z - self.last.z);
+    self.delta.copy_from_float(self.current.x - self.last.x, self.current.y - self.last.y, self.current.z - self.last.z);
     self.delta
   }
   pub fn check_peak(&mut self) -> bool {
@@ -172,33 +173,35 @@ impl JumpArc {
 
 #[derive(Component, Debug)]
 #[storage(DenseVecStorage)]
-pub struct Rotator {
-  q: Quaternion,
-  q1: Quaternion,
-  p: Quaternion,
-  axis: Vector3f,
-  theta: f32,
-  mag: f32,
+pub struct Rotator<F: RFloat> {
+  q: Quaternion<F>,
+  q1: Quaternion<F>,
+  p: Quaternion<F>,
+  axis: Vector3f<F>,
+  theta: F,
+  mag: F,
   ops: u32,
 }
-impl Default for Rotator {
+impl<F: RFloat> Default for Rotator<F> {
   fn default() -> Self {
     Self {
-      q: Quaternion::new(1.,0.,0.,0.),
-      q1: Quaternion::new(1.,0.,0.,0.),
-      p: Quaternion::new(0.,0.,0.,0.),
-      axis: crate::util::YVEC,
-      theta: 0.,
-      mag: 1.,
+      q: Quaternion::default(),
+      q1: Quaternion::default(),
+      p: Quaternion::blank(),
+      axis: Vector3f {x: Zero::zero(), y: NumCast::from(1).unwrap(), z: Zero::zero() },
+      theta: Zero::zero(),
+      mag: NumCast::from(1).unwrap(),
       ops: 0,
     }
   }
 }
-impl Rotator {
+impl<F: RFloat> Rotator<F> {
   pub fn calibrate(&mut self) -> &mut Self {
-    if (self.p.len_sqr() - 1.).abs() > 0.00001 {
+    let one: F = NumCast::from(1).unwrap();
+    let tolerance: F = NumCast::from(0.00001).unwrap();
+    if (self.p.len_sqr() - one ).abs() > tolerance {
       self.mag = self.p.len();
-      if self.mag != 0. { self.p.divscale(self.mag); }
+      if self.mag != Zero::zero() { self.p.divscale(self.mag); }
     };
     self
   }
@@ -214,27 +217,29 @@ impl Rotator {
     }
     self
   }
-  pub fn set_axis(&mut self, axis: Vector3f) -> &mut Self {
+  pub fn set_axis(&mut self, axis: Vector3f<F>) -> &mut Self {
+    let one: F = NumCast::from(1).unwrap();
+    let tolerance: F = NumCast::from(0.0001).unwrap();
     self.axis = axis;
-    if (self.axis.len_sqr() - 1.).abs() > 0.0001 {
+    if (self.axis.len_sqr() - one ).abs() > tolerance {
       let mag = self.axis.len();
-      if mag != 0. { self.axis.divscale(mag); }
+      if mag != Zero::zero() { self.axis.divscale(mag); }
     };
     self
   }
-  pub fn set_point(&mut self, point: Vector3f) -> &mut Self {
-    self.p.w = 0.;
+  pub fn set_point(&mut self, point: Vector3f<F>) -> &mut Self {
+    self.p.w = Zero::zero();
     self.p.x = point.x;
     self.p.y = point.y;
     self.p.z = point.z;
     self
   }
-  pub fn set_angle(&mut self, theta: f32) -> &mut Self {
+  pub fn set_angle(&mut self, theta: F) -> &mut Self {
     self.theta = theta;
     self
   }
   pub fn rotate(&mut self) -> &mut Self {
-    let theta = self.theta.to_radians() / 2.;
+    let theta = self.theta.to_radians() / NumCast::from(2).unwrap();
     self.q.w = theta.cos();
     self.q.x = self.axis.x * theta.sin();
     self.q.y = self.axis.y * theta.sin();
@@ -244,29 +249,33 @@ impl Rotator {
     self.ops += 1;
     self
   }
-  pub fn get_point(&mut self, dest: &mut Vector3f) -> &mut Self {
-    dest.x = self.p.x * self.mag;
-    dest.y = self.p.y * self.mag;
-    dest.z = self.p.z * self.mag;
+  pub fn get_point<R: RFloat>(&mut self, dest: &mut Vector3f<R>) -> &mut Self {
+    let mag: R = NumCast::from(self.mag).unwrap();
+    let px: R = NumCast::from(self.p.x).unwrap();
+    let py: R = NumCast::from(self.p.y).unwrap();
+    let pz: R = NumCast::from(self.p.z).unwrap();
+    dest.x = px * mag;
+    dest.y = py * mag;
+    dest.z = pz * mag;
     self
   }
-  pub fn get_matrix(&self, dest: &mut Matrix4f) {
+  pub fn get_matrix(&self, dest: &mut Matrix4f<F>) {
     dest.gen_from_quat(self.p);
   }
 }
 
 pub struct Rotators {
-  pub rx: Rotator,
-  pub ry: Rotator,
-  pub rz: Rotator,
-  pub rstrange: Rotator,
+  pub rx: Rotator<f64>,
+  pub ry: Rotator<f64>,
+  pub rz: Rotator<f64>,
+  pub rstrange: Rotator<f64>,
 }
 impl Default for Rotators {
   fn default() -> Self {
     let mut rx = Rotator::default();
-    rx.set_axis(crate::util::XVEC);
+    rx.set_axis(crate::util::XVEC64);
     let mut rz = Rotator::default();
-    rz.set_axis(crate::util::ZVEC);
+    rz.set_axis(crate::util::ZVEC64);
     Self {
       rx, ry: Rotator::default(), rz,
       rstrange: Rotator::default(),

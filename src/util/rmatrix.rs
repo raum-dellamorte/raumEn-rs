@@ -1,5 +1,8 @@
 use {
-  util::rvector::{Vector2f, Vector3f, Quaternion},
+  util::{
+    RFloat, NumCast, Zero, 
+    rvector::{Vector2f, Vector3f, Quaternion},
+  },
   std::{
     fmt,
     ops::{
@@ -9,75 +12,75 @@ use {
 };
 
 #[derive(Debug, Copy, Clone)]
-pub struct Matrix4f {
-  pub matrix: [f32; 16],
+pub struct Matrix4f<F: RFloat> {
+  pub matrix: [F; 16],
 }
-impl Default for Matrix4f {
+impl<F: RFloat> Default for Matrix4f<F> {
   fn default() -> Self {
     Self {
-      matrix: [ 1.0, 0.0, 0.0, 0.0,
-                0.0, 1.0, 0.0, 0.0,
-                0.0, 0.0, 1.0, 0.0,
-                0.0, 0.0, 0.0, 1.0_f32],
+      matrix: [ NumCast::from(1).unwrap(), Zero::zero(), Zero::zero(), Zero::zero(),
+                Zero::zero(), NumCast::from(1).unwrap(), Zero::zero(), Zero::zero(),
+                Zero::zero(), Zero::zero(), NumCast::from(1).unwrap(), Zero::zero(),
+                Zero::zero(), Zero::zero(), Zero::zero(), NumCast::from(1).unwrap()],
     }
   }
 }
-impl Matrix4f {
+impl<F: RFloat> Matrix4f<F> {
   pub fn new() -> Self {
     Self::default()
   }
-  pub fn m00(&self) -> f32 { self.matrix[0] }
-  pub fn m01(&self) -> f32 { self.matrix[1] }
-  pub fn m02(&self) -> f32 { self.matrix[2] }
-  pub fn m03(&self) -> f32 { self.matrix[3] }
-  pub fn m10(&self) -> f32 { self.matrix[4] }
-  pub fn m11(&self) -> f32 { self.matrix[5] }
-  pub fn m12(&self) -> f32 { self.matrix[6] }
-  pub fn m13(&self) -> f32 { self.matrix[7] }
-  pub fn m20(&self) -> f32 { self.matrix[8] }
-  pub fn m21(&self) -> f32 { self.matrix[9] }
-  pub fn m22(&self) -> f32 { self.matrix[10] }
-  pub fn m23(&self) -> f32 { self.matrix[11] }
-  pub fn m30(&self) -> f32 { self.matrix[12] }
-  pub fn m31(&self) -> f32 { self.matrix[13] }
-  pub fn m32(&self) -> f32 { self.matrix[14] }
-  pub fn m33(&self) -> f32 { self.matrix[15] }
-  pub fn set_m00(&mut self, n: f32) { self.matrix[0] = n; }
-  pub fn set_m01(&mut self, n: f32) { self.matrix[1] = n; }
-  pub fn set_m02(&mut self, n: f32) { self.matrix[2] = n; }
-  pub fn set_m03(&mut self, n: f32) { self.matrix[3] = n; }
-  pub fn set_m10(&mut self, n: f32) { self.matrix[4] = n; }
-  pub fn set_m11(&mut self, n: f32) { self.matrix[5] = n; }
-  pub fn set_m12(&mut self, n: f32) { self.matrix[6] = n; }
-  pub fn set_m13(&mut self, n: f32) { self.matrix[7] = n; }
-  pub fn set_m20(&mut self, n: f32) { self.matrix[8] = n; }
-  pub fn set_m21(&mut self, n: f32) { self.matrix[9] = n; }
-  pub fn set_m22(&mut self, n: f32) { self.matrix[10] = n; }
-  pub fn set_m23(&mut self, n: f32) { self.matrix[11] = n; }
-  pub fn set_m30(&mut self, n: f32) { self.matrix[12] = n; }
-  pub fn set_m31(&mut self, n: f32) { self.matrix[13] = n; }
-  pub fn set_m32(&mut self, n: f32) { self.matrix[14] = n; }
-  pub fn set_m33(&mut self, n: f32) { self.matrix[15] = n; }
+  pub fn m00(&self) -> F { self.matrix[0] }
+  pub fn m01(&self) -> F { self.matrix[1] }
+  pub fn m02(&self) -> F { self.matrix[2] }
+  pub fn m03(&self) -> F { self.matrix[3] }
+  pub fn m10(&self) -> F { self.matrix[4] }
+  pub fn m11(&self) -> F { self.matrix[5] }
+  pub fn m12(&self) -> F { self.matrix[6] }
+  pub fn m13(&self) -> F { self.matrix[7] }
+  pub fn m20(&self) -> F { self.matrix[8] }
+  pub fn m21(&self) -> F { self.matrix[9] }
+  pub fn m22(&self) -> F { self.matrix[10] }
+  pub fn m23(&self) -> F { self.matrix[11] }
+  pub fn m30(&self) -> F { self.matrix[12] }
+  pub fn m31(&self) -> F { self.matrix[13] }
+  pub fn m32(&self) -> F { self.matrix[14] }
+  pub fn m33(&self) -> F { self.matrix[15] }
+  pub fn set_m00(&mut self, n: F) { self.matrix[0] = n; }
+  pub fn set_m01(&mut self, n: F) { self.matrix[1] = n; }
+  pub fn set_m02(&mut self, n: F) { self.matrix[2] = n; }
+  pub fn set_m03(&mut self, n: F) { self.matrix[3] = n; }
+  pub fn set_m10(&mut self, n: F) { self.matrix[4] = n; }
+  pub fn set_m11(&mut self, n: F) { self.matrix[5] = n; }
+  pub fn set_m12(&mut self, n: F) { self.matrix[6] = n; }
+  pub fn set_m13(&mut self, n: F) { self.matrix[7] = n; }
+  pub fn set_m20(&mut self, n: F) { self.matrix[8] = n; }
+  pub fn set_m21(&mut self, n: F) { self.matrix[9] = n; }
+  pub fn set_m22(&mut self, n: F) { self.matrix[10] = n; }
+  pub fn set_m23(&mut self, n: F) { self.matrix[11] = n; }
+  pub fn set_m30(&mut self, n: F) { self.matrix[12] = n; }
+  pub fn set_m31(&mut self, n: F) { self.matrix[13] = n; }
+  pub fn set_m32(&mut self, n: F) { self.matrix[14] = n; }
+  pub fn set_m33(&mut self, n: F) { self.matrix[15] = n; }
   
-  pub fn as_slice(&self) -> [f32; 16] {
+  pub fn as_slice(&self) -> [F; 16] {
     self.matrix
   }
   
   pub fn set_identity(&mut self) {
-    self.matrix = [ 1.0, 0.0, 0.0, 0.0,
-                    0.0, 1.0, 0.0, 0.0,
-                    0.0, 0.0, 1.0, 0.0,
-                    0.0, 0.0, 0.0, 1.0_f32];
+    self.matrix = [ NumCast::from(1).unwrap(), Zero::zero(), Zero::zero(), Zero::zero(),
+                    Zero::zero(), NumCast::from(1).unwrap(), Zero::zero(), Zero::zero(),
+                    Zero::zero(), Zero::zero(), NumCast::from(1).unwrap(), Zero::zero(),
+                    Zero::zero(), Zero::zero(), Zero::zero(), NumCast::from(1).unwrap() ];
   }
   
   pub fn set_zero(&mut self) {
-    self.matrix = [ 0.0, 0.0, 0.0, 0.0,
-                    0.0, 0.0, 0.0, 0.0,
-                    0.0, 0.0, 0.0, 0.0,
-                    0.0, 0.0, 0.0, 0.0_f32];
+    self.matrix = [ Zero::zero(), Zero::zero(), Zero::zero(), Zero::zero(),
+                    Zero::zero(), Zero::zero(), Zero::zero(), Zero::zero(),
+                    Zero::zero(), Zero::zero(), Zero::zero(), Zero::zero(),
+                    Zero::zero(), Zero::zero(), Zero::zero(), Zero::zero() ];
   }
   
-  pub fn index_assign(&mut self, idx: usize, value: Option<f32>) {
+  pub fn index_assign(&mut self, idx: usize, value: Option<F>) {
     match (idx, value) {
       (i, Some(val)) if i < 16 => self.matrix[i] = val,
       ( _, None ) => (),
@@ -85,37 +88,38 @@ impl Matrix4f {
     }
   }
   
-  pub fn copy_from_vec(&mut self, src: [Option<f32>; 16]) {
+  pub fn copy_from_vec(&mut self, src: [Option<F>; 16]) {
     for (i, val) in src.iter().enumerate() {
       self.index_assign(i, *val);
     }
   }
   
-  pub fn copy_from_m4f(&mut self, src: &Matrix4f) {
+  pub fn copy_from_m4f(&mut self, src: &Matrix4f<F>) {
     self.matrix[..16].clone_from_slice(&src.matrix[..16]);
   }
   
-  pub fn gen_from_quat(&mut self, q: Quaternion) {
+  pub fn gen_from_quat(&mut self, q: Quaternion<F>) {
+    let two: F = NumCast::from(2).unwrap();
     self.matrix = [ 
       q.w.powi(2) + q.x.powi(2) - q.y.powi(2) - q.z.powi(2),
-      (2. * q.x * q.y) - (2. * q.w * q.z),
-      (2. * q.x * q.z) + (2. * q.w * q.y),
-      0.0,
+      (two * q.x * q.y) - (two * q.w * q.z),
+      (two * q.x * q.z) + (two * q.w * q.y),
+      Zero::zero(),
       
-      (2. * q.x * q.y) + (2. * q.w * q.z),
+      (two * q.x * q.y) + (two * q.w * q.z),
       q.w.powi(2) - q.x.powi(2) + q.y.powi(2) - q.z.powi(2),
-      (2. * q.y * q.z) + (2. * q.w * q.x),
-      0.0,
+      (two * q.y * q.z) + (two * q.w * q.x),
+      Zero::zero(),
       
-      (2. * q.x * q.z) - (2. * q.w * q.y),
-      (2. * q.y * q.z) - (2. * q.w * q.x),
+      (two * q.x * q.z) - (two * q.w * q.y),
+      (two * q.y * q.z) - (two * q.w * q.x),
       q.w.powi(2) - q.x.powi(2) - q.y.powi(2) + q.z.powi(2),
-      0.0,
+      Zero::zero(),
       
-      0.0, 0.0, 0.0, 1.0_f32];
+      Zero::zero(), Zero::zero(), Zero::zero(), NumCast::from(1).unwrap()];
   }
 
-  pub fn determinant(&self) -> f32 {
+  pub fn determinant(&self) -> F {
     (self.m00() * (
       ( self.m11() * self.m22() * self.m33() + self.m12() * self.m23() * self.m31() + self.m13() * self.m21() * self.m32() )
       - self.m13() * self.m22() * self.m31() - self.m11() * self.m23() * self.m32() - self.m12() * self.m21() * self.m33() ))
@@ -132,20 +136,22 @@ impl Matrix4f {
   
   pub fn invert(&mut self) -> bool {
     let determinant = self.determinant();
-    if determinant == 0.0_f32 { return false }
-    let tmp = invert_math(self, 1_f32 / determinant);
+    if determinant == Zero::zero() { return false }
+    let one: F = NumCast::from(1).unwrap();
+    let tmp = invert_math(self, one / determinant);
     self.copy_from_vec(tmp);
     true
   }
   
-  pub fn invert_from(&mut self, src: &Matrix4f) -> bool {
+  pub fn invert_from(&mut self, src: &Matrix4f<F>) -> bool {
     let determinant = src.determinant();
-    if determinant == 0.0_f32 { return false }
-    self.copy_from_vec(invert_math(src, 1_f32 / determinant));
+    if determinant == Zero::zero() { return false }
+    let one: F = NumCast::from(1).unwrap();
+    self.copy_from_vec(invert_math(src, one / determinant));
     true
   }
   
-  pub fn invert_to(&self, dest: &mut Matrix4f) {
+  pub fn invert_to(&self, dest: &mut Matrix4f<F>) {
     dest.invert_from(self);
   }
   
@@ -155,58 +161,58 @@ impl Matrix4f {
     }
   }
   
-  pub fn negate_from(&mut self, src: &Matrix4f) {
+  pub fn negate_from(&mut self, src: &Matrix4f<F>) {
     for i in 0..16 {
       self.matrix[i] = -src.matrix[i];
     }
   }
   
-  pub fn negate_to(&self, dest: &mut Matrix4f) { dest.negate_from(self); }
+  pub fn negate_to(&self, dest: &mut Matrix4f<F>) { dest.negate_from(self); }
   
-  pub fn rotate(&mut self, angle: f32, axis: Vector3f) {
+  pub fn rotate(&mut self, angle: F, axis: Vector3f<F>) {
     let tmp = rotate_math(angle, axis, self);
     self.copy_from_vec(tmp);
   }
   
-  pub fn rotate_from(&mut self, angle: f32, axis: Vector3f, src: &Matrix4f) { self.copy_from_vec(rotate_math(angle, axis, src)); }
+  pub fn rotate_from(&mut self, angle: F, axis: Vector3f<F>, src: &Matrix4f<F>) { self.copy_from_vec(rotate_math(angle, axis, src)); }
   
-  pub fn rotate_to(&self, angle: f32, axis: Vector3f, dest: &mut Matrix4f) { dest.copy_from_vec(rotate_math(angle, axis, self)); }
+  pub fn rotate_to(&self, angle: F, axis: Vector3f<F>, dest: &mut Matrix4f<F>) { dest.copy_from_vec(rotate_math(angle, axis, self)); }
   
-  pub fn scale(&mut self, vec: Vector3f) {
+  pub fn scale(&mut self, vec: Vector3f<F>) {
     let tmp = scale_math(vec, self);
     self.copy_from_vec(tmp);
   }
   
-  pub fn scale_to(&self, vec: Vector3f, dest: &mut Matrix4f) { dest.copy_from_vec(scale_math(vec, self)) }
+  pub fn scale_to(&self, vec: Vector3f<F>, dest: &mut Matrix4f<F>) { dest.copy_from_vec(scale_math(vec, self)) }
   
-  pub fn translate_v2f(&mut self, vec: Vector2f) {
+  pub fn translate_v2f(&mut self, vec: Vector2f<F>) {
     let tmp = translate_math_v2f(vec, self);
     self.copy_from_vec(tmp);
   }
   
-  pub fn translate_from_v2f(&mut self, vec: Vector2f, src: &Matrix4f) { self.copy_from_vec(translate_math_v2f(vec, src)) }
+  pub fn translate_from_v2f(&mut self, vec: Vector2f<F>, src: &Matrix4f<F>) { self.copy_from_vec(translate_math_v2f(vec, src)) }
   
-  pub fn translate_to_v2f(&self, vec: Vector2f, dest: &mut Matrix4f) { dest.translate_from_v2f(vec, self) }
+  pub fn translate_to_v2f(&self, vec: Vector2f<F>, dest: &mut Matrix4f<F>) { dest.translate_from_v2f(vec, self) }
   
-  pub fn translate_v3f(&mut self, vec: Vector3f) {
+  pub fn translate_v3f(&mut self, vec: Vector3f<F>) {
     let tmp = translate_math_v3f(vec, self);
     self.copy_from_vec(tmp);
   }
   
-  pub fn translate_from_v3f(&mut self, vec: Vector3f, src: &Matrix4f) { self.copy_from_vec(translate_math_v3f(vec, src)) }
+  pub fn translate_from_v3f(&mut self, vec: Vector3f<F>, src: &Matrix4f<F>) { self.copy_from_vec(translate_math_v3f(vec, src)) }
   
-  pub fn translate_to_v3f(&self, vec: Vector3f, dest: &mut Matrix4f) { dest.translate_from_v3f(vec, self) }
+  pub fn translate_to_v3f(&self, vec: Vector3f<F>, dest: &mut Matrix4f<F>) { dest.translate_from_v3f(vec, self) }
   
   pub fn transpose(&mut self) {
     let tmp = transpose_math(self);
     self.copy_from_vec(tmp);
   }
   
-  pub fn transpose_from(&mut self, src: &Matrix4f) { self.copy_from_vec(transpose_math(src)); }
+  pub fn transpose_from(&mut self, src: &Matrix4f<F>) { self.copy_from_vec(transpose_math(src)); }
   
-  pub fn transpose_to(&self, dest: &mut Matrix4f) { dest.transpose_from(self); }
+  pub fn transpose_to(&self, dest: &mut Matrix4f<F>) { dest.transpose_from(self); }
 }
-impl fmt::Display for Matrix4f {
+impl<F: RFloat> fmt::Display for Matrix4f<F> {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
     write!(f, "[[{}, {}, {}, {}],\n [{}, {}, {}, {}],\n [{}, {}, {}, {}],\n [{}, {}, {}, {}]]",
       self.m00(), self.m01(), self.m02(), self.m03(),
@@ -217,10 +223,10 @@ impl fmt::Display for Matrix4f {
   }
 }
 
-impl Add for Matrix4f {
-  type Output = Matrix4f;
+impl<F: RFloat> Add for Matrix4f<F> {
+  type Output = Matrix4f<F>;
   
-  fn add(self, other: Matrix4f) -> Matrix4f {
+  fn add(self, other: Self::Output) -> Self::Output {
     Matrix4f {
       matrix: [ self.m00() + other.m00(), self.m01() + other.m01(), self.m02() + other.m02(), self.m03() + other.m03(),
                 self.m10() + other.m10(), self.m11() + other.m11(), self.m12() + other.m12(), self.m13() + other.m13(),
@@ -230,17 +236,17 @@ impl Add for Matrix4f {
   }
 }
 
-impl AddAssign for Matrix4f {
-  fn add_assign(&mut self, other: Matrix4f) {
+impl<F: RFloat> AddAssign for Matrix4f<F> {
+  fn add_assign(&mut self, other: Self) {
     self.matrix = self.add(other).matrix;
   }
 }
 
-impl Sub for Matrix4f {
-  type Output = Matrix4f;
+impl<F: RFloat> Sub for Matrix4f<F> {
+  type Output = Matrix4f<F>;
   
-  fn sub(self, other: Matrix4f) -> Matrix4f {
-    Matrix4f {
+  fn sub(self, other: Self::Output) -> Self::Output {
+    Self::Output {
       matrix: [ self.m00() - other.m00(), self.m01() - other.m01(), self.m02() - other.m02(), self.m03() - other.m03(),
                 self.m10() - other.m10(), self.m11() - other.m11(), self.m12() - other.m12(), self.m13() - other.m13(),
                 self.m20() - other.m20(), self.m21() - other.m21(), self.m22() - other.m22(), self.m23() - other.m23(),
@@ -249,17 +255,17 @@ impl Sub for Matrix4f {
   }
 }
 
-impl SubAssign for Matrix4f {
-  fn sub_assign(&mut self, other: Matrix4f) {
+impl<F: RFloat> SubAssign for Matrix4f<F> {
+  fn sub_assign(&mut self, other: Self) {
     self.matrix = self.sub(other).matrix;
   }
 }
 
-impl Mul for Matrix4f {
-  type Output = Matrix4f;
+impl<F: RFloat> Mul for Matrix4f<F> {
+  type Output = Matrix4f<F>;
   
-  fn mul(self, other: Matrix4f) -> Matrix4f {
-    Matrix4f {
+  fn mul(self, other: Self::Output) -> Self::Output {
+    Self::Output {
       matrix: [ self.m00() * other.m00() + self.m10() * other.m01() + self.m20() * other.m02() + self.m30() * other.m03(),
                 self.m01() * other.m00() + self.m11() * other.m01() + self.m21() * other.m02() + self.m31() * other.m03(),
                 self.m02() * other.m00() + self.m12() * other.m01() + self.m22() * other.m02() + self.m32() * other.m03(),
@@ -280,8 +286,8 @@ impl Mul for Matrix4f {
   }
 }
 
-impl MulAssign for Matrix4f {
-  fn mul_assign(&mut self, other: Matrix4f) {
+impl<F: RFloat> MulAssign for Matrix4f<F> {
+  fn mul_assign(&mut self, other: Matrix4f<F>) {
     let t00 = self.m00() * other.m00() + self.m10() * other.m01() + self.m20() * other.m02() + self.m30() * other.m03();
     let t01 = self.m01() * other.m00() + self.m11() * other.m01() + self.m21() * other.m02() + self.m31() * other.m03();
     let t02 = self.m02() * other.m00() + self.m12() * other.m01() + self.m22() * other.m02() + self.m32() * other.m03();
@@ -317,21 +323,21 @@ impl MulAssign for Matrix4f {
   }
 }
 
-pub fn add(left: &Matrix4f, right: &Matrix4f, dest: &mut Matrix4f) {
+pub fn add<F: RFloat>(left: &Matrix4f<F>, right: &Matrix4f<F>, dest: &mut Matrix4f<F>) {
   dest.matrix = [ left.m00() + right.m00(), left.m01() + right.m01(), left.m02() + right.m02(), left.m03() + right.m03(),
                   left.m10() + right.m10(), left.m11() + right.m11(), left.m12() + right.m12(), left.m13() + right.m13(),
                   left.m20() + right.m20(), left.m21() + right.m21(), left.m22() + right.m22(), left.m23() + right.m23(),
                   left.m30() + right.m30(), left.m31() + right.m31(), left.m32() + right.m32(), left.m33() + right.m33()];
 }
 
-pub fn sub(left: &Matrix4f, right: &Matrix4f, dest: &mut Matrix4f) {
+pub fn sub<F: RFloat>(left: &Matrix4f<F>, right: &Matrix4f<F>, dest: &mut Matrix4f<F>) {
   dest.matrix = [ left.m00() - right.m00(), left.m01() - right.m01(), left.m02() - right.m02(), left.m03() - right.m03(),
                   left.m10() - right.m10(), left.m11() - right.m11(), left.m12() - right.m12(), left.m13() - right.m13(),
                   left.m20() - right.m20(), left.m21() - right.m21(), left.m22() - right.m22(), left.m23() - right.m23(),
                   left.m30() - right.m30(), left.m31() - right.m31(), left.m32() - right.m32(), left.m33() - right.m33()]
 }
 
-pub fn mul(left: &Matrix4f, right: &Matrix4f, dest: &mut Matrix4f) {
+pub fn mul<F: RFloat>(left: &Matrix4f<F>, right: &Matrix4f<F>, dest: &mut Matrix4f<F>) {
   dest.matrix = [ left.m00() * right.m00() + left.m10() * right.m01() + left.m20() * right.m02() + left.m30() * right.m03(),
                   left.m01() * right.m00() + left.m11() * right.m01() + left.m21() * right.m02() + left.m31() * right.m03(),
                   left.m02() * right.m00() + left.m12() * right.m01() + left.m22() * right.m02() + left.m32() * right.m03(),
@@ -350,11 +356,11 @@ pub fn mul(left: &Matrix4f, right: &Matrix4f, dest: &mut Matrix4f) {
                   left.m03() * right.m30() + left.m13() * right.m31() + left.m23() * right.m32() + left.m33() * right.m33()];
 }
 
-fn determinant3x3(t00: f32, t01: f32, t02: f32, t10: f32, t11: f32, t12: f32, t20: f32, t21: f32, t22: f32) -> f32 {
+fn determinant3x3<F: RFloat>(t00: F, t01: F, t02: F, t10: F, t11: F, t12: F, t20: F, t21: F, t22: F) -> F {
   t00 * (t11 * t22 - t12 * t21) + t01 * (t12 * t20 - t10 * t22) + t02 * (t10 * t21 - t11 * t20)
 }
 
-fn invert_math(src: &Matrix4f, di: f32) -> [Option<f32>; 16] {
+fn invert_math<F: RFloat>(src: &Matrix4f<F>, di: F) -> [Option<F>; 16] {
   /*
   * m00 m01 m02 m03
   * m10 m11 m12 m13
@@ -398,11 +404,12 @@ fn invert_math(src: &Matrix4f, di: f32) -> [Option<f32>; 16] {
   ]
 }
 
-fn rotate_math(angle: f32, axis: Vector3f, src: &Matrix4f) -> [Option<f32>; 16] {
+fn rotate_math<F: RFloat>(angle: F, axis: Vector3f<F>, src: &Matrix4f<F>) -> [Option<F>; 16] {
   // let angle = angle.to_radians();
   let c = angle.cos();
   let s = angle.sin();
-  let oneminusc = 1_f32 - c;
+  let one: F = NumCast::from(1).unwrap();
+  let oneminusc = one - c;
   let xy = axis.x * axis.y;
   let yz = axis.y * axis.z;
   let xz = axis.x * axis.z;
@@ -437,7 +444,7 @@ fn rotate_math(angle: f32, axis: Vector3f, src: &Matrix4f) -> [Option<f32>; 16] 
   ]
 }
 
-fn scale_math(vec: Vector3f, src: &Matrix4f) -> [Option<f32>; 16] {
+fn scale_math<F: RFloat>(vec: Vector3f<F>, src: &Matrix4f<F>) -> [Option<F>; 16] {
   [
     Some(src.m00() * vec.x),
     Some(src.m01() * vec.x),
@@ -455,14 +462,14 @@ fn scale_math(vec: Vector3f, src: &Matrix4f) -> [Option<f32>; 16] {
   ]
 }
 
-pub fn transform(left: &Matrix4f, right: Quaternion, dest: &mut Quaternion) { // This is prolly wrong and not needed
+pub fn transform<F: RFloat>(left: &Matrix4f<F>, right: Quaternion<F>, dest: &mut Quaternion<F>) { // This is prolly wrong and not needed
   dest.w = left.m00() * right.w + left.m10() * right.x + left.m20() * right.y + left.m30() * right.z;
   dest.x = left.m01() * right.w + left.m11() * right.x + left.m21() * right.y + left.m31() * right.z;
   dest.y = left.m02() * right.w + left.m12() * right.x + left.m22() * right.y + left.m32() * right.z;
   dest.z = left.m03() * right.w + left.m13() * right.x + left.m23() * right.y + left.m33() * right.z;
 }
 
-pub fn translate_math_v3f(vec: Vector3f, src: &Matrix4f) -> [Option<f32>; 16] {
+pub fn translate_math_v3f<F: RFloat>(vec: Vector3f<F>, src: &Matrix4f<F>) -> [Option<F>; 16] {
   [
     None, None, None, None,
     None, None, None, None,
@@ -474,7 +481,7 @@ pub fn translate_math_v3f(vec: Vector3f, src: &Matrix4f) -> [Option<f32>; 16] {
   ]
 }
 
-pub fn translate_math_v2f(vec: Vector2f, src: &Matrix4f) -> [Option<f32>; 16] {
+pub fn translate_math_v2f<F: RFloat>(vec: Vector2f<F>, src: &Matrix4f<F>) -> [Option<F>; 16] {
   [
     None, None, None, None,
     None, None, None, None,
@@ -486,7 +493,7 @@ pub fn translate_math_v2f(vec: Vector2f, src: &Matrix4f) -> [Option<f32>; 16] {
   ]
 }
 
-pub fn transpose_math(src: &Matrix4f) -> [Option<f32>; 16] {
+pub fn transpose_math<F: RFloat>(src: &Matrix4f<F>) -> [Option<F>; 16] {
   [
     Some(src.m00()), Some(src.m10()), Some(src.m20()), Some(src.m30()),
     Some(src.m01()), Some(src.m11()), Some(src.m21()), Some(src.m31()),
@@ -494,41 +501,3 @@ pub fn transpose_math(src: &Matrix4f) -> [Option<f32>; 16] {
     Some(src.m03()), Some(src.m13()), Some(src.m23()), Some(src.m33())
   ]
 }
-
-//pub fn load(buf: FloatBuffer) {
-//  self.matrix[0] = buf.get() as f32;
-//  self.matrix[1] = buf.get() as f32;
-//  self.matrix[2] = buf.get() as f32;
-//  self.matrix[3] = buf.get() as f32;
-//  self.matrix[4] = buf.get() as f32;
-//  self.matrix[5] = buf.get() as f32;
-//  self.matrix[6] = buf.get() as f32;
-//  self.matrix[7] = buf.get() as f32;
-//  self.matrix[8] = buf.get() as f32;
-//  self.matrix[9] = buf.get() as f32;
-//  self.matrix[10] = buf.get() as f32;
-//  self.matrix[11] = buf.get() as f32;
-//  self.matrix[12] = buf.get() as f32;
-//  self.matrix[13] = buf.get() as f32;
-//  self.matrix[14] = buf.get() as f32;
-//  self.matrix[15] = buf.get() as f32;
-//}
-//
-//pub fn load_transpose(buf: FloatBuffer) {
-//  self.matrix[0] = buf.get() as f32;
-//  self.matrix[4] = buf.get() as f32;
-//  self.matrix[8] = buf.get() as f32;
-//  self.matrix[12] = buf.get() as f32;
-//  self.matrix[1] = buf.get() as f32;
-//  self.matrix[5] = buf.get() as f32;
-//  self.matrix[9] = buf.get() as f32;
-//  self.matrix[13] = buf.get() as f32;
-//  self.matrix[2] = buf.get() as f32;
-//  self.matrix[6] = buf.get() as f32;
-//  self.matrix[10] = buf.get() as f32;
-//  self.matrix[14] = buf.get() as f32;
-//  self.matrix[3] = buf.get() as f32;
-//  self.matrix[7] = buf.get() as f32;
-//  self.matrix[11] = buf.get() as f32;
-//  self.matrix[15] = buf.get() as f32;
-//}

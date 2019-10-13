@@ -31,7 +31,7 @@ pub struct RowCountComponent(pub u32);
 
 #[derive(Component, Debug)]
 #[storage(VecStorage)]
-pub struct OffsetComponent(pub Vector2f);
+pub struct OffsetComponent(pub Vector2f<f32>);
 
 #[derive(Component, Default)]
 #[storage(NullStorage)]
@@ -76,7 +76,7 @@ pub struct Material {
   pub lighting: String,
   pub tex_index: u32,
   pub row_count: u32,
-  pub offset: Vector2f,
+  pub offset: Vector2f<f32>,
   pub multi_tex: bool,
 }
 impl Material {

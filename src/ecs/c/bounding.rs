@@ -12,13 +12,13 @@ use {
 #[derive(Component, Debug)]
 #[storage(VecStorage)]
 pub struct Bounds {
-  pub origin: Vector3f,
-  pub size: Vector3f,
-  pub min: Vector3f,
-  pub max: Vector3f,
+  pub origin: Vector3f<f32>,
+  pub size: Vector3f<f32>,
+  pub min: Vector3f<f32>,
+  pub max: Vector3f<f32>,
   pub rad: f32,
   pub prox: Vec<Entity>,
-  pub overlap: Vec<(Entity, Vector3f)>,
+  pub overlap: Vec<(Entity, Vector3f<f32>)>,
 }
 impl Default for Bounds {
   fn default() -> Self {
@@ -26,19 +26,19 @@ impl Default for Bounds {
   }
 }
 impl Bounds {
-  pub fn new(origin: Vector3f, size: Vector3f, rad: f32) -> Self {
+  pub fn new(origin: Vector3f<f32>, size: Vector3f<f32>, rad: f32) -> Self {
     let min = origin - size;
     let max = origin + size;
     Self {
       origin, size, min, max, rad, prox: Vec::new(), overlap: Vec::new(), 
     }
   }
-  pub fn set_origin(mut self, origin: Vector3f) -> Self {
+  pub fn set_origin(mut self, origin: Vector3f<f32>) -> Self {
     self.origin.copy_from_v3f(origin);
     (&mut self).recalc_min_max();
     self
   }
-  pub fn set_size(mut self, size: Vector3f) -> Self {
+  pub fn set_size(mut self, size: Vector3f<f32>) -> Self {
     self.size.copy_from_v3f(size);
     (&mut self).recalc_min_max();
     self
@@ -47,7 +47,7 @@ impl Bounds {
     self.min = self.origin - self.size;
     self.max = self.origin + self.size;
   }
-  pub fn collide_test(&mut self, ent: Entity, other: &Self, dir: Vector3f) -> Option<Vector3f> {
+  pub fn collide_test(&mut self, ent: Entity, other: &Self, dir: Vector3f<f32>) -> Option<Vector3f<f32>> {
     // let (a, b, c) = self.y_pos();
     // let mut norm = norm_from_points(a, b, c);
     // let (d, e, f) = other.y_neg();
@@ -118,51 +118,51 @@ impl Bounds {
   fn x2(&self) -> f32 { self.max.x }
   fn y2(&self) -> f32 { self.max.y }
   fn z2(&self) -> f32 { self.max.z }
-  fn y_neg(&self) -> (Vector3f, Vector3f, Vector3f) {
+  fn y_neg(&self) -> (Vector3f<f32>, Vector3f<f32>, Vector3f<f32>) {
     let (mut a, mut b, mut c) = (Vector3f::blank(), Vector3f::blank(), Vector3f::blank());
-    a.copy_from_f32(self.x1(), self.y1(), self.z2());
-    b.copy_from_f32(self.x1(), self.y1(), self.z1());
-    c.copy_from_f32(self.x2(), self.y1(), self.z1());
+    a.copy_from_float(self.x1(), self.y1(), self.z2());
+    b.copy_from_float(self.x1(), self.y1(), self.z1());
+    c.copy_from_float(self.x2(), self.y1(), self.z1());
     (a,b,c)
   }
-  fn y_pos(&self) -> (Vector3f, Vector3f, Vector3f) {
+  fn y_pos(&self) -> (Vector3f<f32>, Vector3f<f32>, Vector3f<f32>) {
     let (mut a, mut b, mut c) = (Vector3f::blank(), Vector3f::blank(), Vector3f::blank());
-    a.copy_from_f32(self.x1(), self.y2(), self.z2());
-    b.copy_from_f32(self.x1(), self.y2(), self.z1());
-    c.copy_from_f32(self.x2(), self.y2(), self.z1());
+    a.copy_from_float(self.x1(), self.y2(), self.z2());
+    b.copy_from_float(self.x1(), self.y2(), self.z1());
+    c.copy_from_float(self.x2(), self.y2(), self.z1());
     (a,b,c)
   }
-  fn x_neg(&self) -> (Vector3f, Vector3f, Vector3f) {
+  fn x_neg(&self) -> (Vector3f<f32>, Vector3f<f32>, Vector3f<f32>) {
     let (mut a, mut b, mut c) = (Vector3f::blank(), Vector3f::blank(), Vector3f::blank());
-    a.copy_from_f32(self.x1(), self.y1(), self.z2());
-    b.copy_from_f32(self.x1(), self.y1(), self.z1());
-    c.copy_from_f32(self.x1(), self.y2(), self.z1());
+    a.copy_from_float(self.x1(), self.y1(), self.z2());
+    b.copy_from_float(self.x1(), self.y1(), self.z1());
+    c.copy_from_float(self.x1(), self.y2(), self.z1());
     (a,b,c)
   }
-  fn x_pos(&self) -> (Vector3f, Vector3f, Vector3f) {
+  fn x_pos(&self) -> (Vector3f<f32>, Vector3f<f32>, Vector3f<f32>) {
     let (mut a, mut b, mut c) = (Vector3f::blank(), Vector3f::blank(), Vector3f::blank());
-    a.copy_from_f32(self.x2(), self.y1(), self.z2());
-    b.copy_from_f32(self.x2(), self.y1(), self.z1());
-    c.copy_from_f32(self.x2(), self.y2(), self.z1());
+    a.copy_from_float(self.x2(), self.y1(), self.z2());
+    b.copy_from_float(self.x2(), self.y1(), self.z1());
+    c.copy_from_float(self.x2(), self.y2(), self.z1());
     (a,b,c)
   }
-  fn z_neg(&self) -> (Vector3f, Vector3f, Vector3f) {
+  fn z_neg(&self) -> (Vector3f<f32>, Vector3f<f32>, Vector3f<f32>) {
     let (mut a, mut b, mut c) = (Vector3f::blank(), Vector3f::blank(), Vector3f::blank());
-    a.copy_from_f32(self.x1(), self.y2(), self.z1());
-    b.copy_from_f32(self.x1(), self.y1(), self.z1());
-    c.copy_from_f32(self.x2(), self.y1(), self.z1());
+    a.copy_from_float(self.x1(), self.y2(), self.z1());
+    b.copy_from_float(self.x1(), self.y1(), self.z1());
+    c.copy_from_float(self.x2(), self.y1(), self.z1());
     (a,b,c)
   }
-  fn z_pos(&self) -> (Vector3f, Vector3f, Vector3f) {
+  fn z_pos(&self) -> (Vector3f<f32>, Vector3f<f32>, Vector3f<f32>) {
     let (mut a, mut b, mut c) = (Vector3f::blank(), Vector3f::blank(), Vector3f::blank());
-    a.copy_from_f32(self.x1(), self.y2(), self.z2());
-    b.copy_from_f32(self.x1(), self.y1(), self.z2());
-    c.copy_from_f32(self.x2(), self.y1(), self.z2());
+    a.copy_from_float(self.x1(), self.y2(), self.z2());
+    b.copy_from_float(self.x1(), self.y1(), self.z2());
+    c.copy_from_float(self.x2(), self.y1(), self.z2());
     (a,b,c)
   }
 }
 
-fn norm_from_points(a: Vector3f, b: Vector3f, c: Vector3f) -> Vector3f {
+fn norm_from_points(a: Vector3f<f32>, b: Vector3f<f32>, c: Vector3f<f32>) -> Vector3f<f32> {
   let ba = b - a;
   let ca = c - a;
   let mut cross = ba.cross(ca);

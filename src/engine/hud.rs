@@ -25,12 +25,12 @@ impl HUD {
 }
 
 pub struct GuiObj {
-  pub pos: Vector2f,
-  pub pos_last: Vector2f,
-  pub scale: Vector2f,
-  pub transmat: Matrix4f,
+  pub pos: Vector2f<f32>,
+  pub pos_last: Vector2f<f32>,
+  pub scale: Vector2f<f32>,
+  pub transmat: Matrix4f<f32>,
   pub row_count: f32,
-  pub offset: Vector2f,
+  pub offset: Vector2f<f32>,
   pub flip_y: bool,
   pub tex_id: u32,
   pub depth_tex_id: u32,
@@ -54,7 +54,7 @@ impl GuiObj {
   pub fn new() -> Self {
     Self::default()
   }
-  pub fn transformation(&mut self) -> &Matrix4f {
+  pub fn transformation(&mut self) -> &Matrix4f<f32> {
     self.calc_transformation();
     &self.transmat
   }

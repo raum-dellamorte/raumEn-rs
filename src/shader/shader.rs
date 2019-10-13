@@ -311,7 +311,7 @@ impl Shader {
     println!("Uniform name not found: {}", name);
     -1 as GLint
   }
-  pub fn load_proj_mat(&self, matrix: &Matrix4f) {
+  pub fn load_proj_mat(&self, matrix: &Matrix4f<f32>) {
     self.load_matrix("u_Projection", matrix);
   }
   pub fn load_int(&self, name: &str, value: GLint) { unsafe {
@@ -329,22 +329,22 @@ impl Shader {
     if self.check_id(id, name, "load_bool") { return }
     Uniform1f(id, if value { 1.0 as GLfloat } else { 0.0 as GLfloat })
   }}
-  pub fn load_quaternion(&self, name: &str, quat: Quaternion) { unsafe {
+  pub fn load_quaternion(&self, name: &str, quat: Quaternion<f32>) { unsafe {
     let id = self.get_uniform_id(name);
     if self.check_id(id, name, "load_quaternion") { return }
     Uniform4f(id, quat.w, quat.x, quat.y, quat.z);
   }}
-  pub fn load_vec_3f(&self, name: &str, vector: Vector3f) { unsafe {
+  pub fn load_vec_3f(&self, name: &str, vector: Vector3f<f32>) { unsafe {
     let id = self.get_uniform_id(name);
     if self.check_id(id, name, "load_vec_3f") { return }
     Uniform3f(id, vector.x, vector.y, vector.z);
   }}
-  pub fn load_vec_2f(&self, name: &str, vector: Vector2f) { unsafe {
+  pub fn load_vec_2f(&self, name: &str, vector: Vector2f<f32>) { unsafe {
     let id = self.get_uniform_id(name);
     if self.check_id(id, name, "load_vec_2f") { return }
     Uniform2f(id, vector.x, vector.y);
   }}
-  pub fn load_matrix(&self, name: &str, matrix: &Matrix4f) { unsafe {
+  pub fn load_matrix(&self, name: &str, matrix: &Matrix4f<f32>) { unsafe {
     let id = self.get_uniform_id(name);
     if self.check_id(id, name, "load_matrix") { return }
     UniformMatrix4fv(id, 1, 0, &matrix.matrix[0] as *const f32 );

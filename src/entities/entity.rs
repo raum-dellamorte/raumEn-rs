@@ -40,7 +40,7 @@ impl Entity {
 pub struct EntityInstance {
   pub id: u32,
   pub marker: Rc<RefCell<PosMarker>>,
-  pub color_id: RefCell<Vector3f>,
+  pub color_id: RefCell<Vector3f<f32>>,
 }
 impl EntityInstance {
   pub fn new(id: u32) -> Self {
@@ -55,6 +55,6 @@ impl EntityInstance {
     Mob::new(name, self.marker.clone())
   }
   pub fn set_pos(&self, x: f32, y: f32, z: f32) {
-    self.marker.borrow_mut().pos.copy_from_f32(x, y, z);
+    self.marker.borrow_mut().pos.copy_from_float(x, y, z);
   }
 }

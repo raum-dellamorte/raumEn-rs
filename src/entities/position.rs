@@ -11,8 +11,8 @@ use {
 };
 
 pub struct PosMarker {
-  pub pos: Vector3f,
-  pub new_pos: Vector3f,
+  pub pos: Vector3f<f32>,
+  pub new_pos: Vector3f<f32>,
   // pub near: Feelers,
   // pub far: Feelers,
   pub jump_arc: JumpArc,
@@ -22,7 +22,7 @@ pub struct PosMarker {
   pub scale: f32,
   pub distance: f32,
   // pub grav: Grav,
-  pub trans_mat: Matrix4f,
+  pub trans_mat: Matrix4f<f32>,
   pub moving: bool,
 }
 impl Default for PosMarker {
@@ -202,7 +202,7 @@ impl PosMarker {
     //   self.grav.peak = 0.0;
     // }
   }
-  pub fn transformation(&mut self) -> &Matrix4f {
+  pub fn transformation(&mut self) -> &Matrix4f<f32> {
     self.calc_transformation();
     &self.trans_mat
   }
@@ -242,15 +242,15 @@ pub struct Grav {
 }
 
 pub struct Feelers {
-  pub center: Vector3f,
-  pub forward: Vector3f,
-  pub left_45: Vector3f,
-  pub right_45: Vector3f,
-  pub left_90: Vector3f,
-  pub right_90: Vector3f,
-  pub left_135: Vector3f,
-  pub right_135: Vector3f,
-  pub backward: Vector3f,
+  pub center: Vector3f<f32>,
+  pub forward: Vector3f<f32>,
+  pub left_45: Vector3f<f32>,
+  pub right_45: Vector3f<f32>,
+  pub left_90: Vector3f<f32>,
+  pub right_90: Vector3f<f32>,
+  pub left_135: Vector3f<f32>,
+  pub right_135: Vector3f<f32>,
+  pub backward: Vector3f<f32>,
   pub ry: f32,
 }
 impl Feelers {
@@ -269,7 +269,7 @@ impl Feelers {
       ry: 0.0,
     }
   }
-  // pub fn update(&mut self, world: &mut Box<World>, pos: Vector3f, ry: f32, dist: f32) { // + is left! - is right! Turns are Counter-Clockwise!
+  // pub fn update(&mut self, world: &mut Box<World>, pos: Vector3f<f32>, ry: f32, dist: f32) { // + is left! - is right! Turns are Counter-Clockwise!
   //   self.center.from_v3f(pos);
   //   self.forward.xz_from_dist_rot_offset(&self.center, dist, ry);
   //   self.left_45.xz_from_dist_rot_offset(&self.center, dist, modulo(ry + 45.0, 360.0));
@@ -330,9 +330,9 @@ impl Feelers {
 
 #[derive(Debug)]
 pub struct JumpArc {
-  pub orig: Vector3f,
-  pub dest: Vector3f,
-  pub current: Vector3f,
+  pub orig: Vector3f<f32>,
+  pub dest: Vector3f<f32>,
+  pub current: Vector3f<f32>,
   pub time: f32,
   pub fin: bool,
 }
@@ -353,7 +353,7 @@ impl JumpArc {
       fin: true,
     }
   }
-  pub fn init(&mut self, _orig: Vector3f, _dest: Vector3f) {
+  pub fn init(&mut self, _orig: Vector3f<f32>, _dest: Vector3f<f32>) {
     {
       let (orig, dest, time) = (&mut self.orig, &mut self.dest, &mut self.time);
       *time = 0_f32;
@@ -363,7 +363,7 @@ impl JumpArc {
     }
     println!("JumpArc\n{:?}", self);
   }
-  pub fn calc_pos(&mut self, delta: f32) -> Vector3f {
+  pub fn calc_pos(&mut self, delta: f32) -> Vector3f<f32> {
     if !self.fin {
       let (orig, dest, mut current, time) = (self.orig, self.dest, self.current, &mut self.time);
       *time += 5_f32 * delta;

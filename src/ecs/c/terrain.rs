@@ -16,8 +16,8 @@ pub struct Platform {
   pub z: i32,
   pub h: f32,
   pub d: f32,
-  pub pos: Vector3f,
-  pub scale: Vector3f,
+  pub pos: Vector3f<f32>,
+  pub scale: Vector3f<f32>,
 }
 impl Platform {
   pub fn new(world_height: f32, base: f32, x: i32, z: i32, top: f32, depth: f32) -> Self {

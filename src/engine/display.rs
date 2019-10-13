@@ -9,7 +9,7 @@ pub struct Display {
   pub w: u32,
   pub h: u32,
   pub aspect_ratio: f32,
-  pub proj_mat: Matrix4f,
+  pub proj_mat: Matrix4f<f32>,
 }
 impl Default for Display {
   fn default() -> Self {

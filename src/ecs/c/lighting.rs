@@ -59,9 +59,9 @@ impl Lighting {
 }
 
 pub struct Light {
-  pub pos: Vector3f,
-  pub color: Vector3f,
-  pub atten: Vector3f,
+  pub pos: Vector3f<f32>,
+  pub color: Vector3f<f32>,
+  pub atten: Vector3f<f32>,
 }
 impl Default for Light {
   fn default() -> Self {
@@ -88,15 +88,15 @@ impl Light {
     shader.load_vec_3f(&format!("light_color[{}]", id), self.color);
     // shader.load_vec_3f(&format!("attenuation[{}]", id), &self.atten);
   }
-  pub fn set_pos(&mut self, light_pos: Vector3f) -> &mut Self {
+  pub fn set_pos(&mut self, light_pos: Vector3f<f32>) -> &mut Self {
     self.pos = light_pos;
     self
   }
-  pub fn set_color(&mut self, light_color: Vector3f) -> &mut Self {
+  pub fn set_color(&mut self, light_color: Vector3f<f32>) -> &mut Self {
     self.color = light_color;
     self
   }
-  pub fn set_attenuation(&mut self, attenuation: Vector3f) -> &mut Self {
+  pub fn set_attenuation(&mut self, attenuation: Vector3f<f32>) -> &mut Self {
     self.atten = attenuation;
     self
   }

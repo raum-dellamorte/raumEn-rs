@@ -24,8 +24,8 @@ use {
 };
 
 pub struct Camera {
-  pub pos: Vector3f,
-  pub pos_bak: Vector3f,
+  pub pos: Vector3f<f32>,
+  pub pos_bak: Vector3f<f32>,
   pub pitch: f32,
   pub pitch_bak: f32,
   pub yaw: f32,
@@ -37,11 +37,11 @@ pub struct Camera {
   pub focus_ry: f32,
   pub mouse_rate: f32,
   
-  to_pos: Vector3f,
-  to_focus_pos: Vector3f,
+  to_pos: Vector3f<f32>,
+  to_focus_pos: Vector3f<f32>,
   initialised: bool,
   
-  pub view_mat: Matrix4f,
+  pub view_mat: Matrix4f<f32>,
 }
 impl Default for Camera {
   fn default() -> Self {
@@ -142,21 +142,21 @@ impl Camera {
     self.pitch = -self.pitch;
   }
 
-  pub fn dist_to_pos(&mut self, vec: Vector3f) -> f32 {
-    vec.sub_to(&self.pos, &mut self.to_pos);
+  pub fn dist_to_pos(&mut self, vec: Vector3f<f32>) -> f32 {
+    vec.sub_to(self.pos, &mut self.to_pos);
     self.to_pos.len()
   }
 
-  pub fn angle_to_entity(&mut self, focus_pos: Vector3f, mob: &mut Mob) -> f32 {
+  pub fn angle_to_entity(&mut self, focus_pos: Vector3f<f32>, mob: &mut Mob) -> f32 {
     let mut marker = mob.pos.borrow_mut();
     marker.distance = self.dist_to_pos(marker.pos);
     self.to_pos.normalize();
-    focus_pos.sub_to(&self.pos, &mut self.to_focus_pos);
+    focus_pos.sub_to(self.pos, &mut self.to_focus_pos);
     self.to_focus_pos.normalize();
-    self.to_focus_pos.dot(&self.to_pos)
+    self.to_focus_pos.dot(self.to_pos)
   }
   
-  pub fn create_view_matrix(&mut self, view_mat: &mut Matrix4f) {
+  pub fn create_view_matrix(&mut self, view_mat: &mut Matrix4f<f32>) {
     view_mat.set_identity();
     view_mat.rotate(self.pitch.to_radians(), XVEC);
     view_mat.rotate(self.yaw.to_radians(), YVEC);

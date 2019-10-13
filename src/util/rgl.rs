@@ -137,7 +137,7 @@ impl DrawModelTextureWithAttribs {
   }
 }
 pub struct ModelTextureAttribs {
-  pub transform: Matrix4f,
+  pub transform: Matrix4f<f32>,
   pub tex_index: Option<TexIndexComponent>,
   pub row_count: Option<RowCountComponent>,
   pub offset: Option<OffsetComponent>,

@@ -52,11 +52,11 @@ impl Mob {
     // marker.calc_move_arc(world, rate); // move_to_new_pos(rate)
     self
   }
-  pub fn pos_copy(&self, v: &mut Vector3f) {
+  pub fn pos_copy(&self, v: &mut Vector3f<f32>) {
     let marker = self.pos.borrow();
     let x = marker.pos.x;
     let y = marker.pos.y;
     let z = marker.pos.z;
-    v.copy_from_f32(x, y, z);
+    v.copy_from_float(x, y, z);
   }
 }

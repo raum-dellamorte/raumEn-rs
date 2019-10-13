@@ -146,8 +146,8 @@ impl<'a> System<'a> for ApplyRotation {
     for (_, rot, vel, tvel) in (&ent, &rot, &vel, &mut tvel).join() {
       rtr.ry
         .auto_cal()
-        .set_point(vel.0)
-        .set_angle(rot.0.y)
+        .set_point(vel.0.into())
+        .set_angle(rot.0.y.into())
         .rotate()
         .get_point(&mut tvel.0);
     }
@@ -278,7 +278,7 @@ enum TerrainCollideType {
   None,
 }
 
-fn terrain_collide(player_min: Vector3f, player_max: Vector3f, terrain_min: Vector3f, terrain_max: Vector3f) -> TerrainCollideType {
+fn terrain_collide(player_min: Vector3f<f32>, player_max: Vector3f<f32>, terrain_min: Vector3f<f32>, terrain_max: Vector3f<f32>) -> TerrainCollideType {
   let pminx = terrain_min.x <= player_min.x && player_min.x < terrain_max.x;
   let pmaxx = terrain_min.x <= player_max.x && player_max.x < terrain_max.x;
   // let tminmaxx = player_min.x <= terrain_min.x && terrain_max.x < player_max.x;

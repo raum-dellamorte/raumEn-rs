@@ -368,7 +368,7 @@ pub fn eof(string: &str) -> String {
   [string, EOF].join("")
 }
 
-pub struct ViewMatrix { pub view: util::Matrix4f }
+pub struct ViewMatrix { pub view: util::Matrix4f<f32> }
 impl Default for ViewMatrix {
   fn default() -> Self {
     Self { view: util::Matrix4f::new() }

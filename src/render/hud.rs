@@ -52,7 +52,7 @@ impl RenderHUD {
       let mut _hud = world.write_resource::<HUD>();
       self.shader.start();
       
-      let _offset = Vector2f::blank();
+      let _offset = Vector2f::<f32>::blank();
       unsafe {
         BindVertexArray(_hud.quad_id);
         EnableVertexAttribArray(0);
