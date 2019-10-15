@@ -13,31 +13,31 @@ use {
   specs::*,
 };
 
-#[derive(Component, Debug)]
+#[derive(Component, Default, Debug)]
 #[storage(VecStorage)]
 pub struct TextureComponent(pub String);
 
-#[derive(Component, Debug)]
+#[derive(Component, Default, Debug)]
 #[storage(VecStorage)]
 pub struct LightingComponent(pub String);
 
-#[derive(Component, Debug)]
+#[derive(Component, Default, Debug)]
 #[storage(VecStorage)]
 pub struct TexIndexComponent(pub u32);
 
-#[derive(Component, Debug)]
+#[derive(Component, Default, Debug)]
 #[storage(VecStorage)]
 pub struct RowCountComponent(pub u32);
 
-#[derive(Component, Debug)]
+#[derive(Component, Default, Debug)]
 #[storage(VecStorage)]
 pub struct OffsetComponent(pub Vector2f<f32>);
 
-#[derive(Component, Default)]
+#[derive(Component, Default, Debug)]
 #[storage(NullStorage)]
 pub struct MultiTexComponent;
 
-#[derive(Component, Debug)]
+#[derive(Component, Default, Debug)]
 #[storage(VecStorage)]
 pub struct ModelComponent(pub String);
 impl PartialEq for ModelComponent {
