@@ -29,7 +29,6 @@ const CVOID: *const c_void = 0 as *const c_void;
 pub mod ecs;
 pub mod engine;
 pub mod entities;
-pub mod flags;
 pub mod importobj;
 pub mod render;
 pub mod shader;
@@ -50,6 +49,11 @@ use {
   },
   ecs::{
     c::{
+      flags::{
+        ActivePlayer,
+        InScene,
+        Falling,
+      },
       material::*,
       Lights, Lightings, Models, Textures, Texture,
       terrain::{
@@ -86,11 +90,6 @@ use {
         DrawTexMods,
       },
     },
-  },
-  flags::{
-    ActivePlayer,
-    InScene,
-    Falling,
   },
   shader::{
     Shader,

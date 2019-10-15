@@ -10,6 +10,7 @@ use {
   },
   ecs::{
     c::{
+      flags::*,
       lighting::Lightings,
       model::{
         Models, Model,
@@ -24,7 +25,6 @@ use {
       terrain::Platform,
     },
   },
-  flags::*,
   util::rgl::*,
   
   ViewMatrix,

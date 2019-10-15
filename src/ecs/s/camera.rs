@@ -10,10 +10,8 @@ use {
     c::{
       Position,
       Rotation,
+      ActivePlayer,
     },
-  },
-  flags::{
-    ActivePlayer,
   },
 };
 

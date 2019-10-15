@@ -10,6 +10,7 @@ use {
   },
   ecs::{
     c::{
+      flags::*,
       lighting::Lightings,
       model::{
         Models, Model,
@@ -26,7 +27,6 @@ use {
       },
     },
   },
-  flags::*,
   util::{
     // Vector3f,
     rgl::*,

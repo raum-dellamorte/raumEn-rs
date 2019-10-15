@@ -14,6 +14,7 @@ use {
   Handler, // World, 
   ecs::{
     c::{
+      flags::*,
       position::{
         *,
       },
@@ -26,7 +27,6 @@ use {
       
     // },
   },
-  flags::*,
   util::{
     Vector3f, 
     modulo,
