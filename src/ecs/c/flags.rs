@@ -8,11 +8,19 @@ use {
 
 #[derive(Default, Component)]
 #[storage(NullStorage)]
-pub struct InScene;
+pub struct ActivePlayer;
 
 #[derive(Default, Component)]
 #[storage(NullStorage)]
-pub struct ActivePlayer;
+pub struct CurrentNode;
+
+#[derive(Default, Component)]
+#[storage(NullStorage)]
+pub struct Falling;
+
+#[derive(Default, Component)]
+#[storage(NullStorage)]
+pub struct InScene;
 
 #[derive(Default, Component)]
 #[storage(NullStorage)]
@@ -24,29 +32,21 @@ pub struct IsTexMod;
 
 #[derive(Default, Component)]
 #[storage(NullStorage)]
-pub struct Falling;
-
-#[derive(Default, Component)]
-#[storage(NullStorage)]
-pub struct StartMoving;
+pub struct LocalToPlayer;
 
 #[derive(Default, Component)]
 #[storage(NullStorage)]
 pub struct Moving;
 
-#[derive(Default, Component)]
+#[derive(Component, Debug, Default)]
 #[storage(NullStorage)]
-pub struct CurrentNode;
-
-#[derive(Default, Component)]
-#[storage(NullStorage)]
-pub struct LocalToPlayer;
+pub struct Particle;
 
 #[derive(Component, Default, Debug)]
 #[storage(NullStorage)]
 pub struct ParticleAlive;
 
-#[derive(Component, Debug, Default)]
+#[derive(Default, Component)]
 #[storage(NullStorage)]
-pub struct Particle;
+pub struct StartMoving;
 
