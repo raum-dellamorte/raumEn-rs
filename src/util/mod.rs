@@ -3,6 +3,7 @@ pub mod rgl;
 pub mod rvector;
 pub mod rmatrix;
 pub mod rvertex;
+pub mod specs;
 
 pub use {
   util::{
