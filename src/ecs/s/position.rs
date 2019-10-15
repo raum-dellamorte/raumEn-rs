@@ -154,6 +154,28 @@ impl<'a> System<'a> for ApplyRotation {
   }
 }
 
+pub struct ApplyZRotation;
+impl<'a> System<'a> for ApplyZRotation {
+  type SystemData = (
+                      Entities<'a>,
+                      Write<'a, Rotators>,
+                      ReadStorage<'a, Rotation>,
+                      ReadStorage<'a, Velocity>,
+                      WriteStorage<'a, TransformVelocity>,
+                    );
+  fn run(&mut self, data: Self::SystemData) {
+    let (ent, mut rtr, rot, vel, mut tvel) = data;
+    for (_, rot, vel, tvel) in (&ent, &rot, &vel, &mut tvel).join() {
+      rtr.ry
+        .auto_cal()
+        .set_point(vel.0.into())  // rotating velocity is for turning
+        .set_angle(rot.0.z.into())
+        .rotate()
+        .get_point(&mut tvel.0);
+    }
+  }
+}
+
 pub struct UpdateDeltaVelocity;
 impl<'a> System<'a> for UpdateDeltaVelocity {
   type SystemData = ( Read<'a, Handler>,
