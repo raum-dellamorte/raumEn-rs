@@ -51,13 +51,8 @@ use {
     c::{
       flags::*,
       components::*,
-      Lights, Lightings, Models, Textures, Texture,
-      terrain::{
-        Platform,
-        TerrainNodes,
-      },
-      particle::*,
     },
+    resource::*,
     helper::{
       gen::{
         LandscapeGen,
@@ -124,24 +119,25 @@ use engine::fbo::DepthType::{
 
 fn gen_world() -> World {
   let mut world = World::new();
-  world.insert(ViewMatrix::default());
-  world.insert(Display::default());
-  world.insert(Loader::default());
   world.insert(Camera::default());
-  world.insert(Handler::default());
+  world.insert(Display::default());
   // world.insert(DrawModelsWithTextures::default());
+  world.insert(Handler::default());
   world.insert(LandscapeGen::default());
-  world.insert(Rotators::default());
-  world.insert(PlayerGridLoc::default());
+  world.insert(Lightings::default());
+  world.insert(Lights::default());
+  world.insert(Loader::default());
+  world.insert(Models::default());
 //  world.insert(ParticleShader::default());
+  // world.insert(ParticleSystems::default());
+  world.insert(PlayerGridLoc::default());
+  world.insert(Rotators::default());
+  world.insert(TerrainNodes::default());
   world.insert(TerrainShader::default());
   world.insert(TexModShader::default());
-  world.insert(TerrainNodes::default());
-  world.insert(Models::default());
-  world.insert(Textures::default());
-  world.insert(Lights::default());
-  world.insert(Lightings::default());
   world.insert(TextMgr::default());
+  world.insert(Textures::default());
+  world.insert(ViewMatrix::default());
   world.register::<ActivePlayer>();
   world.register::<CurrentNode>();
   world.register::<CamDistance>();
@@ -157,7 +153,6 @@ fn gen_world() -> World {
   world.register::<MultiTex>();
   world.register::<Particle>();
   world.register::<ParticleAlive>();
-  world.register::<ParticleRules>();
   world.register::<Platform>();
   world.register::<RowCount>();
   world.register::<StartMoving>();

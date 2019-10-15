@@ -1,35 +1,9 @@
 
 use {
-  specs::{
-    Component, VecStorage,
-  },
   util::{
-    Vector3f,
     HashSet,
   },
 };
-
-#[derive(Component, Debug)]
-#[storage(VecStorage)]
-pub struct Platform {
-  pub x: i32,
-  pub z: i32,
-  pub h: f32,
-  pub d: f32,
-  pub pos: Vector3f<f32>,
-  pub scale: Vector3f<f32>,
-}
-impl Platform {
-  pub fn new(world_height: f32, base: f32, x: i32, z: i32, top: f32, depth: f32) -> Self {
-    let y = ((world_height * top) - (world_height * depth)) + base;
-    let ys = world_height * depth;
-    Self {
-      x, z, h: top, d: depth,
-      pos: Vector3f::new(x as f32, y, z as f32),
-      scale: Vector3f::new(1.0, ys, 1.0),
-    }
-  }
-}
 
 pub struct TerrainNode(pub i32, pub i32);
 impl std::cmp::PartialEq for TerrainNode {

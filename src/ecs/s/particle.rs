@@ -9,15 +9,8 @@ use {
       c::{
         flags::*,
         components::*,
-        lighting::Lightings,
-        model::{
-          Models, Model,
-        },
-        texture::{
-          Textures,
-          Texture,
-        },
       },
+      resource::*,
     },
     shader::ParticleShader,
     util::{

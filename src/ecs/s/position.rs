@@ -16,10 +16,9 @@ use {
     c::{
       flags::*,
       components::*,
-      terrain::{
-        Platform,
-        TerrainNodes,
-      },
+    },
+    resource::{
+      TerrainNodes,
     },
     // s::{
       

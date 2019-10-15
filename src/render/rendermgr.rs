@@ -8,7 +8,7 @@ use {
   specs::{World, WorldExt, },
   Camera, Display, Loader, TextMgr,
   ecs::{
-    c::{
+    resource::{
       Lights,
     },
   },

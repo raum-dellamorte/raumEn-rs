@@ -5,11 +5,12 @@ use {
     // SystemData, 
     // Read, Write, ReadStorage, WriteStorage, 
   },
-  ecs::c::{
-    flags::*,
-    components::*,
-    terrain::{
-      Platform,
+  ecs::{
+    c::{
+      flags::*,
+      components::*,
+    },
+    resource::{
       TerrainNode,
       TerrainNodes,
     },

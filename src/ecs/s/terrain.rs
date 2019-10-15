@@ -12,16 +12,8 @@ use {
     c::{
       flags::*,
       components::*,
-      lighting::Lightings,
-      model::{
-        Models, Model,
-      },
-      texture::{
-        Textures,
-        Texture,
-      },
-      terrain::Platform,
     },
+    resource::*,
   },
   util::rgl::*,
   

@@ -12,23 +12,20 @@ use {
     path::Path,
   },
   image,
- 
-  ecs::c::{
-    model::Model,
-    texture::Texture,
-  },
-  importobj::{
-    load_obj,
-    Mesh,
-  },
-  // Texture,
-  util::{
-    HashMap, 
-    rgl::*, 
-  },
-  util::rvertex::{
-    RVertex, RVertex2D
-  },
+  crate::{
+    ecs::resource::{ Model, Texture, },
+    importobj::{
+      load_obj,
+      Mesh,
+    },
+    util::{
+      HashMap, 
+      rgl::*,
+      rvertex::{
+        RVertex, RVertex2D
+      },
+    },
+  }
 };
 
 pub struct Loader {

@@ -1,12 +1,14 @@
 
 use {
   gl::*,
-  shader::{
-    Shader,
-    gen_fog_shader,
-  }, 
-  ecs::c::{
-    Texture,
+  crate::{
+    ecs::resource::{
+      Texture,
+    },
+    shader::{
+      Shader,
+      gen_fog_shader,
+    }, 
   },
 };
 

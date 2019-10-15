@@ -1,11 +1,12 @@
 
 use {
-  // GameMgr,
-  Shader,
-  util::{
-    HashMap, 
-    Vector3f
-  },
+  crate::{
+    Shader,
+    util::{
+      HashMap, 
+      Vector3f
+    },
+  }
 };
 
 #[derive(Default)]

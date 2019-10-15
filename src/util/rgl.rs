@@ -7,11 +7,12 @@ use {
     // },
   },
   CVOID,
-  ecs::c::{
-    flags::MultiTex,
-    components::*,
-    model::Model,
-    texture::Texture,
+  ecs::{
+    c::{
+      flags::MultiTex,
+      components::*,
+    },
+    resource::{ Model, Texture, },
   },
   util::{
     Matrix4f, 
