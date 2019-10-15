@@ -60,6 +60,7 @@ use {
         Platform,
         TerrainNodes,
       },
+      particle::*,
       position::{
         PlayerLoc, Rotators,
       },
@@ -155,6 +156,14 @@ fn gen_world() -> World {
   world.register::<ModelComponent>();
   world.register::<TextureComponent>();
   world.register::<LightingComponent>();
+  world.register::<ParticleSystem>();
+  world.register::<Particle>();
+  world.register::<TexAtlas>();
+  world.register::<GravPercent>();
+  world.register::<ParticleLife>();
+  world.register::<ParticleAlive>();
+  world.register::<CamDistance>();
+  world.register::<TexOffsets>();
   {
     let mut lights = world.write_resource::<Lights>();
     lights.add_light();
@@ -212,7 +221,7 @@ fn main() {
     let mut textures = world.write_resource::<Textures>();
     let mut lightings = world.write_resource::<Lightings>();
     models.load_models(loader, &["platform", "player", "spaceship"]);
-    textures.load_textures(loader, &["dirt", "spaceship"]);
+    textures.load_textures(loader, &["dirt", "spaceship", "cosmic"]);
     lightings.new_lighting_default("flat");
   }
   {
