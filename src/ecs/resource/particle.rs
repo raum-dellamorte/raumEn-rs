@@ -39,3 +39,8 @@ impl ParticleRules {
   pub fn randomize_rotation(&mut self) { self.rand_rot = !self.rand_rot }
   // pub fn
 }
+
+#[derive(Default, Debug)]
+pub struct ParticleSystems {
+  // Gonna hold the particle rules 
+}
