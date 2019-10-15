@@ -42,3 +42,11 @@ pub struct CurrentNode;
 #[storage(NullStorage)]
 pub struct LocalToPlayer;
 
+#[derive(Component, Default, Debug)]
+#[storage(NullStorage)]
+pub struct ParticleAlive;
+
+#[derive(Component, Debug, Default)]
+#[storage(NullStorage)]
+pub struct Particle;
+

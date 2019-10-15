@@ -49,11 +49,8 @@ use {
   },
   ecs::{
     c::{
-      flags::{
-        ActivePlayer,
-        InScene,
-        Falling,
-      },
+      flags::*,
+      components::*,
       material::*,
       Lights, Lightings, Models, Textures, Texture,
       terrain::{
@@ -156,7 +153,7 @@ fn gen_world() -> World {
   world.register::<ModelComponent>();
   world.register::<TextureComponent>();
   world.register::<LightingComponent>();
-  world.register::<ParticleSystem>();
+  world.register::<ParticleRules>();
   world.register::<Particle>();
   world.register::<TexAtlas>();
   world.register::<GravPercent>();

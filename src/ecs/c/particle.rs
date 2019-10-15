@@ -8,7 +8,7 @@ use {
   rand::Rng,
   ecs::c::{*, material::*, },
   util::{
-    RVec, Vector2f, Vector3f, 
+    RVec, Vector3f, 
     // HashSet,
     TAU, ZVEC64, 
     specs::*,
@@ -17,28 +17,53 @@ use {
 
 const TOLERANCE64: f64 = 0.00001;
 
-#[derive(Component, Debug, Default)]
-#[storage(NullStorage)]
-pub struct Particle;
-impl Particle {
-  pub fn gen_particles(world: &mut World, system: &ParticleSystem) {
-    let mut rng = rand::thread_rng();
-    let mut rotator = Rotator::<f64>::default();
-    let delta = {
-      let handler = world.read_resource::<crate::Handler>();
-      f64::from(handler.timer.delta)
-    };
-    let particles_to_create = system.pps * delta;
-    let count = particles_to_create.floor() as i32;
-    let partial_particle: f64 = particles_to_create.fract();
-    for _ in 0..count { emit_particle(world, system, &mut rng, &mut rotator) };
-    if rng.gen::<f64>() < partial_particle { 
-      emit_particle(world, system, &mut rng, &mut rotator);
-    }
+#[derive(Component, Default, Debug)]
+#[storage(DenseVecStorage)]
+pub struct ParticleRules {
+  pub base_pos: Vector3f<f64>,
+  pub base_dir: Vector3f<f64>,
+  pub texture: String,
+  pub tex_rows: u32,
+  pub pps: f64,
+  pub dir_error: f64,
+  pub half_life: f64,
+  pub life_error: f64,
+  pub half_speed: f64,
+  pub speed_error: f64,
+  pub half_scale: f64,
+  pub scale_error: f64,
+  pub angle: f64,
+  pub gravity_mult: f64,
+  pub rand_rot: bool,
+  pub is_directional: bool,
+}
+impl ParticleRules {
+  pub fn set_direction(&mut self, direction: Vector3f<f64>, deviation: f64) {
+    self.base_dir = direction;
+    self.dir_error = deviation * PI;
+    self.is_directional = true;
+  }
+  pub fn randomize_rotation(&mut self) { self.rand_rot = !self.rand_rot }
+  // pub fn
+}
+
+pub fn gen_particles(world: &mut World, system: &ParticleRules) {
+  let mut rng = rand::thread_rng();
+  let mut rotator = Rotator::<f64>::default();
+  let delta = {
+    let handler = world.read_resource::<crate::Handler>();
+    f64::from(handler.timer.delta)
+  };
+  let particles_to_create = system.pps * delta;
+  let count = particles_to_create.floor() as i32;
+  let partial_particle: f64 = particles_to_create.fract();
+  for _ in 0..count { emit_particle(world, system, &mut rng, &mut rotator) };
+  if rng.gen::<f64>() < partial_particle { 
+    emit_particle(world, system, &mut rng, &mut rotator);
   }
 }
 fn emit_particle(
-  world: &mut World, system: &ParticleSystem, 
+  world: &mut World, system: &ParticleRules, 
   rng: &mut rand::prelude::ThreadRng, rotator: &mut Rotator<f64>
 ) {
   let mut velocity = if system.is_directional {
@@ -177,84 +202,4 @@ fn gen_rotation(rng: &mut rand::prelude::ThreadRng, bother: bool) -> f64 {
   } else {
     0.0
   }
-}
-
-#[derive(Component, Default, Debug)]
-#[storage(VecStorage)]
-pub struct TexAtlas {
-  pub num_of_rows: u32,
-  pub additive: bool,
-}
-
-#[derive(Component, Debug)]
-#[storage(VecStorage)]
-pub struct GravPercent(pub f32);
-impl Default for GravPercent {
-  fn default() -> Self {
-    Self(1.0)
-  }
-}
-
-#[derive(Component, Default, Debug)]
-#[storage(VecStorage)]
-pub struct ParticleLife {
-  pub total: f64,
-  pub elapsed: f64,
-}
-impl ParticleLife {
-  pub fn inc_time(&mut self, delta: f64) {
-    self.elapsed += delta;
-  }
-  pub fn is_alive(&self) -> bool {
-    self.elapsed < self.total
-  }
-  pub fn set_life(&mut self, life_length: f64) {
-    self.elapsed = 0.0;
-    self.total = life_length;
-  }
-}
-
-#[derive(Component, Default, Debug)]
-#[storage(NullStorage)]
-pub struct ParticleAlive;
-
-#[derive(Component, Default, Debug)]
-#[storage(VecStorage)]
-pub struct CamDistance(pub f64);
-
-#[derive(Component, Default, Debug)]
-#[storage(VecStorage)]
-pub struct TexOffsets{
-  pub a: Vector2f<f64>,
-  pub b: Vector2f<f64>,
-}
-
-#[derive(Component, Default, Debug)]
-#[storage(DenseVecStorage)]
-pub struct ParticleSystem {
-  pub base_pos: Vector3f<f64>,
-  pub base_dir: Vector3f<f64>,
-  pub texture: String,
-  pub tex_rows: u32,
-  pub pps: f64,
-  pub dir_error: f64,
-  pub half_life: f64,
-  pub life_error: f64,
-  pub half_speed: f64,
-  pub speed_error: f64,
-  pub half_scale: f64,
-  pub scale_error: f64,
-  pub angle: f64,
-  pub gravity_mult: f64,
-  pub rand_rot: bool,
-  pub is_directional: bool,
-}
-impl ParticleSystem {
-  pub fn set_direction(&mut self, direction: Vector3f<f64>, deviation: f64) {
-    self.base_dir = direction;
-    self.dir_error = deviation * PI;
-    self.is_directional = true;
-  }
-  pub fn randomize_rotation(&mut self) { self.rand_rot = !self.rand_rot }
-  // pub fn
 }

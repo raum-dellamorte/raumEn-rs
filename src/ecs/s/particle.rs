@@ -7,7 +7,8 @@ use {
   crate::{
     ecs::{
       c::{
-        // flags::*,
+        flags::*,
+        components::*,
         lighting::Lightings,
         model::{
           Models, Model,
@@ -19,7 +20,6 @@ use {
         material::{
           LightingComponent, ModelComponent, TextureComponent,
         },
-        particle::*,
         position::*,
       },
     },
