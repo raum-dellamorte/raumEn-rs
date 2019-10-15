@@ -15,9 +15,7 @@ use {
   ecs::{
     c::{
       flags::*,
-      position::{
-        *,
-      },
+      components::*,
       terrain::{
         Platform,
         TerrainNodes,

@@ -1,74 +1,10 @@
 #![allow(dead_code)]
 
 use {
-  std::cmp::Ordering,
-  // ecs::c::{
-  //   Textures, Lightings, 
-  // },
   util::{
-    // rgl::*, 
     Vector2f, 
-    // HashMap, 
   },
-  specs::*,
 };
-
-#[derive(Component, Default, Debug)]
-#[storage(VecStorage)]
-pub struct TextureComponent(pub String);
-
-#[derive(Component, Default, Debug)]
-#[storage(VecStorage)]
-pub struct LightingComponent(pub String);
-
-#[derive(Component, Default, Debug)]
-#[storage(VecStorage)]
-pub struct TexIndexComponent(pub u32);
-
-#[derive(Component, Default, Debug)]
-#[storage(VecStorage)]
-pub struct RowCountComponent(pub u32);
-
-#[derive(Component, Default, Debug)]
-#[storage(VecStorage)]
-pub struct OffsetComponent(pub Vector2f<f32>);
-
-#[derive(Component, Default, Debug)]
-#[storage(NullStorage)]
-pub struct MultiTexComponent;
-
-#[derive(Component, Default, Debug)]
-#[storage(VecStorage)]
-pub struct ModelComponent(pub String);
-impl PartialEq for ModelComponent {
-  fn eq(&self, other: &Self) -> bool {
-    self.0 == other.0
-  }
-}
-impl Eq for ModelComponent {}
-impl Ord for ModelComponent {
-  fn cmp(&self, other: &Self) -> Ordering {
-    if self == other { return Ordering::Equal }
-    let mut a: Vec<char> = self.0.chars().collect();
-    let mut b: Vec<char> = other.0.chars().collect();
-    while !a.is_empty() && !b.is_empty() {
-      match (a.pop(), b.pop()) {
-        (ac,bc) if bc < ac => { return Ordering::Less } 
-        (ac,bc) if bc > ac => { return Ordering::Greater } 
-        _ => {}
-      };
-    };
-    if a.is_empty() { Ordering::Greater } else { Ordering::Less }
-  }
-}
-impl PartialOrd for ModelComponent {
-  fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-    if self == other { return Some(Ordering::Equal) }
-    if self < other { Some(Ordering::Less) } else { Some(Ordering::Greater) }
-  }
-}
-
-// !ECS
 
 pub struct Material {
   pub name: String,

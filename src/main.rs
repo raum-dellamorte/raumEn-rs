@@ -51,16 +51,12 @@ use {
     c::{
       flags::*,
       components::*,
-      material::*,
       Lights, Lightings, Models, Textures, Texture,
       terrain::{
         Platform,
         TerrainNodes,
       },
       particle::*,
-      position::{
-        PlayerLoc, Rotators,
-      },
     },
     helper::{
       gen::{
@@ -136,7 +132,7 @@ fn gen_world() -> World {
   // world.insert(DrawModelsWithTextures::default());
   world.insert(LandscapeGen::default());
   world.insert(Rotators::default());
-  world.insert(PlayerLoc::default());
+  world.insert(PlayerGridLoc::default());
 //  world.insert(ParticleShader::default());
   world.insert(TerrainShader::default());
   world.insert(TexModShader::default());
@@ -147,20 +143,30 @@ fn gen_world() -> World {
   world.insert(Lightings::default());
   world.insert(TextMgr::default());
   world.register::<ActivePlayer>();
-  world.register::<InScene>();
-  world.register::<Falling>();
-  world.register::<Platform>();
-  world.register::<ModelComponent>();
-  world.register::<TextureComponent>();
-  world.register::<LightingComponent>();
-  world.register::<ParticleRules>();
-  world.register::<Particle>();
-  world.register::<TexAtlas>();
-  world.register::<GravPercent>();
-  world.register::<ParticleLife>();
-  world.register::<ParticleAlive>();
+  world.register::<CurrentNode>();
   world.register::<CamDistance>();
+  world.register::<Falling>();
+  world.register::<GravPercent>();
+  world.register::<InScene>();
+  world.register::<IsPlatform>();
+  world.register::<IsTexMod>();
+  world.register::<LightingName>();
+  world.register::<LocalToPlayer>();
+  world.register::<ModelName>();
+  world.register::<Moving>();
+  world.register::<MultiTex>();
+  world.register::<Particle>();
+  world.register::<ParticleAlive>();
+  world.register::<ParticleRules>();
+  world.register::<Platform>();
+  world.register::<RowCount>();
+  world.register::<StartMoving>();
+  world.register::<TexAdditive>();
+  world.register::<TexIndex>();
+  world.register::<TexName>();
+  world.register::<TexOffset>();
   world.register::<TexOffsets>();
+  world.register::<TimedLife>();
   {
     let mut lights = world.write_resource::<Lights>();
     lights.add_light();

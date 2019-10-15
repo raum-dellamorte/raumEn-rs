@@ -11,6 +11,7 @@ use {
   ecs::{
     c::{
       flags::*,
+      components::*,
       lighting::Lightings,
       model::{
         Models, Model,
@@ -18,12 +19,6 @@ use {
       texture::{
         Textures,
         Texture,
-      },
-      material::{
-        LightingComponent, ModelComponent, TextureComponent,
-      },
-      position::{
-        Position, Rotation,
       },
     },
   },
@@ -50,9 +45,9 @@ impl<'a> System<'a> for DrawTexMods {
       Entities<'a>,
       ReadStorage<'a, Position>,
       ReadStorage<'a, Rotation>,
-      ReadStorage<'a, ModelComponent>,
-      ReadStorage<'a, TextureComponent>,
-      ReadStorage<'a, LightingComponent>,
+      ReadStorage<'a, ModelName>,
+      ReadStorage<'a, TexName>,
+      ReadStorage<'a, LightingName>,
       ReadStorage<'a, IsTexMod>,
     ),
   );
@@ -65,9 +60,9 @@ impl<'a> System<'a> for DrawTexMods {
     let mut d = _data.join().collect::<Vec<_>>();
     if d.is_empty() { return }
     d.sort_by(|&a,&b| {
-      match a.3 .0 .cmp(&b.3 .0) { // .2 is ModelComponent; .0 is the internal String
+      match a.3 .0 .cmp(&b.3 .0) { // .3 is ModelName; .0 is the internal String
         Ordering::Equal => {
-          a.4 .0 .cmp(&b.4 .0) // .3 is TextureComponent; .0 is the internal String
+          a.4 .0 .cmp(&b.4 .0) // .4 is TexName; .0 is the internal String
         }
         x => { x }
       }

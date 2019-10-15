@@ -11,6 +11,7 @@ use {
   ecs::{
     c::{
       flags::*,
+      components::*,
       lighting::Lightings,
       model::{
         Models, Model,
@@ -18,9 +19,6 @@ use {
       texture::{
         Textures,
         Texture,
-      },
-      material::{
-        LightingComponent, ModelComponent, TextureComponent,
       },
       terrain::Platform,
     },
@@ -44,9 +42,9 @@ impl<'a> System<'a> for DrawPlatform {
     (
       Entities<'a>,
       ReadStorage<'a, Platform>,
-      ReadStorage<'a, ModelComponent>,
-      ReadStorage<'a, TextureComponent>,
-      ReadStorage<'a, LightingComponent>
+      ReadStorage<'a, ModelName>,
+      ReadStorage<'a, TexName>,
+      ReadStorage<'a, LightingName>
       // ReadStorage<'a, InScene>,
     ),
   );

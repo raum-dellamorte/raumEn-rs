@@ -38,6 +38,10 @@ pub struct LocalToPlayer;
 #[storage(NullStorage)]
 pub struct Moving;
 
+#[derive(Component, Default, Debug)]
+#[storage(NullStorage)]
+pub struct MultiTex;
+
 #[derive(Component, Debug, Default)]
 #[storage(NullStorage)]
 pub struct Particle;
@@ -49,4 +53,8 @@ pub struct ParticleAlive;
 #[derive(Default, Component)]
 #[storage(NullStorage)]
 pub struct StartMoving;
+
+#[derive(Default, Component)]
+#[storage(NullStorage)]
+pub struct TexAdditive;
 

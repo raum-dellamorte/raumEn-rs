@@ -6,13 +6,18 @@ use {
   },
   specs::{*, WorldExt, },
   rand::Rng,
-  ecs::c::{*, material::*, },
-  util::{
-    RVec, Vector3f, 
-    // HashSet,
-    TAU, ZVEC64, 
-    specs::*,
-  },
+  crate::{
+    ecs::c::{
+      flags::*,
+      components::*, 
+    },
+    util::{
+      RVec, Vector3f, 
+      // HashSet,
+      TAU, ZVEC64, 
+      specs::*,
+    },
+  }
 };
 
 const TOLERANCE64: f64 = 0.00001;
@@ -99,10 +104,10 @@ fn emit_particle(
   //   // o.0 = ;
   // });
   
-  mod_comp::<TextureComponent>(world, p_ent, "Particle TextureComponent", &|o| {
+  mod_comp::<TexName>(world, p_ent, "Particle TextureName", &|o| {
     o.0 = system.texture.to_owned();
   });
-  mod_comp::<TexIndexComponent>(world, p_ent, "Particle TexIndexComponent", &|o| {
+  mod_comp::<TexIndex>(world, p_ent, "Particle TexIndex", &|o| {
     o.0 = 0;
   });
   mod_comp::<Position>(world, p_ent, "Particle Position", &|o| {
@@ -117,7 +122,7 @@ fn emit_particle(
   mod_comp::<ScaleFloat>(world, p_ent, "Particle ScaleFloat", &|o| {
     o.0 = scale as f32;
   });
-  mod_comp::<ParticleLife>(world, p_ent, "Particle ParticleLife", &|o| {
+  mod_comp::<TimedLife>(world, p_ent, "Particle TimedLife", &|o| {
     o.set_life(life);
   });
   
@@ -139,13 +144,6 @@ fn get_particle(world: &mut World) -> Entity {
 fn create_particle(world: &mut World) -> Entity {
   world.create_entity()
     .with(Particle::default())
-    .with(Position::default())
-    .with(Velocity::default())
-    .with(TexAtlas::default())
-    .with(ParticleLife::default())
-    .with(GravPercent::default())
-    .with(TextureComponent("cosmic".to_owned()))
-    .with(Position::default())
     .build()
 }
 // These 2 funcs are ported over from the Kotlin version

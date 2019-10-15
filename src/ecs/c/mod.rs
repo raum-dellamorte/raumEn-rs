@@ -6,7 +6,6 @@ pub mod lighting;
 pub mod material;
 pub mod model;
 pub mod particle;
-pub mod position;
 pub mod terrain;
 pub mod texture;
 
@@ -24,7 +23,6 @@ pub use ecs::c::{
     Models,
     Model,
   },
-  position::*,
   texture::{
     Textures,
     Texture

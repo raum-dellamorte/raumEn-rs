@@ -8,12 +8,10 @@ use {
   },
   CVOID,
   ecs::c::{
+    flags::MultiTex,
+    components::*,
     model::Model,
     texture::Texture,
-    material::{
-      TexIndexComponent, RowCountComponent, 
-      OffsetComponent, MultiTexComponent,
-    }
   },
   util::{
     Matrix4f, 
@@ -138,8 +136,8 @@ impl DrawModelTextureWithAttribs {
 }
 pub struct ModelTextureAttribs {
   pub transform: Matrix4f<f32>,
-  pub tex_index: Option<TexIndexComponent>,
-  pub row_count: Option<RowCountComponent>,
-  pub offset: Option<OffsetComponent>,
-  pub multi_tex: Option<MultiTexComponent>,
+  pub tex_index: Option<TexIndex>,
+  pub row_count: Option<RowCount>,
+  pub offset: Option<TexOffset>,
+  pub multi_tex: Option<MultiTex>,
 }

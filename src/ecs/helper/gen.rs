@@ -7,16 +7,7 @@ use {
   },
   ecs::c::{
     flags::*,
-    material::{
-      LightingComponent, 
-      ModelComponent,
-      TextureComponent, 
-      // TexIndexComponent, 
-      // RowCountComponent, 
-      // OffsetComponent, 
-      // MultiTexComponent,
-    },
-    position::*,
+    components::*,
     terrain::{
       Platform,
       TerrainNode,
@@ -62,12 +53,12 @@ impl<'a> System<'a> for PlatformGen {
   type SystemData = (
     Read<'a, LandscapeGen>,
     Write<'a, TerrainNodes>,
-    Read<'a, PlayerLoc>,
+    Read<'a, PlayerGridLoc>,
     Entities<'a>,
     WriteStorage<'a, Platform>,
-    WriteStorage<'a, ModelComponent>,
-    WriteStorage<'a, TextureComponent>,
-    WriteStorage<'a, LightingComponent>,
+    WriteStorage<'a, ModelName>,
+    WriteStorage<'a, TexName>,
+    WriteStorage<'a, LightingName>,
   );
   fn run(&mut self, data: Self::SystemData) {
     let (landgen, mut nodes, player, ents, mut platforms, mut models, mut textures, mut lightings) = data;
@@ -90,9 +81,9 @@ impl<'a> System<'a> for PlatformGen {
             // top = (top + (landgen.l_weight * landgen.l_mult as f32) as f64) / (landgen.l_mult + 1) as f64;
             let pf = Platform::new(200.0, -100.0, x, z, top as f32, 0.05);
             platforms.insert(ent, pf).expect("Failed to insert new Platform");
-            models.insert(ent, ModelComponent("platform".to_owned())).expect("Failed to insert new ModelComponent");
-            textures.insert(ent, TextureComponent("dirt".to_owned())).expect("Failed to insert new TextureComponent");
-            lightings.insert(ent, LightingComponent("flat".to_owned())).expect("Failed to insert new LightingComponent");
+            models.insert(ent, ModelName("platform".to_owned())).expect("Failed to insert new ModelName");
+            textures.insert(ent, TexName("dirt".to_owned())).expect("Failed to insert new TexName");
+            lightings.insert(ent, LightingName("flat".to_owned())).expect("Failed to insert new LightingName");
           }
         }}
         nodes.0.insert(node);
@@ -117,7 +108,7 @@ impl<'a> System<'a> for PlayerGen {
   type SystemData = (
     // Read<'a, >,
     // Write<'a, >,
-    Read<'a, PlayerLoc>,
+    Read<'a, PlayerGridLoc>,
     Entities<'a>,
     WriteStorage<'a, Position>,
     WriteStorage<'a, Rotation>,
@@ -125,9 +116,9 @@ impl<'a> System<'a> for PlayerGen {
     WriteStorage<'a, TransformVelocity>,
     WriteStorage<'a, DeltaVelocity>,
     WriteStorage<'a, PosAdjust>,
-    WriteStorage<'a, ModelComponent>,
-    WriteStorage<'a, TextureComponent>,
-    WriteStorage<'a, LightingComponent>,
+    WriteStorage<'a, ModelName>,
+    WriteStorage<'a, TexName>,
+    WriteStorage<'a, LightingName>,
     WriteStorage<'a, JumpArc>,
     WriteStorage<'a, ActivePlayer>,
     WriteStorage<'a, Falling>,
@@ -146,9 +137,9 @@ impl<'a> System<'a> for PlayerGen {
     vel.insert(ent, Velocity {0: Vector3f::blank()}).expect("Failed to insert new Velocity");
     dvel.insert(ent, DeltaVelocity {0: Vector3f::blank()}).expect("Failed to insert new DeltaVelocity");
     tvel.insert(ent, PosAdjust {0: Vector3f::blank()}).expect("Failed to insert new PosAdjust");
-    mod_c.insert(ent, ModelComponent("player".to_owned())).expect("Failed to insert new ModelComponent");
-    tex_c.insert(ent, TextureComponent("dirt".to_owned())).expect("Failed to insert new TextureComponent");
-    ltg_c.insert(ent, LightingComponent("flat".to_owned())).expect("Failed to insert new LightingComponent");
+    mod_c.insert(ent, ModelName("player".to_owned())).expect("Failed to insert new ModelName");
+    tex_c.insert(ent, TexName("dirt".to_owned())).expect("Failed to insert new TexName");
+    ltg_c.insert(ent, LightingName("flat".to_owned())).expect("Failed to insert new LightingName");
     jump_arcs.insert(ent, JumpArc::new()).expect("Failed to insert new JumpArc");
     player.insert(ent, ActivePlayer).expect("Failed to insert flag ActivePlayer");
     fall.insert(ent, Falling).expect("Failed to insert flag Falling");
@@ -170,9 +161,9 @@ impl<'a> System<'a> for EntityGen {
     // Read<'a, PlayerLoc>,
     Entities<'a>,
     // WriteStorage<'a, Position>,
-    // WriteStorage<'a, ModelComponent>,
-    // WriteStorage<'a, TextureComponent>,
-    // WriteStorage<'a, LightingComponent>,
+    // WriteStorage<'a, ModelName>,
+    // WriteStorage<'a, TexName>,
+    // WriteStorage<'a, LightingName>,
   );
   fn run(&mut self, _data: Self::SystemData) {
     
