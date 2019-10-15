@@ -60,7 +60,7 @@ use {
         PlayerLoc, Rotators,
       },
     },
-    e::{
+    helper::{
       gen::{
         LandscapeGen,
         PlatformGen,

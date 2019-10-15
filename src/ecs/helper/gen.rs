@@ -6,6 +6,7 @@ use {
     // Read, Write, ReadStorage, WriteStorage, 
   },
   ecs::c::{
+    flags::*,
     material::{
       LightingComponent, 
       ModelComponent,
@@ -22,7 +23,6 @@ use {
       TerrainNodes,
     },
   },
-  flags::*,
   util::{
     // rgl::*, 
     // HashSet,
