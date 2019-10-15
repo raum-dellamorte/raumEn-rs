@@ -14,7 +14,7 @@ use {
   },
 };
 
-#[derive(Component, Debug)]
+#[derive(Component, Debug, Default)]
 #[storage(VecStorage)]
 pub struct Position(pub Vector3f<f32>);
 impl Position {
@@ -47,23 +47,23 @@ fn grid_move(x: f32, z: f32, dist: f32, ry: f32) -> (i32, i32) {
   (x, z)
 }
 
-#[derive(Component, Debug)]
+#[derive(Component, Default, Debug)]
 #[storage(VecStorage)]
 pub struct Rotation(pub Vector3f<f32>);
 
-#[derive(Component, Debug)]
+#[derive(Component, Default, Debug)]
 #[storage(VecStorage)]
 pub struct Velocity(pub Vector3f<f32>);
 
-#[derive(Component, Debug)]
+#[derive(Component, Default, Debug)]
 #[storage(VecStorage)]
 pub struct TransformVelocity(pub Vector3f<f32>);
 
-#[derive(Component, Debug)]
+#[derive(Component, Default, Debug)]
 #[storage(VecStorage)]
 pub struct DeltaVelocity(pub Vector3f<f32>);
 
-#[derive(Component, Debug)]
+#[derive(Component, Default, Debug)]
 #[storage(VecStorage)]
 pub struct PosAdjust(pub Vector3f<f32>);
 impl PosAdjust {
@@ -75,6 +75,11 @@ impl PosAdjust {
 #[derive(Component, Debug)]
 #[storage(VecStorage)]
 pub struct ScaleFloat(pub f32);
+impl Default for ScaleFloat {
+  fn default() -> Self {
+    Self(1.0)
+  }
+}
 
 #[derive(Debug)]
 pub struct PlayerLoc(pub i32,pub i32);
