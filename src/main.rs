@@ -20,7 +20,7 @@ extern crate noise;
 extern crate specs;
 #[macro_use] extern crate specs_derive;
 // extern crate shred;
-// //#[macro_use]
+// #[macro_use]
 // extern crate shred_derive;
 
 const CVOID: *const c_void = 0 as *const c_void;
