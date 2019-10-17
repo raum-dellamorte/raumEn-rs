@@ -2,6 +2,7 @@
 use {
   std::cmp::Ordering,
   specs::{
+    prelude::*, 
     System, Read, ReadStorage, WriteStorage, Entities, Join, 
   },
   crate::{
@@ -14,7 +15,7 @@ use {
     },
     shader::ParticleShader,
     util::{
-      // Vector3f,
+      Vector3f,
       Matrix4f, 
       rgl::*,
     },
@@ -25,75 +26,118 @@ use {
 
 pub struct DrawParticles;
 impl<'a> System<'a> for DrawParticles {
-  type SystemData = (
-    (
-      Read<'a, ParticleShader>, 
-      Read<'a, ViewMatrix>,
-      Read<'a, Models>, 
-      Read<'a, Textures>, 
-      Read<'a, Lightings>, 
-    ),
-    (
-      Entities<'a>,
-      ReadStorage<'a, Position>,
-      ReadStorage<'a, Rotation>,
-      ReadStorage<'a, ModelName>,
-      ReadStorage<'a, TexName>,
-      ReadStorage<'a, LightingName>,
-      ReadStorage<'a, ParticleAlive>,
-    ),
-  );
+  type SystemData = DrawParticlesData<'a>;
   fn run(&mut self, data: Self::SystemData) {
-    let (shader, view, models, textures, lightings) = data.0;
-    let shader = &shader.shader;
+    let shader = &data.shader.shader;
     let mut transform = Matrix4f::new();
-    let (e, pos, rot, mc, tc, lc, is_active_particle) = data.1;
-    let _data = (&e, &pos, &rot, &mc, &tc, &lc, &is_active_particle);
-    let mut d = _data.join().collect::<Vec<_>>();
+    let d = data.entities();
     if d.is_empty() { return }
-    d.sort_by(|&a,&b| {
-      match a.3 .0 .cmp(&b.3 .0) { // .3 is ModelName; .0 is the internal String
-        Ordering::Equal => {
-          a.4 .0 .cmp(&b.4 .0) // .4 is TexName; .0 is the internal String
-        }
-        x => { x }
-      }
-    });
-    let mut last_model = &d[0] .3 .0;
-    let mut last_texture = &d[0] .4 .0;
-    let mut model: &Model = &models.0.get(last_model)
+    let mut last_model: &str = &data.model_name(d[0]);
+    let mut last_texture: &str = &data.texture_name(d[0]);
+    let mut model: &Model = &data.models.0.get(last_model)
         .unwrap_or_else(|| panic!("DrawTexMods: No such Model :{}", last_model));
-    let mut texture: &Texture = &textures.0.get(last_texture)
+    let mut texture: &Texture = &data.textures.0.get(last_texture)
         .unwrap_or_else(|| panic!("DrawTexMods: No such Texture :{}", last_texture));
     shader.start();
-    shader.load_matrix("u_View", &(*view).view);
+    shader.load_matrix("u_View", &(*data.view).view);
     // shader.load_vec_3f("light_pos", &(*light).pos); // Unimplemented
     // shader.load_vec_3f("light_color", &(*light).color);
     r_bind_vaa_3(model);
     r_bind_texture(texture);
-    for (_, p, r, m, t, l, _) in d {
-      if m.0 != *last_model {
-        model = &models.0.get(&m.0).unwrap();
-        last_model = &m.0;
+    for e in d {
+      let mdl = data.model_name(e);
+      if *mdl != *last_model {
+        model = &data.models.0.get(mdl).unwrap();
+        last_model = mdl;
         r_bind_vaa_3(model);
       }
-      if t.0 != *last_texture {
-        texture = &textures.0.get(&t.0).unwrap();
-        last_texture = &t.0;
+      let tex = data.texture_name(e);
+      if *tex != *last_texture {
+        texture = &data.textures.0.get(tex).unwrap();
+        last_texture = tex;
         r_bind_texture(texture);
       }
-      if let Some(ref lighting) = lightings.0.get(&l.0) {
+      let ltg = data.lighting_name(e);
+      if let Some(ref lighting) = data.lightings.0.get(ltg) {
         lighting.load_to_shader(shader);
       }
+      let pos = data.position(e);
       transform.set_identity();
-      transform.translate_v3f(p.0);
-      transform.rotate(r.0.y.to_radians(), crate::util::YVEC);
+      transform.translate_v3f(pos);
+      let rot = data.rotation(e);
+      transform.rotate(rot.y.to_radians(), crate::util::YVEC);
       // transform.scale(&p.scale(200.0));
       shader.load_matrix("u_Transform", &transform);
       r_draw_triangles(model);
     }
     r_unbind_vaa_3();
     shader.stop();
+  }
+}
+
+#[derive(SystemData)]
+pub struct DrawParticlesData<'a> {
+  pub shader:    Read<'a, ParticleShader>, 
+  pub view:      Read<'a, ViewMatrix>,
+  pub models:    Read<'a, Models>, 
+  pub textures:  Read<'a, Textures>, 
+  pub lightings: Read<'a, Lightings>, 
+  pub ents:      Entities<'a>,
+  pub pos:       ReadStorage<'a, Position>,
+  pub rot:       ReadStorage<'a, Rotation>,
+  pub model:     ReadStorage<'a, ModelName>,
+  pub texture:   ReadStorage<'a, TexName>,
+  pub lighting:  ReadStorage<'a, LightingName>,
+  pub particle:  ReadStorage<'a, ParticleAlive>,
+}
+impl<'a> DrawParticlesData<'a> {
+  pub fn entities(&self) -> Vec<Entity> {
+    let mut d = (&self.ents, &self.particle).join().collect::<Vec<_>>();
+    d.sort_by(|&a,&b| {
+      match (self.model.get(a.0), self.model.get(b.0)) {
+        (Some(_ma), Some(_mb)) => {
+          match _ma.cmp(&_mb) {
+            Ordering::Equal => {
+              match (self.texture.get(a.0), self.texture.get(b.0)) {
+                (Some(_ta), Some(_tb)) => {
+                  _ta.0.cmp(&_tb.0)
+                }
+                (Some(_ta), None) => { Ordering::Less }
+                (None, Some(_tb)) => { Ordering::Greater }
+                _ => { Ordering::Equal }
+              }
+            }
+            x => { x }
+          }
+        }
+        (Some(_), None) => { Ordering::Less }
+        (None, Some(_)) => { Ordering::Greater }
+        _ => { Ordering::Equal }
+      }
+    });
+    let mut out: Vec<Entity> = d.iter().map(|(e, _)| { *e }).collect();
+    out.retain(|e| {
+      self.pos.get(*e).is_some() &&
+      self.rot.get(*e).is_some() &&
+      self.model.get(*e).is_some() &&
+      self.texture.get(*e).is_some()
+    });
+    out
+  }
+  pub fn model_name(&self, e: Entity) -> &str {
+    &self.model.get(e).expect("DrawParticlesData: No ModelName for Entity").0
+  }
+  pub fn texture_name(&self, e: Entity) -> &str {
+    &self.texture.get(e).expect("DrawParticlesData: No ModelName for Entity").0
+  }
+  pub fn lighting_name(&self, e: Entity) -> &str {
+    &self.lighting.get(e).expect("DrawParticlesData: No LightingName for Entity").0
+  }
+  pub fn position(&self, e: Entity) -> Vector3f<f32> {
+    self.pos.get(e).expect("DrawParticlesData: No Position for Entity").0
+  }
+  pub fn rotation(&self, e: Entity) -> Vector3f<f32> {
+    self.rot.get(e).expect("DrawParticlesData: No Rotation for Entity").0
   }
 }
 
@@ -126,4 +170,3 @@ impl<'a> System<'a> for UpdateParticles {
     }
   }
 }
-

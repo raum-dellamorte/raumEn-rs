@@ -64,6 +64,9 @@ use {
       camera::{
         CameraToActivePlayer,
       },
+      particle::{
+        DrawParticles, 
+      },
       position::{
         PlayerInput,
         UpdatePos,
@@ -82,7 +85,7 @@ use {
   },
   shader::{
     Shader,
-    // ParticleShader,
+    ParticleShader,
     TerrainShader,
     TexModShader,
   },
@@ -128,7 +131,7 @@ fn gen_world() -> World {
   world.insert(Lights::default());
   world.insert(Loader::default());
   world.insert(Models::default());
-//  world.insert(ParticleShader::default());
+  world.insert(ParticleShader::default());
   // world.insert(ParticleSystems::default());
   world.insert(PlayerGridLoc::default());
   world.insert(Rotators::default());
@@ -305,6 +308,14 @@ fn main() {
   texmod_draw.dispatch(&world);
   world.maintain();
   
+  let mut particle_draw = DispatcherBuilder::new()
+      .with_thread_local(DrawParticles)
+      .build();
+  particle_draw.setup(&mut world);
+  
+  particle_draw.dispatch(&world);
+  world.maintain();
+  
   // Game loop!
   println!("Starting game loop.");
   let mut running = true;
@@ -352,6 +363,7 @@ fn main() {
     render_mgr.render(&world);
     terrain_draw.dispatch(&world);
     texmod_draw.dispatch(&world);
+    particle_draw.dispatch(&world);
     world.maintain();
     _fbo.unbind(&world);
     _fbo.blit_to_fbo(&world, 0, &_fbo_final);
