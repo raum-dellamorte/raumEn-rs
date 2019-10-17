@@ -34,14 +34,9 @@ pub fn gen_particle_shader() -> Shader {
   glsl::transpiler::glsl::show_translation_unit(&mut _particle_vertex, &_tu);
   let mut shader = Shader::new(
     ShaderConf::new("particle")
-      .with_attribute("pos")
+      .with_attributes(vec!("pos", "view", "tex_offsets", "blend_factor"))
       .with_uniforms(vec!(
-        "u_Transform", "u_Projection", "u_View", "u_Texture",
-        "row_count",
-        "offset",
-        "light_pos",
-        "light_color",
-        // "attenuation"
+        "projection", "row_count", 
       ))
   );
   shader.setup();
