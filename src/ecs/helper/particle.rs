@@ -56,24 +56,8 @@ fn emit_particle(
   let scale = gen_value(rng, system.half_scale, system.scale_error);
   let life = gen_value(rng, system.half_life, system.life_error);
   let rot = gen_rotation(rng, system.rand_rot);
-  // emit_particle(
-  //   world, texture, system.base_pos, velocity, 
-  //   , 
-  //   scale, system.gravity_mult, life
-  // );
+  
   let p_ent = get_particle(world);
-  // p.apply {
-  //   pTexture = ntexture
-  //   pos.set(npos)
-  //   velocity.set(nvelocity)
-  //   rot = nrot
-  //   scale = nscale
-  //   gravEffect = ngravEffect
-  //   life = nlife
-  //   elapsedTime = 0.0
-  // }
-  // add(p)
-  // return p
   
   // mod_comp::<>(world, p_ent, "Particle ", &|o| {
   //   // o.0 = ;
@@ -96,6 +80,9 @@ fn emit_particle(
   });
   mod_comp::<ScaleFloat>(world, p_ent, "Particle ScaleFloat", &|o| {
     o.0 = scale as f32;
+  });
+  mod_comp::<GravPercent>(world, p_ent, "Particle ScaleFloat", &|o| {
+    o.0 = system.gravity_mult as f32;
   });
   mod_comp::<TimedLife>(world, p_ent, "Particle TimedLife", &|o| {
     o.set_life(life);
