@@ -115,7 +115,7 @@ fn create_particle(world: &mut World) -> Entity {
 }
 // These 2 funcs are ported over from the Kotlin version
 // I **think** the math is the same...
-pub fn gen_random_unit_vector3f(rng: &mut rand::prelude::ThreadRng, ) -> Vector3f<f32> {
+fn gen_random_unit_vector3f(rng: &mut rand::prelude::ThreadRng, ) -> Vector3f<f32> {
   let theta: f32 = rng.gen::<f32>() * TAU;
   let z: f32 = (rng.gen::<f32>() * TAU) - 1.0;
   let root_one_minus_z_squared: f32 = (1.0 - (z * z)).sqrt();
@@ -123,7 +123,7 @@ pub fn gen_random_unit_vector3f(rng: &mut rand::prelude::ThreadRng, ) -> Vector3
   let y: f32 = root_one_minus_z_squared * theta.sin();
   Vector3f {x, y, z}
 }
-pub fn gen_random_unit_vector3f_within_cone(
+fn gen_random_unit_vector3f_within_cone(
     rng: &mut rand::prelude::ThreadRng, rotator: &mut Rotator<f32>, 
     cone_dir: Vector3f<f32>, angle: f32
 ) -> Vector3f<f32> {
