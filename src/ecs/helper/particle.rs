@@ -2,7 +2,7 @@
 
 use {
   // std::{
-  //   f64::consts::{ PI, },
+  //   f32::consts::{ PI, },
   // },
   specs::{*, WorldExt, },
   rand::Rng,
@@ -19,32 +19,32 @@ use {
     util::{
       RVec, Vector3f, 
       // HashSet,
-      TAU, ZVEC64, 
+      TAU, ZVEC, 
       specs::*,
     },
   }
 };
 
-const TOLERANCE64: f64 = 0.00001;
+const TOLERANCE64: f32 = 0.00001;
 
 pub fn gen_particles(world: &mut World, system: &ParticleRules) {
   let mut rng = rand::thread_rng();
-  let mut rotator = Rotator::<f64>::default();
+  let mut rotator = Rotator::<f32>::default();
   let delta = {
     let handler = world.read_resource::<crate::Handler>();
-    f64::from(handler.timer.delta)
+    handler.timer.delta
   };
   let particles_to_create = system.pps * delta;
   let count = particles_to_create.floor() as i32;
-  let partial_particle: f64 = particles_to_create.fract();
+  let partial_particle: f32 = particles_to_create.fract();
   for _ in 0..count { emit_particle(world, system, &mut rng, &mut rotator) };
-  if rng.gen::<f64>() < partial_particle { 
+  if rng.gen::<f32>() < partial_particle { 
     emit_particle(world, system, &mut rng, &mut rotator);
   }
 }
 fn emit_particle(
   world: &mut World, system: &ParticleRules, 
-  rng: &mut rand::prelude::ThreadRng, rotator: &mut Rotator<f64>
+  rng: &mut rand::prelude::ThreadRng, rotator: &mut Rotator<f32>
 ) {
   let mut velocity = if system.is_directional {
     gen_random_unit_vector3f_within_cone(rng, rotator, system.base_dir, system.angle)
@@ -70,10 +70,10 @@ fn emit_particle(
     o.0 = 0;
   });
   mod_comp::<Position>(world, p_ent, "Particle Position", &|o| {
-    o.0 = system.base_pos.into();
+    o.0 = system.base_pos;
   });
   mod_comp::<Velocity>(world, p_ent, "Particle Velocity", &|o| {
-    o.0 = velocity.into();
+    o.0 = velocity;
   });
   mod_comp::<Rotation>(world, p_ent, "Particle Rotation", &|o| {
     o.0.z = rot as f32;
@@ -110,32 +110,32 @@ fn create_particle(world: &mut World) -> Entity {
 }
 // These 2 funcs are ported over from the Kotlin version
 // I **think** the math is the same...
-pub fn gen_random_unit_vector3f(rng: &mut rand::prelude::ThreadRng, ) -> Vector3f<f64> {
-  let theta: f64 = rng.gen::<f64>() * TAU;
-  let z: f64 = (rng.gen::<f64>() * TAU) - 1.0;
-  let root_one_minus_z_squared: f64 = (1.0 - (z * z)).sqrt();
-  let x: f64 = root_one_minus_z_squared * theta.cos();
-  let y: f64 = root_one_minus_z_squared * theta.sin();
+pub fn gen_random_unit_vector3f(rng: &mut rand::prelude::ThreadRng, ) -> Vector3f<f32> {
+  let theta: f32 = rng.gen::<f32>() * TAU;
+  let z: f32 = (rng.gen::<f32>() * TAU) - 1.0;
+  let root_one_minus_z_squared: f32 = (1.0 - (z * z)).sqrt();
+  let x: f32 = root_one_minus_z_squared * theta.cos();
+  let y: f32 = root_one_minus_z_squared * theta.sin();
   Vector3f {x, y, z}
 }
 pub fn gen_random_unit_vector3f_within_cone(
-    rng: &mut rand::prelude::ThreadRng, rotator: &mut Rotator<f64>, 
-    cone_dir: Vector3f<f64>, angle: f64
-) -> Vector3f<f64> {
+    rng: &mut rand::prelude::ThreadRng, rotator: &mut Rotator<f32>, 
+    cone_dir: Vector3f<f32>, angle: f32
+) -> Vector3f<f32> {
   let cos_angle = angle.cos();
-  let theta: f64 = rng.gen::<f64>() * TAU;
-  let z: f64 = cos_angle + (rng.gen::<f64>() * (1.0 - cos_angle));
-  let root_one_minus_z_squared: f64 = (1.0 - (z * z)).sqrt();
+  let theta: f32 = rng.gen::<f32>() * TAU;
+  let z: f32 = cos_angle + (rng.gen::<f32>() * (1.0 - cos_angle));
+  let root_one_minus_z_squared: f32 = (1.0 - (z * z)).sqrt();
   let x = root_one_minus_z_squared * theta.cos();
   let y = root_one_minus_z_squared * theta.sin();
   let mut dir_tmp = Vector3f::new(x, y, z);
-  let mut rotate_axis: Vector3f<f64> = Vector3f::default();
+  let mut rotate_axis: Vector3f<f32> = Vector3f::default();
   if cone_dir.x != 0.0 || cone_dir.y != 0.0 || 
     ((cone_dir.z - 1.0).abs() > TOLERANCE64 && (cone_dir.z + 1.0).abs() > TOLERANCE64)
   {
-    cone_dir.cross_to(ZVEC64, &mut rotate_axis);
+    cone_dir.cross_to(ZVEC, &mut rotate_axis);
     rotate_axis.normalize();
-    let rotate_angle = cone_dir.dot(ZVEC64).acos();
+    let rotate_angle = cone_dir.dot(ZVEC).acos();
     // The Kotlin version used a rotation matrix, which I now think is clunky
     // I **think** this will do the same thing with less work
     // I love my quaternion rotator <3
@@ -151,14 +151,14 @@ pub fn gen_random_unit_vector3f_within_cone(
   dir_tmp
 }
 
-fn gen_value(rng: &mut rand::prelude::ThreadRng, average: f64, error_margin: f64) -> f64 {
-  let offset = (rng.gen::<f64>() - 0.5) * 2.0 * error_margin;
+fn gen_value(rng: &mut rand::prelude::ThreadRng, average: f32, error_margin: f32) -> f32 {
+  let offset = (rng.gen::<f32>() - 0.5) * 2.0 * error_margin;
   average + offset
 }
 
-fn gen_rotation(rng: &mut rand::prelude::ThreadRng, bother: bool) -> f64 {
+fn gen_rotation(rng: &mut rand::prelude::ThreadRng, bother: bool) -> f32 {
   if bother {
-    rng.gen::<f64>() * 360.0
+    rng.gen::<f32>() * 360.0
   } else {
     0.0
   }

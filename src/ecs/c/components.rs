@@ -20,7 +20,7 @@ use {
 
 #[derive(Component, Default, Debug)]
 #[storage(VecStorage)]
-pub struct CamDistance(pub f64);
+pub struct CamDistance(pub f32);
 
 #[derive(Component, Default, Debug)]
 #[storage(VecStorage)]
@@ -129,15 +129,15 @@ pub struct TexOffset(pub Vector2f<f32>);
 #[derive(Component, Default, Debug)]
 #[storage(VecStorage)]
 pub struct TexOffsets{
-  pub a: Vector2f<f64>,
-  pub b: Vector2f<f64>,
+  pub a: Vector2f<f32>,
+  pub b: Vector2f<f32>,
 }
 
 #[derive(Component, Default, Debug)]
 #[storage(VecStorage)]
 pub struct TimedLife {
-  pub total: f64,
-  pub elapsed: f64,
+  pub total: f32,
+  pub elapsed: f32,
 }
 
 #[derive(Component, Default, Debug)]
@@ -407,13 +407,13 @@ impl Default for ScaleFloat {
 }
 
 impl TimedLife {
-  pub fn inc_time(&mut self, delta: f64) {
+  pub fn inc_time(&mut self, delta: f32) {
     self.elapsed += delta;
   }
   pub fn is_alive(&self) -> bool {
     self.elapsed < self.total
   }
-  pub fn set_life(&mut self, life_length: f64) {
+  pub fn set_life(&mut self, life_length: f32) {
     self.elapsed = 0.0;
     self.total = life_length;
   }

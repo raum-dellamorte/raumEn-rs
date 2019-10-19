@@ -3,7 +3,7 @@ use {
   std::{
     ops::{AddAssign, SubAssign, Neg, MulAssign, DivAssign},
     fmt,
-    f64::consts::{ PI, },
+    f32::consts::{ PI, },
     marker::{
       Sync, Send, 
     },
@@ -15,7 +15,7 @@ use {
   },
 };
 
-pub const TAU: f64 = 2.0 * PI;
+pub const TAU: f32 = 2.0 * PI;
 
 pub trait RFloat: 'static + Float + NumCast + AddAssign + SubAssign + MulAssign + DivAssign + Neg + 
     fmt::Display + Sync + Send + Copy
