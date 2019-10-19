@@ -131,6 +131,7 @@ pub struct TexOffset(pub Vector2f<f32>);
 pub struct TexOffsets{
   pub a: Vector2f<f32>,
   pub b: Vector2f<f32>,
+  pub blend: f32,
 }
 
 #[derive(Component, Default, Debug)]
@@ -403,6 +404,25 @@ impl Default for Rotators {
 impl Default for ScaleFloat {
   fn default() -> Self {
     Self(1.0)
+  }
+}
+
+impl TexOffsets {
+  pub fn update(&mut self, life: &TimedLife, num_rows: u32, ) {
+    let life_factor = life.percent();
+    let stage_count = num_rows * num_rows;
+    let atlas_progression = life_factor * stage_count as f32;
+    let index_a = atlas_progression.floor() as u32;
+    let index_b = if index_a < (stage_count - 1) { index_a + 1 } else { index_a };
+    let col_a = index_a % num_rows;
+    let row_a = index_a / num_rows;
+    let col_b = index_b % num_rows;
+    let row_b = index_b / num_rows;
+    self.a.x = col_a as f32 / num_rows as f32;
+    self.a.y = row_a as f32 / num_rows as f32;
+    self.b.x = col_b as f32 / num_rows as f32;
+    self.b.y = row_b as f32 / num_rows as f32;
+    self.blend = atlas_progression.fract();
   }
 }
 
