@@ -6,6 +6,14 @@ use {
   },
 };
 
+pub type SpecsRdStrg<'a, T> = 
+  specs::Storage<'a, 
+        T, specs::shred::Fetch<'a, 
+          specs::storage::MaskedStorage<T>>>;
+pub type SpecsWrStrg<'a, T> = 
+  specs::Storage<'a, 
+        T, specs::shred::FetchMut<'a, 
+          specs::storage::MaskedStorage<T>>>;
 
 pub fn ins_comp<T: Component>(
   world: &mut World, e: Entity, thing: T, text: &str, f: &dyn Fn(&mut T) -> ()
