@@ -23,8 +23,6 @@ extern crate specs;
 // #[macro_use]
 // extern crate shred_derive;
 
-const CVOID: *const c_void = 0 as *const c_void;
-
 // in project stuff
 pub mod ecs;
 pub mod engine;
@@ -37,7 +35,6 @@ pub mod util;
 
 use {
   gl::*,
-  std::os::raw::c_void,
   // glutin::{
   //   // dpi::*,
   //   ContextCurrentState,

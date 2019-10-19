@@ -7,7 +7,6 @@ use {
     //   GLuint, 
     // },
   },
-  CVOID,
   specs::{World, WorldExt, },
   Display,
   util::{
@@ -137,7 +136,7 @@ impl Fbo {
     if id == 0_u32 { panic!("GenTextures failed in Fbo::create_color_texture_attachment") }
     self.color_tex_id = id;
     BindTexture(TEXTURE_2D, id);
-    TexImage2D(TEXTURE_2D, 0, RGBA8 as i32, self.width, self.height, 0, RGBA, UNSIGNED_BYTE, CVOID);
+    TexImage2D(TEXTURE_2D, 0, RGBA8 as i32, self.width, self.height, 0, RGBA, UNSIGNED_BYTE, std::ptr::null());
     TexParameteri(TEXTURE_2D, TEXTURE_MAG_FILTER, LINEAR as i32);
     TexParameteri(TEXTURE_2D, TEXTURE_MIN_FILTER, LINEAR as i32);
     TexParameteri(TEXTURE_2D, TEXTURE_WRAP_S, CLAMP_TO_EDGE as i32);
@@ -149,7 +148,7 @@ impl Fbo {
     if id == 0_u32 { panic!("GenTextures failed in Fbo::create_depth_texture_attachment") }
     self.depth_tex_id = id;
     BindTexture(TEXTURE_2D, id);
-    TexImage2D(TEXTURE_2D, 0, DEPTH_COMPONENT24 as i32, self.width, self.height, 0, DEPTH_COMPONENT, FLOAT, CVOID);
+    TexImage2D(TEXTURE_2D, 0, DEPTH_COMPONENT24 as i32, self.width, self.height, 0, DEPTH_COMPONENT, FLOAT, std::ptr::null());
     TexParameteri(TEXTURE_2D, TEXTURE_MAG_FILTER, LINEAR as i32);
     TexParameteri(TEXTURE_2D, TEXTURE_MIN_FILTER, LINEAR as i32);
     FramebufferTexture2D(FRAMEBUFFER, DEPTH_ATTACHMENT, TEXTURE_2D, id, 0);
