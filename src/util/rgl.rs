@@ -2,11 +2,8 @@
 use {
   gl::{
     *,
-    // types::{ 
-    //   // GLuint, GLfloat, GLenum, GLint, GLchar, GLsizeiptr, GLboolean, 
-    // },
+    types::*,
   },
-  CVOID,
   ecs::{
     c::{
       flags::MultiTex,
@@ -55,6 +52,17 @@ pub struct TextureID(pub u32);
 #[derive(Debug)]
 pub struct TextureUnit(pub i32);
 
+pub fn r_bind_vaa_7(model: &Model) { unsafe {
+  BindVertexArray(model.vao_id.0);
+  // print!(" r_bind_vaa_3(model: {})", model.vao_id.0);
+  EnableVertexAttribArray(0);
+  EnableVertexAttribArray(1);
+  EnableVertexAttribArray(2);
+  EnableVertexAttribArray(3);
+  EnableVertexAttribArray(4);
+  EnableVertexAttribArray(5);
+  EnableVertexAttribArray(6);
+}}
 pub fn r_bind_vaa_3(model: &Model) { unsafe {
   BindVertexArray(model.vao_id.0);
   // print!(" r_bind_vaa_3(model: {})", model.vao_id.0);
@@ -67,6 +75,15 @@ pub fn r_bind_vaa_2(model: &Model) { unsafe {
   EnableVertexAttribArray(0);
   EnableVertexAttribArray(1);
 }}
+pub fn r_unbind_vaa_7() { unsafe {
+  DisableVertexAttribArray(6);
+  DisableVertexAttribArray(5);
+  DisableVertexAttribArray(4);
+  DisableVertexAttribArray(3);
+  DisableVertexAttribArray(2);
+  DisableVertexAttribArray(1);
+  DisableVertexAttribArray(0);
+}}
 pub fn r_unbind_vaa_3() { unsafe {
   DisableVertexAttribArray(2);
   DisableVertexAttribArray(1);
@@ -76,6 +93,49 @@ pub fn r_unbind_vaa_2() { unsafe {
   DisableVertexAttribArray(1);
   DisableVertexAttribArray(0);
 }}
+
+pub fn r_add_instanced_attrib(vao: u32, vbo: u32, attrib: u32, data_size: i32, stride: usize, offset: i32) { unsafe {
+  // This is my best guess from LWJGL to Rust's GL implementation
+  BindBuffer(ARRAY_BUFFER, vbo);
+  BindVertexArray(vao);
+  let offset = offset * 4;
+  let offset: *const i32 = &offset;
+  let offset = offset as *const std::ffi::c_void;
+  VertexAttribPointer(
+    attrib, data_size, FLOAT, FALSE, 
+    (stride * std::mem::size_of::<GLfloat>()) as i32, offset
+  );
+  VertexAttribDivisor(attrib, 1);
+  BindBuffer(ARRAY_BUFFER, 0);
+  BindVertexArray(0);
+}}
+
+pub fn r_update_vbo(vbo: u32, data: &[GLfloat]) { unsafe {
+  // This is my best guess from LWJGL to Rust's GL implementation
+  BindBuffer(ARRAY_BUFFER, vbo);
+  let data_len = (data.len() * std::mem::size_of::<GLfloat>()) as GLsizeiptr;
+  BufferData(ARRAY_BUFFER,
+      data_len,
+      std::ptr::null(),
+      STREAM_DRAW);
+  BufferSubData(ARRAY_BUFFER, 
+      0, data_len,
+      &data[0] as *const f32 as *const std::ffi::c_void);
+  BindBuffer(ARRAY_BUFFER, 0);
+}}
+
+pub enum RBlend {
+  DefaultBlend,
+  AdditiveBlend,
+}
+impl RBlend {
+  pub fn r_blend_func(&self) { unsafe {
+    match self {
+      RBlend::DefaultBlend => { BlendFunc(SRC_ALPHA, ONE_MINUS_SRC_ALPHA); }
+      RBlend::AdditiveBlend => { BlendFunc(SRC_ALPHA, ONE) }
+    }
+  }}
+}
 pub fn r_bind_texture(texture: &Texture) { unsafe {
   let tex_id = texture.tex_id.0;
   let mut tex_unit = texture.tex_unit.0;
@@ -85,9 +145,90 @@ pub fn r_bind_texture(texture: &Texture) { unsafe {
   // print!(" r_bind_texture(texture: {})", texture.tex_id.0)
 }}
 pub fn r_draw_triangles(model: &Model) { unsafe {
-  DrawElements(TRIANGLES, model.vertex_count.0, UNSIGNED_INT, CVOID); 
+  DrawElements(TRIANGLES, model.vertex_count.0, UNSIGNED_INT, std::ptr::null()); 
 }}
 
+pub enum GlEnDisIg {
+  Enable,
+  Disable,
+  Ignore,
+}
+impl Default for GlEnDisIg {
+  fn default() -> Self { Self::Ignore }
+}
+
+#[derive(Default)]
+pub struct GlSettings {
+  pub blend: GlEnDisIg,
+  pub cull_face: GlEnDisIg,
+  pub depth_test: GlEnDisIg,
+  pub depth_mask: GlEnDisIg,
+  // pub : GlEnDisIg,
+}
+impl GlSettings {
+  pub fn set(&self) { unsafe {
+    match self.blend {
+      GlEnDisIg::Enable => { Enable(BLEND); }
+      GlEnDisIg::Disable => { Disable(BLEND); }
+      GlEnDisIg::Ignore => {}
+    }
+    match self.cull_face {
+      GlEnDisIg::Enable => { Enable(CULL_FACE); }
+      GlEnDisIg::Disable => { Disable(CULL_FACE); }
+      GlEnDisIg::Ignore => {}
+    }
+    match self.depth_test {
+      GlEnDisIg::Enable => { Enable(DEPTH_TEST); }
+      GlEnDisIg::Disable => { Disable(DEPTH_TEST); }
+      GlEnDisIg::Ignore => {}
+    }
+    match self.depth_mask {
+      GlEnDisIg::Enable => { DepthMask(TRUE); }
+      GlEnDisIg::Disable => { DepthMask(FALSE); }
+      GlEnDisIg::Ignore => {}
+    }
+  }}
+  pub fn enable_blend(self) -> Self {
+    let mut _self = self;
+    _self.blend = GlEnDisIg::Enable;
+    _self
+  }
+  pub fn disable_blend(self) -> Self {
+    let mut _self = self;
+    _self.blend = GlEnDisIg::Disable;
+    _self
+  }
+  pub fn enable_cull_face(self) -> Self {
+    let mut _self = self;
+    _self.cull_face = GlEnDisIg::Enable;
+    _self
+  }
+  pub fn disable_cull_face(self) -> Self {
+    let mut _self = self;
+    _self.cull_face = GlEnDisIg::Disable;
+    _self
+  }
+  pub fn enable_depth_test(self) -> Self {
+    let mut _self = self;
+    _self.depth_test = GlEnDisIg::Enable;
+    _self
+  }
+  pub fn disable_depth_test(self) -> Self {
+    let mut _self = self;
+    _self.depth_test = GlEnDisIg::Disable;
+    _self
+  }
+  pub fn enable_depth_mask(self) -> Self {
+    let mut _self = self;
+    _self.depth_mask = GlEnDisIg::Enable;
+    _self
+  }
+  pub fn disable_depth_mask(self) -> Self {
+    let mut _self = self;
+    _self.depth_mask = GlEnDisIg::Disable;
+    _self
+  }
+}
 
 pub struct DrawModelsWithTextures(pub Vec<DrawModelWithTextures>);
 impl Default for DrawModelsWithTextures {
