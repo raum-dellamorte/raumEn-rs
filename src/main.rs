@@ -171,9 +171,8 @@ fn gen_world() -> World {
     lights.lights[0].pos.copy_from_isize(0,500,-10);
   }
   let quad = {
-    let mut loader = world.write_resource::<Loader>();
-    let quad_vec = vec![-1.0,1.0, -1.0,-1.0, 1.0,1.0, 1.0,-1.0];
-    loader.load_to_vao_gui(&quad_vec)
+    let loader = world.write_resource::<Loader>();
+    loader.quad_1_0
   };
   world.insert(HUD::new(quad));
   world

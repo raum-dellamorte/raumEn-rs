@@ -33,15 +33,24 @@ pub struct Loader {
   vbos: Vec<GLuint>,
   meshes: HashMap<String, Mesh>,
   textures: Vec<GLuint>,
+  pub quad_1_0: GLuint,
+  pub quad_0_5: GLuint,
 }
 impl Default for Loader {
   fn default() -> Self {
-    Loader {
+    let mut out = Loader {
       vaos: Vec::new(),
       vbos: Vec::new(),
       meshes: HashMap::new(),
       textures: Vec::new(),
-    }
+      quad_1_0: 0,
+      quad_0_5: 0,
+    };
+    let quad_vec = vec!(-1.0,1.0, -1.0,-1.0, 1.0,1.0, 1.0,-1.0);
+    out.quad_1_0 = out.load_to_vao_gui(&quad_vec);
+    let quad_vec = vec!(-0.5,0.5, -0.5,-0.5, 0.5,0.5, 0.5,-0.5);
+    out.quad_0_5 = out.load_to_vao_gui(&quad_vec);
+    out
   }
 }
 impl Loader {
@@ -58,6 +67,18 @@ impl Loader {
     self.unbind_vao();
     Model::new(vao_id, indcs.len() as i32)
   }
+  pub fn create_empty_vbo(&mut self, count: usize) -> GLuint { unsafe {
+    let vbo_id: GLuint = r_gen_buffers();
+    assert!(vbo_id != 0);
+    self.vbos.push(vbo_id);
+    BindBuffer(ARRAY_BUFFER, vbo_id);
+    BufferData(ARRAY_BUFFER,
+      (count * mem::size_of::<GLfloat>()) as GLsizeiptr,
+      ptr::null(),
+      STREAM_DRAW);
+    BindBuffer(ARRAY_BUFFER, 0_u32);
+    vbo_id
+  }}
   pub fn load_mesh(&mut self, name: &str) -> Option<&Mesh> {
     if self.meshes.get(name).is_none() {
       let mesh = match load_obj(name) {
