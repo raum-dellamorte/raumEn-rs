@@ -15,11 +15,14 @@ use {
     },
     shader::ParticleShader,
     util::{
+      RVec,
       Vector3f,
       Matrix4f, 
       rgl::*,
+      specs::*,
     },
     Handler,
+    Camera,
     ViewMatrix,
   },
 };
@@ -42,7 +45,12 @@ impl<'a> System<'a> for DrawParticles {
     shader.load_matrix("u_View", &(*data.view).view);
     // shader.load_vec_3f("light_pos", &(*light).pos); // Unimplemented
     // shader.load_vec_3f("light_color", &(*light).color);
-    r_bind_vaa_3(model);
+    r_bind_vaa_7(model);
+    GlSettings::default()
+        .disable_depth_mask()
+        .enable_blend()
+        .set();
+    RBlend::AdditiveBlend.r_blend_func();
     r_bind_texture(texture);
     for e in d {
       let mdl = data.model_name(e);
@@ -70,59 +78,53 @@ impl<'a> System<'a> for DrawParticles {
       shader.load_matrix("u_Transform", &transform);
       r_draw_triangles(model);
     }
-    r_unbind_vaa_3();
+    GlSettings::default()
+        .enable_depth_mask()
+        .disable_blend()
+        .set();
+    r_unbind_vaa_7();
     shader.stop();
   }
 }
 
 #[derive(SystemData)]
 pub struct DrawParticlesData<'a> {
-  pub shader:    Read<'a, ParticleShader>, 
-  pub view:      Read<'a, ViewMatrix>,
-  pub models:    Read<'a, Models>, 
-  pub textures:  Read<'a, Textures>, 
-  pub lightings: Read<'a, Lightings>, 
-  pub ents:      Entities<'a>,
-  pub pos:       ReadStorage<'a, Position>,
-  pub rot:       ReadStorage<'a, Rotation>,
-  pub model:     ReadStorage<'a, ModelName>,
-  pub texture:   ReadStorage<'a, TexName>,
-  pub lighting:  ReadStorage<'a, LightingName>,
-  pub particle:  ReadStorage<'a, ParticleAlive>,
+  pub shader:      Read<'a, ParticleShader>, 
+  pub view:        Read<'a, ViewMatrix>,
+  pub models:      Read<'a, Models>, 
+  pub textures:    Read<'a, Textures>, 
+  pub lightings:   Read<'a, Lightings>, 
+  pub ents:        Entities<'a>,
+  pub pos:         ReadStorage<'a, Position>,
+  pub rot:         ReadStorage<'a, Rotation>,
+  pub model:       ReadStorage<'a, ModelName>,
+  pub texture:     ReadStorage<'a, TexName>,
+  pub lighting:    ReadStorage<'a, LightingName>,
+  pub particle:    ReadStorage<'a, ParticleAlive>,
+  pub cam_dist:    ReadStorage<'a, CamDistance>,
+  pub tex_offsets: ReadStorage<'a, TexOffsets>,
 }
 impl<'a> DrawParticlesData<'a> {
   pub fn entities(&self) -> Vec<Entity> {
-    let mut d = (&self.ents, &self.particle).join().collect::<Vec<_>>();
+    let mut d = (
+      &self.ents, &self.model, &self.texture, 
+      &self.cam_dist, &self.pos, &self.rot, 
+      &self.particle, ).join().collect::<Vec<_>>();
     d.sort_by(|&a,&b| {
-      match (self.model.get(a.0), self.model.get(b.0)) {
-        (Some(_ma), Some(_mb)) => {
-          match _ma.cmp(&_mb) {
+      match a.1.cmp(&b.1) {
+        Ordering::Equal => {
+          match a.2 .0.cmp(&b.2 .0) {
             Ordering::Equal => {
-              match (self.texture.get(a.0), self.texture.get(b.0)) {
-                (Some(_ta), Some(_tb)) => {
-                  _ta.0.cmp(&_tb.0)
-                }
-                (Some(_ta), None) => { Ordering::Less }
-                (None, Some(_tb)) => { Ordering::Greater }
-                _ => { Ordering::Equal }
-              }
+              b.3 .0.partial_cmp(&a.3 .0).expect(
+                    "A wild NAN has appearded in a CamDistance")
             }
             x => { x }
           }
         }
-        (Some(_), None) => { Ordering::Less }
-        (None, Some(_)) => { Ordering::Greater }
-        _ => { Ordering::Equal }
+        x => { x }
       }
     });
-    let mut out: Vec<Entity> = d.iter().map(|(e, _)| { *e }).collect();
-    out.retain(|e| {
-      self.pos.get(*e).is_some() &&
-      self.rot.get(*e).is_some() &&
-      self.model.get(*e).is_some() &&
-      self.texture.get(*e).is_some()
-    });
-    out
+    d.iter().map(|(e, _, _, _, _, _, _)| { *e }).collect()
   }
   pub fn model_name(&self, e: Entity) -> &str {
     &self.model.get(e).expect("DrawParticlesData: No ModelName for Entity").0
@@ -143,30 +145,93 @@ impl<'a> DrawParticlesData<'a> {
 
 pub struct UpdateParticles;
 impl<'a> System<'a> for UpdateParticles {
-  type SystemData = (
-    (
-      Read<'a, Handler>,
-    ), (
-      Entities<'a>,
-      WriteStorage<'a, Velocity>,
-      ReadStorage<'a, GravPercent>,
-    ),
-  );
+  type SystemData = UpdateParticlesData<'a>;
   fn run(&mut self, data: Self::SystemData) {
-    let delta = {
-      let handler = data.0 .0;
-      handler.timer.delta
-    };
-    // velocity.y -= gravity * gravEffect * delta * delta
-    // val change = Vector3f(velocity).apply { scale(delta) }
-    // Vector3f.add(change, pos, pos)
-    // distance = Vector3f.sub(camera.pos, pos, null).lengthSquared()
-    // updateTexCoords()
-    // elapsedTime += delta
-    // return elapsedTime > life
-    let mut data = data.1;
-    for (_, vel, grav_percent) in (&data.0, &mut data.1, &data.2).join() {
+    let mut data = data;
+    let delta = data.delta();
+    let cam_pos = data.cam_pos();
+    let mut dead = Vec::new();
+    for (e, pos, vel, cam, life, offsets, rows, grav_percent, _) in data.join() {
+      life.inc_time(delta);
+      if life.is_dead() { dead.push(e); continue; }
       vel.0.y -= 10.0 * grav_percent.0 * delta;
+      pos.0 += vel.0 * delta;
+      cam.0 = (cam_pos - pos.0).len_sqr();
+      offsets.update(life, rows.0);
+    }
+    for e in dead {
+      data.alive.remove(e);
     }
   }
 }
+#[derive(SystemData)]
+pub struct UpdateParticlesData<'a> {
+  pub handler:      Read<'a, Handler>, 
+  pub camera:       Read<'a, Camera>, 
+  pub ents:         Entities<'a>,
+  pub position:     WriteStorage<'a, Position>,
+  pub velocity:     WriteStorage<'a, Velocity>,
+  pub cam_distance: WriteStorage<'a, CamDistance>,
+  pub life:         WriteStorage<'a, TimedLife>,
+  pub tex_offsets:  WriteStorage<'a, TexOffsets>,
+  pub alive:        WriteStorage<'a, ParticleAlive>,
+  pub grav_percent: ReadStorage<'a, GravPercent>,
+  pub row_count:    ReadStorage<'a, RowCount>,
+}
+impl<'a> UpdateParticlesData<'a> {
+  pub fn join(&mut self) -> specs::join::JoinIter<(
+      &specs::Read<'a, specs::world::EntitiesRes>, 
+      &mut SpecsWrStrg<'a, Position>, 
+      &mut SpecsWrStrg<'a, Velocity>, 
+      &mut SpecsWrStrg<'a, CamDistance>, 
+      &mut SpecsWrStrg<'a, TimedLife>, 
+      &mut SpecsWrStrg<'a, TexOffsets>, 
+      &SpecsRdStrg<'a, RowCount>,
+      &SpecsRdStrg<'a, GravPercent>,
+      &mut SpecsWrStrg<'a, ParticleAlive>,
+  )> {
+    (
+      &self.ents, 
+      &mut self.position,
+      &mut self.velocity,
+      &mut self.cam_distance,
+      &mut self.life,
+      &mut self.tex_offsets,
+      &self.row_count,
+      &self.grav_percent,
+      &mut self.alive,
+    ).join()
+  }
+  pub fn delta(&self) -> f32 {
+    self.handler.timer.delta
+  }
+  pub fn cam_pos(&self) -> Vector3f<f32> {
+    self.camera.pos
+  }
+}
+
+// specs::join::JoinIter<(
+//   &specs::Read<'_, specs::world::EntitiesRes>, 
+//   &mut specs::Storage<'_, Position, 
+//     specs::shred::FetchMut<'_, 
+//       specs::storage::MaskedStorage<Position>>>, 
+//   &mut specs::Storage<'_, Velocity, 
+//     specs::shred::FetchMut<'_, 
+//       specs::storage::MaskedStorage<Velocity>>>, 
+//   &specs::Storage<'_, ParticleAlive, 
+//     specs::shred::Fetch<'_, 
+//       specs::storage::MaskedStorage<ParticleAlive>>>
+// )>
+
+// specs::join::JoinIter<(
+//   &specs::Read<'_, specs::world::EntitiesRes>, 
+//   &mut specs::Storage<'a, Position,
+//     specs::shred::FetchMut<'a, 
+//       specs::storage::MaskedStorage<Position>>>, 
+//   &mut specs::Storage<'a, Velocity, 
+//     specs::shred::FetchMut<'a, 
+//       specs::storage::MaskedStorage<Velocity>>>, 
+//   &specs::Storage<'_, ParticleAlive, 
+//     specs::shred::Fetch<'_, 
+//       specs::storage::MaskedStorage<ParticleAlive>>>
+// )>

@@ -160,6 +160,7 @@ fn gen_world() -> World {
     lights.add_light();
     lights.lights[0].pos.copy_from_isize(0,500,-10);
   }
+  
   let quad = {
     let loader = world.write_resource::<Loader>();
     loader.quad_1_0
@@ -297,6 +298,11 @@ fn main() {
   texmod_draw.dispatch(&world);
   world.maintain();
   
+  let mut particle_update = DispatcherBuilder::new()
+      .with(UpdateParticles, "UpdateParticles", &[])
+      .build();
+  particle_update.setup(&mut world);
+  
   let mut particle_draw = DispatcherBuilder::new()
       .with_thread_local(DrawParticles)
       .build();
@@ -343,6 +349,7 @@ fn main() {
     }
     // *** Do per frame calculations such as movement
     
+    particle_update.dispatch(&world);
     move_player.dispatch(&world);
     follow_player.dispatch(&world);
     world.maintain();
