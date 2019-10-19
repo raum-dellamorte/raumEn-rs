@@ -44,54 +44,47 @@ use {
     DispatcherBuilder, 
     World, WorldExt, 
   },
-  ecs::{
-    c::{
-      flags::*,
-      components::*,
-    },
-    resource::*,
-    helper::{
-      gen::{
-        LandscapeGen,
-        PlatformGen,
-        PlayerGen,
+  crate::{
+    ecs::{
+      c::{
+        flags::*,
+        components::*,
+      },
+      resource::*,
+      helper::{
+        gen::{
+          LandscapeGen,
+          PlatformGen,
+          PlayerGen,
+        },
+      },
+      s::{
+        camera::{
+          CameraToActivePlayer,
+        },
+        particle::*,
+        position::*,
+        terrain::{
+          DrawPlatform,
+        },
+        texmod::{
+          DrawTexMods,
+        },
       },
     },
-    s::{
-      camera::{
-        CameraToActivePlayer,
-      },
-      particle::{
-        DrawParticles, 
-      },
-      position::{
-        PlayerInput,
-        UpdatePos,
-        UpdateDeltaVelocity,
-        ApplyGravity,
-        ApplyRotation,
-        Collision,
-      },
-      terrain::{
-        DrawPlatform,
-      },
-      texmod::{
-        DrawTexMods,
-      },
+    shader::{
+      Shader,
+      ParticleShader,
+      TerrainShader,
+      TexModShader,
     },
+    // util::Vector3f,
+    // util::rgl::*,
+    // entities::{
+    //   EntityMgr,
+    //   // Mob,
+    // },
   },
-  shader::{
-    Shader,
-    ParticleShader,
-    TerrainShader,
-    TexModShader,
-  },
-  // util::Vector3f,
-  // util::rgl::*,
-  // entities::{
-  //   EntityMgr,
-  //   // Mob,
-  // },
 };
 
 pub use {
