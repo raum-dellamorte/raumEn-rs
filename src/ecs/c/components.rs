@@ -430,12 +430,15 @@ impl TimedLife {
   pub fn inc_time(&mut self, delta: f32) {
     self.elapsed += delta;
   }
-  pub fn is_alive(&self) -> bool {
-    self.elapsed < self.total
+  pub fn is_dead(&self) -> bool {
+    self.elapsed >= self.total
   }
   pub fn set_life(&mut self, life_length: f32) {
     self.elapsed = 0.0;
     self.total = life_length;
+  }
+  pub fn percent(&self) -> f32 {
+    self.elapsed / self.total
   }
 }
 
