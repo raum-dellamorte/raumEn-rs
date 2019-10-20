@@ -23,7 +23,7 @@ impl Models {
   }
 }
 
-#[derive (Debug)]
+#[derive (Copy, Clone, Default, Debug)]
 pub struct Model {
     pub vao_id: VaoID,
     pub vertex_count: VertexCount,

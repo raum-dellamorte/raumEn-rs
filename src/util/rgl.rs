@@ -43,13 +43,15 @@ pub fn r_gen_vertex_arrays() -> u32 { unsafe {
   id
 }}
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Default, Debug)]
 pub struct VaoID(pub u32);
-#[derive(Debug)]
+#[derive(Copy, Clone, Default, Debug)]
+pub struct VboID(pub u32);
+#[derive(Copy, Clone, Default, Debug)]
 pub struct VertexCount(pub i32);
-#[derive(Debug)]
+#[derive(Copy, Clone, Default, Debug)]
 pub struct TextureID(pub u32);
-#[derive(Debug)]
+#[derive(Copy, Clone, Default, Debug)]
 pub struct TextureUnit(pub i32);
 
 pub fn r_bind_vaa_7(model: &Model) { unsafe {

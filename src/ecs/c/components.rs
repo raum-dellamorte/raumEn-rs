@@ -18,15 +18,15 @@ use {
 
 // Declarations
 
-#[derive(Component, Default, Debug)]
+#[derive(Component, Default, Copy, Clone, Debug)]
 #[storage(VecStorage)]
 pub struct CamDistance(pub f32);
 
-#[derive(Component, Default, Debug)]
+#[derive(Component, Default, Copy, Clone, Debug)]
 #[storage(VecStorage)]
 pub struct DeltaVelocity(pub Vector3f<f32>);
 
-#[derive(Component, Debug)]
+#[derive(Component, Copy, Clone, Debug)]
 #[storage(VecStorage)]
 pub struct GravPercent(pub f32);
 
@@ -67,7 +67,7 @@ pub struct ModelName(pub String);
 //   // JumpRight,
 // }
 
-#[derive(Component, Debug)]
+#[derive(Component, Copy, Clone, Debug)]
 #[storage(VecStorage)]
 pub struct Platform {
   pub x: i32,
@@ -78,19 +78,19 @@ pub struct Platform {
   pub scale: Vector3f<f32>,
 }
 
-#[derive(Component, Default, Debug)]
+#[derive(Component, Default, Copy, Clone, Debug)]
 #[storage(VecStorage)]
 pub struct PlayerGridLoc(pub i32,pub i32);
 
-#[derive(Component, Default, Debug)]
+#[derive(Component, Default, Copy, Clone, Debug)]
 #[storage(VecStorage)]
 pub struct PosAdjust(pub Vector3f<f32>);
 
-#[derive(Component, Debug, Default)]
+#[derive(Component, Debug, Copy, Clone, Default)]
 #[storage(VecStorage)]
 pub struct Position(pub Vector3f<f32>);
 
-#[derive(Component, Default, Debug)]
+#[derive(Component, Default, Copy, Clone, Debug)]
 #[storage(VecStorage)]
 pub struct Rotation(pub Vector3f<f32>);
 
@@ -106,15 +106,15 @@ pub struct Rotator<F: RFloat> {
   ops: u32,
 }
 
-#[derive(Component, Default, Debug)]
+#[derive(Component, Default, Copy, Clone, Debug)]
 #[storage(VecStorage)]
 pub struct RowCount(pub u32);
 
-#[derive(Component, Debug)]
+#[derive(Component, Copy, Clone, Debug)]
 #[storage(VecStorage)]
 pub struct ScaleFloat(pub f32);
 
-#[derive(Component, Default, Debug)]
+#[derive(Component, Default, Copy, Clone, Debug)]
 #[storage(VecStorage)]
 pub struct TexIndex(pub u32);
 
@@ -122,11 +122,11 @@ pub struct TexIndex(pub u32);
 #[storage(VecStorage)]
 pub struct TexName(pub String);
 
-#[derive(Component, Default, Debug)]
+#[derive(Component, Default, Copy, Clone, Debug)]
 #[storage(VecStorage)]
 pub struct TexOffset(pub Vector2f<f32>);
 
-#[derive(Component, Default, Debug)]
+#[derive(Component, Default, Copy, Clone, Debug)]
 #[storage(VecStorage)]
 pub struct TexOffsets{
   pub a: Vector2f<f32>,
@@ -134,18 +134,18 @@ pub struct TexOffsets{
   pub blend: f32,
 }
 
-#[derive(Component, Default, Debug)]
+#[derive(Component, Default, Copy, Clone, Debug)]
 #[storage(VecStorage)]
 pub struct TimedLife {
   pub total: f32,
   pub elapsed: f32,
 }
 
-#[derive(Component, Default, Debug)]
+#[derive(Component, Default, Copy, Clone, Debug)]
 #[storage(VecStorage)]
 pub struct TransformVelocity(pub Vector3f<f32>);
 
-#[derive(Component, Default, Debug)]
+#[derive(Component, Default, Copy, Clone, Debug)]
 #[storage(VecStorage)]
 pub struct Velocity(pub Vector3f<f32>);
 
@@ -408,7 +408,7 @@ impl Default for ScaleFloat {
 }
 
 impl TexOffsets {
-  pub fn update(&mut self, life: &TimedLife, num_rows: u32, ) {
+  pub fn update(&mut self, life: TimedLife, num_rows: u32, ) {
     let life_factor = life.percent();
     let stage_count = num_rows * num_rows;
     let atlas_progression = life_factor * stage_count as f32;
@@ -430,14 +430,14 @@ impl TimedLife {
   pub fn inc_time(&mut self, delta: f32) {
     self.elapsed += delta;
   }
-  pub fn is_dead(&self) -> bool {
+  pub fn is_dead(self) -> bool {
     self.elapsed >= self.total
   }
   pub fn set_life(&mut self, life_length: f32) {
     self.elapsed = 0.0;
     self.total = life_length;
   }
-  pub fn percent(&self) -> f32 {
+  pub fn percent(self) -> f32 {
     self.elapsed / self.total
   }
 }
