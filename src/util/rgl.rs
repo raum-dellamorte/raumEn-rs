@@ -9,7 +9,7 @@ use {
       flags::MultiTex,
       components::*,
     },
-    resource::{ Model, Texture, },
+    resource::{ Texture, },
   },
   util::{
     Matrix4f, 
@@ -54,8 +54,8 @@ pub struct TextureID(pub u32);
 #[derive(Copy, Clone, Default, Debug)]
 pub struct TextureUnit(pub i32);
 
-pub fn r_bind_vaa_7(model: &Model) { unsafe {
-  BindVertexArray(model.vao_id.0);
+pub fn r_bind_vaa_7(vao_id: VaoID) { unsafe {
+  BindVertexArray(vao_id.0);
   // print!(" r_bind_vaa_3(model: {})", model.vao_id.0);
   EnableVertexAttribArray(0);
   EnableVertexAttribArray(1);
@@ -65,15 +65,15 @@ pub fn r_bind_vaa_7(model: &Model) { unsafe {
   EnableVertexAttribArray(5);
   EnableVertexAttribArray(6);
 }}
-pub fn r_bind_vaa_3(model: &Model) { unsafe {
-  BindVertexArray(model.vao_id.0);
+pub fn r_bind_vaa_3(vao_id: VaoID) { unsafe {
+  BindVertexArray(vao_id.0);
   // print!(" r_bind_vaa_3(model: {})", model.vao_id.0);
   EnableVertexAttribArray(0);
   EnableVertexAttribArray(1);
   EnableVertexAttribArray(2);
 }}
-pub fn r_bind_vaa_2(model: &Model) { unsafe {
-  BindVertexArray(model.vao_id.0);
+pub fn r_bind_vaa_2(vao_id: VaoID) { unsafe {
+  BindVertexArray(vao_id.0);
   EnableVertexAttribArray(0);
   EnableVertexAttribArray(1);
 }}
@@ -96,11 +96,11 @@ pub fn r_unbind_vaa_2() { unsafe {
   DisableVertexAttribArray(0);
 }}
 
-pub fn r_add_instanced_attrib(vao: u32, vbo: u32, attrib: u32, data_size: i32, stride: usize, offset: i32) { unsafe {
+pub fn r_add_instanced_attrib(vao: VaoID, vbo: VboID, attrib: u32, data_size: i32, stride: usize, offset: i32) { unsafe {
   // This is my best guess from LWJGL to Rust's GL implementation
-  BindBuffer(ARRAY_BUFFER, vbo);
-  BindVertexArray(vao);
-  let offset = offset * 4;
+  BindBuffer(ARRAY_BUFFER, vbo.0);
+  BindVertexArray(vao.0);
+  let offset = offset * std::mem::size_of::<GLfloat>() as i32;
   let offset: *const i32 = &offset;
   let offset = offset as *const std::ffi::c_void;
   VertexAttribPointer(
@@ -112,9 +112,9 @@ pub fn r_add_instanced_attrib(vao: u32, vbo: u32, attrib: u32, data_size: i32, s
   BindVertexArray(0);
 }}
 
-pub fn r_update_vbo(vbo: u32, data: &[GLfloat]) { unsafe {
+pub fn r_update_vbo(vbo: VboID, data: &[GLfloat]) { unsafe {
   // This is my best guess from LWJGL to Rust's GL implementation
-  BindBuffer(ARRAY_BUFFER, vbo);
+  BindBuffer(ARRAY_BUFFER, vbo.0);
   let data_len = (data.len() * std::mem::size_of::<GLfloat>()) as GLsizeiptr;
   BufferData(ARRAY_BUFFER,
       data_len,
@@ -124,6 +124,24 @@ pub fn r_update_vbo(vbo: u32, data: &[GLfloat]) { unsafe {
       0, data_len,
       &data[0] as *const f32 as *const std::ffi::c_void);
   BindBuffer(ARRAY_BUFFER, 0);
+}}
+
+pub fn r_bind_texture(texture: &Texture) { unsafe {
+  let tex_id = texture.tex_id.0;
+  let mut tex_unit = texture.tex_unit.0;
+  if tex_unit < 0 { tex_unit = 0 };
+  ActiveTexture(TEXTURE0 + tex_unit as u32);
+  BindTexture(TEXTURE_2D, tex_id);
+  // print!(" r_bind_texture(texture: {})", texture.tex_id.0)
+}}
+pub fn r_draw_triangles(vertex_count: VertexCount) { unsafe {
+  DrawElements(TRIANGLES, vertex_count.0, UNSIGNED_INT, std::ptr::null()); 
+}}
+pub fn r_draw_triangle_strip(vertex_count: VertexCount) { unsafe {
+  DrawElements(TRIANGLE_STRIP, vertex_count.0, UNSIGNED_INT, std::ptr::null()); 
+}}
+pub fn r_draw_instanced(vertex_count: VertexCount, particle_count: u32) { unsafe {
+  DrawArraysInstanced(TRIANGLE_STRIP, 0, vertex_count.0, particle_count as i32);
 }}
 
 pub enum RBlend {
@@ -138,17 +156,6 @@ impl RBlend {
     }
   }}
 }
-pub fn r_bind_texture(texture: &Texture) { unsafe {
-  let tex_id = texture.tex_id.0;
-  let mut tex_unit = texture.tex_unit.0;
-  if tex_unit < 0 { tex_unit = 0 };
-  ActiveTexture(TEXTURE0 + tex_unit as u32);
-  BindTexture(TEXTURE_2D, tex_id);
-  // print!(" r_bind_texture(texture: {})", texture.tex_id.0)
-}}
-pub fn r_draw_triangles(model: &Model) { unsafe {
-  DrawElements(TRIANGLES, model.vertex_count.0, UNSIGNED_INT, std::ptr::null()); 
-}}
 
 pub enum GlEnDisIg {
   Enable,

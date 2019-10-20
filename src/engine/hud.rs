@@ -1,23 +1,24 @@
 #![allow(dead_code)]
 
 use {
-  // GameMgr,
-  // Loader,
-  util::{
-    Matrix4f, Vector2f, Vector3f,
+  crate::{
+    Model,
+    util::{
+      Matrix4f, Vector2f, Vector3f,
+    },
   },
 };
 
 // -1.0,1.0,-1.0,-1.0,1.0,1.0,1.0,-1.0
 
 pub struct HUD {
-  pub quad_id: u32,
+  pub quad: Model,
   pub elements: Vec<GuiObj>,
 }
 impl HUD {
-  pub fn new(quad_id: u32) -> Self {
+  pub fn new(quad: Model) -> Self {
     HUD {
-      quad_id,
+      quad,
       elements: Vec::new(),
     }
   }

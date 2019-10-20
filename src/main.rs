@@ -52,6 +52,7 @@ use {
       },
       resource::*,
       helper::{
+        particle::*,
         gen::{
           LandscapeGen,
           PlatformGen,
@@ -78,7 +79,7 @@ use {
       TerrainShader,
       TexModShader,
     },
-    // util::Vector3f,
+    util::Vector3f,
     // util::rgl::*,
     // entities::{
     //   EntityMgr,
@@ -88,14 +89,16 @@ use {
 };
 
 pub use {
-  engine::{
-    // , GameMgr
-    Camera, Display, Fbo, HUD, GuiObj, Handler, Loader
-  },
-  text::TextMgr,
-  render::{
-    RenderMgr, RenderPostProc,
-  },
+  crate::{
+    ecs::resource::Model,
+    engine::{
+      Camera, Display, Fbo, HUD, GuiObj, Handler, Loader
+    },
+    text::TextMgr,
+    render::{
+      RenderMgr, RenderPostProc,
+    },
+  }
 };
 
 use engine::fbo::ColorType::{
@@ -134,8 +137,10 @@ fn gen_world() -> World {
   world.register::<ActivePlayer>();
   world.register::<CurrentNode>();
   world.register::<CamDistance>();
+  world.register::<DeltaVelocity>();
   world.register::<Falling>();
   world.register::<GravPercent>();
+  world.register::<JumpArc>();
   world.register::<InScene>();
   world.register::<IsPlatform>();
   world.register::<IsTexMod>();
@@ -147,7 +152,12 @@ fn gen_world() -> World {
   world.register::<Particle>();
   world.register::<ParticleAlive>();
   world.register::<Platform>();
+  world.register::<PosAdjust>();
+  world.register::<Position>();
+  world.register::<Rotation>();
+  world.register::<Rotator<f32>>();
   world.register::<RowCount>();
+  world.register::<ScaleFloat>();
   world.register::<StartMoving>();
   world.register::<TexAdditive>();
   world.register::<TexIndex>();
@@ -155,12 +165,14 @@ fn gen_world() -> World {
   world.register::<TexOffset>();
   world.register::<TexOffsets>();
   world.register::<TimedLife>();
+  world.register::<TransformVelocity>();
+  world.register::<Velocity>();
   {
     let mut lights = world.write_resource::<Lights>();
     lights.add_light();
     lights.lights[0].pos.copy_from_isize(0,500,-10);
   }
-  
+  ParticleVBO::default().init(&mut world);
   let quad = {
     let loader = world.write_resource::<Loader>();
     loader.quad_1_0
@@ -174,6 +186,7 @@ fn main() {
   // use text::metafile::test_noms;
   // test_noms();
   
+  // Create a window
   let mut el = glutin::EventsLoop::new();
   let wb = glutin::WindowBuilder::new()
     .with_title("RaumEn")
@@ -184,7 +197,7 @@ fn main() {
     .unwrap();
   
   let windowed_context = unsafe { windowed_context.make_current().unwrap() };
-  
+  // Set up OpenGL
   unsafe {
     load_with(|symbol| windowed_context.context().get_proc_address(symbol) as *const _);
     ClearColor(0.0, 1.0, 0.0, 1.0);
@@ -192,21 +205,34 @@ fn main() {
   
   // shader::terrain::test_terrain_cheddar();
   
+  // Create the RenderMgr which will eventually be depricated
+  // in favor of specs Systems, provided this whole specs expirement
+  // ends with me figuring out how not to have a huge slowdown when
+  // thousands of things are on screen and whatnot.
   let mut render_mgr = RenderMgr::new();
   
+  // time keeping
   let mut fps: (f32, f32);
   let mut sec = 0.0;
   
-  // ECS experiment
-  
+  // Set up the world, which holds all the things,
+  // and will be passed around...
+  //     ...like your mom at a frat house.
+  // I'm sorry, that was uncalled for.
   let mut world = gen_world();
   
-  {
+  { // Here, we're getting the size of the window in pixels
+    // and passing it to the render manager. It in turn
+    // updates the Projection Matrix and passes that to 
+    // ALL THE SHADERS, so if you add a SHADER, you need
+    // to REMEMBER to add that shader to the update_size()
+    // method in the RenderMgr.  There needs to be a better
+    // way to do that.
     let dpi = windowed_context.window().get_hidpi_factor();
     let size = windowed_context.window().get_inner_size().unwrap().to_physical(dpi);
     render_mgr.update_size(&world, size.into());
   }
-  {
+  { // loading models and textures
     let loader = &mut world.write_resource::<Loader>();
     let mut models = world.write_resource::<Models>();
     let mut textures = world.write_resource::<Textures>();
@@ -215,7 +241,7 @@ fn main() {
     textures.load_textures(loader, &["dirt", "spaceship", "cosmic"]);
     lightings.new_lighting_default("flat");
   }
-  {
+  { // loading fonts and text
     let mut textmgr = world.write_resource::<TextMgr>();
     textmgr.add_font(&world, "pirate");
     textmgr.add_font(&world, "sans");
@@ -223,14 +249,26 @@ fn main() {
     textmgr.new_text(&world, "FPS", "FPS: 0.0", "sans", 1.5, 0.0, 0.0, 0.3, false, true);
   }
   
+  // creating framebuffer objects 
+  // the first one we render all the things to and pass
+  // it to Post Production so we can make everything 
+  // disappear into a black fog!  No need to write fog code into
+  // every shader!  Just pass the first framebuffer, which has 
+  // everything that's been drawn so far along with its depth 
+  // information, to a single shader that blackens er'thing
+  // based on its distance from the camera!
+  // Couldn't get it to work in the Kotlin version.
+  // I may go back to it and try to replicate how it's done here.
   let mut _fbo = Fbo::new(&world, 0, 0, ColorMultisampleRenderBuffers2, DepthRenderBuffer);
   let mut _fbo_final = Fbo::new(&world, 0, 0, ColorTexture, DepthTexture);
-  let render_post = RenderPostProc::new("fog", world.read_resource::<HUD>().quad_id, 
+  let render_post = RenderPostProc::new("fog", world.read_resource::<HUD>().quad.vao_id.0, 
       vec![
         Texture::new("fbo color", _fbo_final.color_tex_id).assign_tex_unit(0_i32),
         Texture::new("fbo depth", _fbo_final.depth_tex_id).assign_tex_unit(1_i32),
       ]);
-  {
+  { // Right now, the HUD is displaying a small version of the whole
+    // screen so you can see the color and depth buffers for debugging
+    // purposes.
     let mut _hud = world.write_resource::<HUD>();
     _hud.elements.push(GuiObj::new());
     let _gui = _hud.elements.get_mut(0).unwrap();
@@ -238,8 +276,9 @@ fn main() {
     _gui.depth_tex_id = _fbo_final.depth_tex_id;
   }
   
-  // ECS Continued...
-  
+  // Here we're getting back to specs stuff
+  // Creating all the System dispatchers needed to control 
+  // all the goings on and whatnot.
   let mut terrain_gen = DispatcherBuilder::new()
       .with_thread_local(PlatformGen)
       .build();
@@ -311,6 +350,17 @@ fn main() {
   particle_draw.dispatch(&world);
   world.maintain();
   
+  let particle_rule = ParticleRules::default()
+    .set_texture("cosmic")
+    .set_tex_row_count(4)
+    .set_position(Vector3f::new(0.0,5.0,10.0))
+    .set_direction(crate::util::YVEC, 0.5)
+    .set_life_params(3.5, 0.5)
+    .set_speed_params(1.0, 0.1)
+    .set_scale_params(2.0, 0.5)
+    .set_parts_per_sec(0.5)
+  ;
+  
   // Game loop!
   println!("Starting game loop.");
   let mut running = true;
@@ -349,6 +399,7 @@ fn main() {
     }
     // *** Do per frame calculations such as movement
     
+    gen_particles(&mut world, &particle_rule);
     particle_update.dispatch(&world);
     move_player.dispatch(&world);
     follow_player.dispatch(&world);
@@ -357,7 +408,7 @@ fn main() {
     // *** Drawing phase
     _fbo.bind();
     render_mgr.render(&world);
-    terrain_draw.dispatch(&world);
+    // terrain_draw.dispatch(&world);
     texmod_draw.dispatch(&world);
     particle_draw.dispatch(&world);
     world.maintain();

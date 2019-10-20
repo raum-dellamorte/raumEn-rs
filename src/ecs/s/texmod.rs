@@ -70,13 +70,13 @@ impl<'a> System<'a> for DrawTexMods {
     shader.load_matrix("u_View", &(*view).view);
     // shader.load_vec_3f("light_pos", &(*light).pos); // Unimplemented
     // shader.load_vec_3f("light_color", &(*light).color);
-    r_bind_vaa_3(model);
+    r_bind_vaa_3(model.vao_id);
     r_bind_texture(texture);
     for (_, p, r, m, t, l, _) in d {
       if m.0 != *last_model {
         model = &models.0.get(&m.0).unwrap();
         last_model = &m.0;
-        r_bind_vaa_3(model);
+        r_bind_vaa_3(model.vao_id);
       }
       if t.0 != *last_texture {
         texture = &textures.0.get(&t.0).unwrap();
@@ -91,7 +91,7 @@ impl<'a> System<'a> for DrawTexMods {
       transform.rotate(r.0.y.to_radians(), crate::util::YVEC);
       // transform.scale(&p.scale(200.0));
       shader.load_matrix("u_Transform", &transform);
-      r_draw_triangles(model);
+      r_draw_triangles(model.vertex_count);
     }
     r_unbind_vaa_3();
     shader.stop();

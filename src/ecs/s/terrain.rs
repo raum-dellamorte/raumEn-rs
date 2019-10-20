@@ -44,14 +44,14 @@ impl<'a> System<'a> for DrawPlatform {
     shader.load_matrix("u_View", &(*data.view).view);
     // shader.load_vec_3f("light_pos", &(*light).pos); // Unimplemented
     // shader.load_vec_3f("light_color", &(*light).color);
-    r_bind_vaa_3(model);
+    r_bind_vaa_3(model.vao_id);
     r_bind_texture(texture);
     for e in d {
       let mdl = data.model_name(e);
       if *mdl != *last_model {
         model = &data.models.0.get(mdl).unwrap();
         last_model = mdl;
-        r_bind_vaa_3(model);
+        r_bind_vaa_3(model.vao_id);
       }
       let tex = data.texture_name(e);
       if *tex != *last_texture {
@@ -68,7 +68,7 @@ impl<'a> System<'a> for DrawPlatform {
       transform.translate_v3f(p.pos);
       transform.scale(p.scale);
       shader.load_matrix("u_Transform", &transform);
-      r_draw_triangles(model);
+      r_draw_triangles(model.vertex_count);
     }
     r_unbind_vaa_3();
     shader.stop();

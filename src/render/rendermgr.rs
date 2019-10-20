@@ -19,7 +19,7 @@ use {
     RenderHUD 
   },
   shader::{
-    // ParticleShader,
+    ParticleShader,
     TerrainShader,
     TexModShader,
   },
@@ -96,6 +96,13 @@ impl RenderMgr {
       let proj_mat = &world.read_resource::<Display>().proj_mat;
       shader.start();
       shader.load_matrix("u_Projection", &proj_mat); // Maybe move this to Shader
+      shader.stop();
+    }
+    {
+      let shader = &(*world.read_resource::<ParticleShader>()).shader;
+      let proj_mat = &world.read_resource::<Display>().proj_mat;
+      shader.start();
+      shader.load_matrix("projection", &proj_mat); // Maybe move this to Shader
       shader.stop();
     }
   }

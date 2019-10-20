@@ -54,7 +54,7 @@ impl RenderHUD {
       
       let _offset = Vector2f::<f32>::blank();
       unsafe {
-        BindVertexArray(_hud.quad_id);
+        BindVertexArray(_hud.quad.vao_id.0);
         EnableVertexAttribArray(0);
         for gui in &mut _hud.elements {
           // Texture!

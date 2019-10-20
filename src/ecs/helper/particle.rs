@@ -7,7 +7,6 @@ use {
   specs::{*, WorldExt, },
   rand::Rng,
   crate::{
-    Loader,
     ecs::{
       c::{
         flags::*,
@@ -21,7 +20,6 @@ use {
       RVec, Vector3f, 
       // HashSet,
       TAU, ZVEC, 
-      rgl::*,
       specs::*,
     },
   }
@@ -91,6 +89,14 @@ fn emit_particle(
   });
   mod_comp::<CamDistance>(world, p_ent, "Particle CamDistance", &|o| {
     o.0 = 0.0;
+  });
+  mod_comp::<TexOffsets>(world, p_ent, "Particle TexOffsets", &|o| {
+    o.a.clear();
+    o.b.clear();
+    o.blend = 0.0;
+  });
+  mod_comp::<RowCount>(world, p_ent, "Particle RowCount", &|o| {
+    o.0 = system.tex_rows;
   });
   
   ins_flag::<ParticleAlive>(world, p_ent, "Particle ParticleAlive");
@@ -166,37 +172,6 @@ fn gen_rotation(rng: &mut rand::prelude::ThreadRng, bother: bool) -> f32 {
     rng.gen::<f32>() * 360.0
   } else {
     0.0
-  }
-}
-
-pub struct ParticleVBO {
-  pub vbo_id: u32,
-  pub quad_id: u32,
-  max_instances: usize,
-  instance_data_length: usize,
-}
-impl Default for ParticleVBO {
-  fn default() -> Self {
-    Self {
-      vbo_id: 0,
-      quad_id: 0,
-      max_instances: 1_0000,
-      instance_data_length: 21, 
-    }
-  }
-}
-impl ParticleVBO {
-  pub fn init(self, world: &mut World) -> Self {
-    let mut _self = self;
-    let mut loader = world.write_resource::<Loader>();
-    _self.vbo_id = loader.create_empty_vbo(_self.max_instances * _self.instance_data_length);
-    r_add_instanced_attrib(_self.quad_id, _self.vbo_id, 1, 4, _self.instance_data_length, 0);
-    r_add_instanced_attrib(_self.quad_id, _self.vbo_id, 2, 4, _self.instance_data_length, 4);
-    r_add_instanced_attrib(_self.quad_id, _self.vbo_id, 3, 4, _self.instance_data_length, 8);
-    r_add_instanced_attrib(_self.quad_id, _self.vbo_id, 4, 4, _self.instance_data_length, 12);
-    r_add_instanced_attrib(_self.quad_id, _self.vbo_id, 5, 4, _self.instance_data_length, 16);
-    r_add_instanced_attrib(_self.quad_id, _self.vbo_id, 6, 1, _self.instance_data_length, 20);
-    _self
   }
 }
 
