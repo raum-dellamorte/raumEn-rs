@@ -28,6 +28,7 @@ pub struct TextureID(pub u32);
 #[derive(Copy, Clone, Default, Debug)]
 pub struct TextureUnit(pub i32);
 
+// Gen methods
 pub fn r_gen_textures() -> u32 { unsafe {
   let mut id = 0;
   GenTextures(1, &mut id);
@@ -54,6 +55,7 @@ pub fn r_gen_vertex_arrays() -> u32 { unsafe {
   id
 }}
 
+// Vertex attrib bindings
 pub fn r_bind_vaa_7(vao_id: VaoID) { unsafe {
   BindVertexArray(vao_id.0);
   // print!(" r_bind_vaa_3(model: {})", model.vao_id.0);
@@ -96,6 +98,7 @@ pub fn r_unbind_vaa_2() { unsafe {
   DisableVertexAttribArray(0);
 }}
 
+// VBO tools
 pub fn r_add_instanced_attrib(vao: VaoID, vbo: VboID, attrib: u32, data_size: i32, stride: usize, offset: i32) { unsafe {
   // This is my best guess from LWJGL to Rust's GL implementation
   BindBuffer(ARRAY_BUFFER, vbo.0);
@@ -111,7 +114,6 @@ pub fn r_add_instanced_attrib(vao: VaoID, vbo: VboID, attrib: u32, data_size: i3
   BindBuffer(ARRAY_BUFFER, 0);
   BindVertexArray(0);
 }}
-
 pub fn r_update_vbo(vbo: VboID, data: &[GLfloat]) { unsafe {
   // This is my best guess from LWJGL to Rust's GL implementation
   BindBuffer(ARRAY_BUFFER, vbo.0);
