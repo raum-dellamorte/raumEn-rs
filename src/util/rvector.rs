@@ -111,6 +111,7 @@ pub trait RVec<F: RFloat> {
   fn scale(&mut self, scale: F);
   fn divscale(&mut self, scale: F);
   fn negate(&mut self);
+  fn clear(&mut self);
   fn normalize(&mut self) {
     let mag = self.len();
     let zero = NumCast::from(0).unwrap();
@@ -127,6 +128,10 @@ impl<F: RFloat> RVec<F> for Vector2f<F> {
   fn len_sqr(&self) -> F { (self.x * self.x) + (self.y * self.y) }
   fn scale(&mut self, scale: F) { *self *= scale; }
   fn divscale(&mut self, scale: F) { *self /= scale; }
+  fn clear(&mut self) {
+    self.x = Zero::zero();
+    self.y = Zero::zero();
+  }
   fn negate(&mut self) {
     self.x = -self.x;
     self.y = -self.y;
@@ -138,6 +143,11 @@ impl<F: RFloat> RVec<F> for Vector3f<F> {
   fn len_sqr(&self) -> F { (self.x * self.x) + (self.y * self.y) +  (self.z * self.z) }
   fn scale(&mut self, scale: F) { *self *= scale; }
   fn divscale(&mut self, scale: F) { *self /= scale; }
+  fn clear(&mut self) {
+    self.x = Zero::zero();
+    self.y = Zero::zero();
+    self.z = Zero::zero();
+  }
   fn negate(&mut self) {
     self.x = -self.x;
     self.y = -self.y;
@@ -150,6 +160,12 @@ impl<F: RFloat> RVec<F> for Quaternion<F> {
   fn len_sqr(&self) -> F { (self.x * self.x) + (self.y * self.y) +  (self.z * self.z) + (self.w * self.w)}
   fn scale(&mut self, scale: F) { *self *= scale; }
   fn divscale(&mut self, scale: F) { *self /= scale; }
+  fn clear(&mut self) {
+    self.w = NumCast::from(1).unwrap();
+    self.x = Zero::zero();
+    self.y = Zero::zero();
+    self.z = Zero::zero();
+  }
   fn negate(&mut self) {
     self.x = -self.x;
     self.y = -self.y;

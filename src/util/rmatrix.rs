@@ -208,6 +208,18 @@ impl<F: RFloat> Matrix4f<F> {
     self.copy_from_vec(tmp);
   }
   
+  pub fn transpose3x3(&mut self, other: &Self) {
+    self.set_m00(other.m00());
+    self.set_m01(other.m10());
+    self.set_m02(other.m20());
+    self.set_m10(other.m01());
+    self.set_m11(other.m11());
+    self.set_m12(other.m21());
+    self.set_m20(other.m02());
+    self.set_m21(other.m12());
+    self.set_m22(other.m22());
+  }
+  
   pub fn transpose_from(&mut self, src: &Matrix4f<F>) { self.copy_from_vec(transpose_math(src)); }
   
   pub fn transpose_to(&self, dest: &mut Matrix4f<F>) { dest.transpose_from(self); }
