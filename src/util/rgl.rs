@@ -138,6 +138,7 @@ pub fn r_update_vbo(vbo: VboID, data: &[GLfloat]) { unsafe {
   BindBuffer(ARRAY_BUFFER, 0);
 }}
 
+// Draw methods
 pub fn r_draw_triangles(vertex_count: VertexCount) { unsafe {
   DrawElements(TRIANGLES, vertex_count.0, UNSIGNED_INT, std::ptr::null()); 
 }}
