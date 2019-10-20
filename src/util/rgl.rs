@@ -98,6 +98,16 @@ pub fn r_unbind_vaa_2() { unsafe {
   DisableVertexAttribArray(0);
 }}
 
+// Texture tools
+pub fn r_bind_texture(texture: &Texture) { unsafe {
+  let tex_id = texture.tex_id.0;
+  let mut tex_unit = texture.tex_unit.0;
+  if tex_unit < 0 { tex_unit = 0 };
+  ActiveTexture(TEXTURE0 + tex_unit as u32);
+  BindTexture(TEXTURE_2D, tex_id);
+  // print!(" r_bind_texture(texture: {})", texture.tex_id.0)
+}}
+
 // VBO tools
 pub fn r_add_instanced_attrib(vao: VaoID, vbo: VboID, attrib: u32, data_size: i32, stride: usize, offset: i32) { unsafe {
   // This is my best guess from LWJGL to Rust's GL implementation
@@ -126,15 +136,6 @@ pub fn r_update_vbo(vbo: VboID, data: &[GLfloat]) { unsafe {
       0, data_len,
       &data[0] as *const f32 as *const std::ffi::c_void);
   BindBuffer(ARRAY_BUFFER, 0);
-}}
-
-pub fn r_bind_texture(texture: &Texture) { unsafe {
-  let tex_id = texture.tex_id.0;
-  let mut tex_unit = texture.tex_unit.0;
-  if tex_unit < 0 { tex_unit = 0 };
-  ActiveTexture(TEXTURE0 + tex_unit as u32);
-  BindTexture(TEXTURE_2D, tex_id);
-  // print!(" r_bind_texture(texture: {})", texture.tex_id.0)
 }}
 
 pub fn r_draw_triangles(vertex_count: VertexCount) { unsafe {
