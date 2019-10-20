@@ -1,9 +1,9 @@
 #version 400
 
-in vec2 pos;
-in mat4 view;
-in vec4 tex_offsets;
-in float blend_factor;
+layout (location = 0) in vec2 pos;
+layout (location = 1) in mat4 view;
+layout (location = 5) in vec4 tex_offsets;
+layout (location = 6) in float blend_factor;
 
 out vec2 coords_a;
 out vec2 coords_b;
