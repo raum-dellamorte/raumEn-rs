@@ -17,6 +17,17 @@ use {
   },
 };
 
+#[derive(Copy, Clone, Default, Debug)]
+pub struct VaoID(pub u32);
+#[derive(Copy, Clone, Default, Debug)]
+pub struct VboID(pub u32);
+#[derive(Copy, Clone, Default, Debug)]
+pub struct VertexCount(pub i32);
+#[derive(Copy, Clone, Default, Debug)]
+pub struct TextureID(pub u32);
+#[derive(Copy, Clone, Default, Debug)]
+pub struct TextureUnit(pub i32);
+
 pub fn r_gen_textures() -> u32 { unsafe {
   let mut id = 0;
   GenTextures(1, &mut id);
@@ -42,17 +53,6 @@ pub fn r_gen_vertex_arrays() -> u32 { unsafe {
   GenVertexArrays(1, &mut id);
   id
 }}
-
-#[derive(Copy, Clone, Default, Debug)]
-pub struct VaoID(pub u32);
-#[derive(Copy, Clone, Default, Debug)]
-pub struct VboID(pub u32);
-#[derive(Copy, Clone, Default, Debug)]
-pub struct VertexCount(pub i32);
-#[derive(Copy, Clone, Default, Debug)]
-pub struct TextureID(pub u32);
-#[derive(Copy, Clone, Default, Debug)]
-pub struct TextureUnit(pub i32);
 
 pub fn r_bind_vaa_7(vao_id: VaoID) { unsafe {
   BindVertexArray(vao_id.0);
@@ -134,6 +134,7 @@ pub fn r_bind_texture(texture: &Texture) { unsafe {
   BindTexture(TEXTURE_2D, tex_id);
   // print!(" r_bind_texture(texture: {})", texture.tex_id.0)
 }}
+
 pub fn r_draw_triangles(vertex_count: VertexCount) { unsafe {
   DrawElements(TRIANGLES, vertex_count.0, UNSIGNED_INT, std::ptr::null()); 
 }}
