@@ -311,9 +311,6 @@ impl Shader {
     println!("Uniform name not found: {}", name);
     -1 as GLint
   }
-  pub fn load_proj_mat(&self, matrix: &Matrix4f<f32>) {
-    self.load_matrix("u_Projection", matrix);
-  }
   pub fn load_int(&self, name: &str, value: GLint) { unsafe {
     let id = self.get_uniform_id(name);
     if self.check_id(id, name, "load_int") { return }
@@ -470,5 +467,24 @@ pub fn get_ext(kind: GLenum) -> String {
     FRAGMENT_SHADER => { "glslf".to_string() }
     COMPUTE_SHADER => { "glslc".to_string() }
     _ => panic!("shader::get_ext(): Unknown Shader Type")
+  }
+}
+
+pub trait ShaderWrapper {
+  fn start(&self);
+  fn stop(&self);
+  fn load_bool(&self, name: &str, value: bool);
+  fn load_int(&self, name: &str, value: GLint);
+  fn load_float(&self, name: &str, value: GLfloat);
+  fn load_vec_2f(&self, name: &str, vector: Vector2f<f32>);
+  fn load_vec_3f(&self, name: &str, vector: Vector3f<f32>);
+  fn load_quaternion(&self, name: &str, quat: Quaternion<f32>);
+  fn load_matrix(&self, name: &str, matrix: &Matrix4f<f32>);
+  fn projection_name(&self) -> String;
+  fn update_projection(&self, mat: &Matrix4f<f32>) {
+    let proj: String = self.projection_name();
+    self.start();
+    self.load_matrix(&proj, mat);
+    self.stop();
   }
 }
