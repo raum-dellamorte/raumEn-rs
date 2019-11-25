@@ -6,23 +6,16 @@ use {
     //   // GLuint, GLfloat, GLenum, GLint, GLchar, GLsizeiptr, GLboolean, 
     // }, 
   },
-  // CVOID,
   specs::{World, WorldExt, },
   HUD,
   shader::{
     Shader,
     gen_hud_shader,
   },
-  // text::{
-  //   // TextMgr, 
-  //   // RFontType,
-  // },
   util::{
     // Vector3f, 
     Vector2f, 
-    // HashMap, 
-    // HashSet, 
-    // Arc, Mutex,
+    // HashMap, HashSet, Arc, Mutex,
     // Vector2f, Vector4f, RVertex, RVertex2D,
   }, 
 };
