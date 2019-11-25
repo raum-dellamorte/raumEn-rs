@@ -21,12 +21,14 @@ pub const ZVEC64: Vector3f<f64> = Vector3f {x: 0.0_f64, y: 0.0_f64, z: 1.0_f64};
 
 
 #[derive(Debug, Copy, Clone)]
+// #[repr(C, packed)]
 pub struct Vector2f<F: RFloat> {
   pub x: F,
   pub y: F,
 }
 
 #[derive(Debug, Copy, Clone)]
+// #[repr(C, packed)]
 pub struct Vector3f<F: RFloat> {
   pub x: F,
   pub y: F,
@@ -34,11 +36,30 @@ pub struct Vector3f<F: RFloat> {
 }
 
 #[derive(Clone,Copy,Debug)]
+// #[repr(C, packed)]
 pub struct Quaternion<F: RFloat> {
   pub w: F,
   pub x: F,
   pub y: F,
   pub z: F,
+}
+
+impl<F: RFloat> From<(F, F)> for Vector2f<F> {
+  fn from(other: (F, F)) -> Self {
+      Self { x: other.0, y: other.1}
+  }
+}
+
+impl<F: RFloat> From<(F, F, F)> for Vector3f<F> {
+  fn from(other: (F, F, F)) -> Self {
+      Self { x: other.0, y: other.1, z: other.2}
+  }
+}
+
+impl<F: RFloat> From<(F, F, F, F)> for Quaternion<F> {
+  fn from(other: (F, F, F, F)) -> Self {
+      Self { w: other.0, x: other.1, y: other.2, z: other.3 }
+  }
 }
 
 impl From<Vector2f<f32>> for Vector2f<f64> {
