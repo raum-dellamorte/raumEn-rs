@@ -33,27 +33,36 @@ pub struct GuiObj {
   pub row_count: f32,
   pub offset: Vector2f<f32>,
   pub flip_y: bool,
+  pub tex_count: usize,
   pub tex_id: u32,
   pub depth_tex_id: u32,
 }
 impl Default for GuiObj {
   fn default() -> Self {
     Self {
-      pos: Vector2f::new(0.25,0.75),
-      pos_last: Vector2f::new(0.0,0.0),
-      scale: Vector2f {x: 0.25, y: 0.25},
+      pos: (0.75,0.75).into(),
+      pos_last: (0.0,0.0).into(),
+      scale: (0.25, 0.25).into(),
       transmat: Matrix4f::new(),
-      row_count: 1_f32,
-      offset: Vector2f::blank(),
+      row_count: 4_f32,
+      offset: (0.0,0.0).into(),
       flip_y: false,
+      tex_count: 1,
       tex_id: 0,
       depth_tex_id: 0,
     }
   }
 }
 impl GuiObj {
-  pub fn new() -> Self {
+  pub fn new_one() -> Self {
     Self::default()
+  }
+  pub fn new_two() -> Self {
+    let mut out = Self::default();
+    out.pos.x = 0.25;
+    out.tex_count = 2;
+    out.row_count = 1.;
+    out
   }
   pub fn transformation(&mut self) -> &Matrix4f<f32> {
     self.calc_transformation();

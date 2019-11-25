@@ -13,7 +13,7 @@ use {
       },
       resource::*,
     },
-    shader::ParticleShader,
+    shader::{ ParticleShader, ShaderWrapper, },
     util::{
       RVec,
       Vector3f,
@@ -32,21 +32,22 @@ pub struct DrawParticles;
 impl<'a> System<'a> for DrawParticles {
   type SystemData = DrawParticlesData<'a>;
   fn run(&mut self, data: Self::SystemData) {
-    let shader = &data.shader.shader;
+    let shader = &data.shader;
     let quad = data.pvbo.quad;
     let vbo_id = data.pvbo.vbo_id;
+    let max_inst = data.pvbo.max_instances;
+    let inst_data_len = data.pvbo.instance_data_length;
+    // println!("{:?} {:?}", quad, vbo_id);
     
     // let mut transform: Matrix4f<f32> = Matrix4f::new();
     let d = data.entities();
     if d.is_empty() { return }
     let view = (*data.view).view;
+    // println!("{:?}", view);
     shader.start();
-    // shader.load_matrix("u_View", &view);
-    // shader.load_vec_3f("light_pos", &(*light).pos); // Unimplemented
-    // shader.load_vec_3f("light_color", &(*light).color);
     r_bind_vaa_7(quad.vao_id);
     GlSettings::default()
-        // .disable_depth_mask()
+        .disable_depth_mask()
         .enable_blend()
         .set();
     RBlend::AdditiveBlend.r_blend_func();
@@ -55,9 +56,8 @@ impl<'a> System<'a> for DrawParticles {
         let texture: &Texture = &data.textures.0.get(tex)
             .unwrap_or_else(|| panic!("DrawParticles: No such Texture :{}", tex));
         r_bind_texture(texture);
-        shader.load_float("row_count", 4.0);
+        shader.load_float("rowCount", 4.0);
         let mut vbo_i = 0;
-        let inst_data_len = 21;
         let parts_count = batch.len();
         let parts_size = parts_count * inst_data_len;
         let mut vbo_data = vec!(0_f32; parts_size);
@@ -65,20 +65,21 @@ impl<'a> System<'a> for DrawParticles {
         //   &Position, &Rotation, &ScaleFloat, &TexOffsets, 
         //   &ParticleAlive,)
         for (_, _, _, pos, rot, scale, toff, _) in batch {
-          // print!("DrawParticles {:?}, {:?}, {:?}, {:?}", **pos, **rot, **scale, **toff);
-          // print!(" {} ", vbo_i);
-          update_mv_mat(&mut vbo_data, &mut vbo_i, &view, **pos, **rot, **scale);
-          // print!(" {} ", vbo_i);
           update_tex_coord_info(&mut vbo_data, &mut vbo_i, **toff);
-          // print!(" {} ", vbo_i);
+          update_mv_mat(&mut vbo_data, &mut vbo_i, &view, **pos, **rot, **scale);
         }
         // println!("VBO Data {:?}", vbo_data);
-        r_update_vbo(vbo_id, &vbo_data);
+        // shader.stop();
+        r_update_vbo(vbo_id, vbo_data, max_inst * inst_data_len);
+        // shader.start();
+        // std::thread::sleep(std::time::Duration::from_millis(20));
+        r_update_instanced_attrib(&data.pvbo);
         r_draw_instanced(quad.vertex_count, parts_count as u32);
+        // r_draw_triangle_strip(quad.vertex_count);
       };
     }
     GlSettings::default()
-        // .enable_depth_mask()
+        .enable_depth_mask()
         .disable_blend()
         .set();
     r_unbind_vaa_7();
@@ -86,7 +87,81 @@ impl<'a> System<'a> for DrawParticles {
   }
 }
 
-fn update_mv_mat(vbo_data: &mut Vec<f32>, vbo_i: &mut usize, view: &Matrix4f<f32>, pos: Position, rot: Rotation, scale: ScaleFloat, ) {
+pub struct DrawParticlesNotInstanced;
+impl<'a> System<'a> for DrawParticlesNotInstanced {
+  type SystemData = DrawParticlesData<'a>;
+  fn run(&mut self, data: Self::SystemData) {
+    let shader = &data.shader;
+    let quad = data.pvbo.quad;
+    let vbo_id = data.pvbo.vbo_id;
+    let max_inst = data.pvbo.max_instances;
+    let inst_data_len = data.pvbo.instance_data_length;
+    // println!("{:?} {:?}", quad, vbo_id);
+    
+    // todo: rewrite not instanced and try to work out instancing later.
+    let mut _transform: Matrix4f<f32> = Matrix4f::new();
+    let d = data.entities();
+    if d.is_empty() { return }
+    let view = (*data.view).view;
+    // println!("{:?}", view);
+    shader.start();
+    r_bind_vaa_7(quad.vao_id);
+    GlSettings::default()
+        .disable_depth_mask()
+        .enable_blend()
+        .set();
+    RBlend::AdditiveBlend.r_blend_func();
+    for tex in d.keys() {
+      if let Some(batch) = d.get(tex) {
+        let texture: &Texture = &data.textures.0.get(tex)
+            .unwrap_or_else(|| panic!("DrawParticles: No such Texture :{}", tex));
+        r_bind_texture(texture);
+        shader.load_float("rowCount", 4.0);
+        let mut vbo_i = 0;
+        let parts_count = batch.len();
+        let parts_size = parts_count * inst_data_len;
+        let mut vbo_data = vec!(0_f32; parts_size);
+        // ( Entity, &TexName, &CamDistance, 
+        //   &Position, &Rotation, &ScaleFloat, &TexOffsets, 
+        //   &ParticleAlive,)
+        for (_, _, _, pos, rot, scale, toff, _) in batch {
+          update_tex_coord_info(&mut vbo_data, &mut vbo_i, **toff);
+          update_mv_mat(&mut vbo_data, &mut vbo_i, &view, **pos, **rot, **scale);
+        }
+        // println!("VBO Data {:?}", vbo_data);
+        // shader.stop();
+        r_update_vbo(vbo_id, vbo_data, max_inst * inst_data_len);
+        // shader.start();
+        // std::thread::sleep(std::time::Duration::from_millis(20));
+        r_update_instanced_attrib(&data.pvbo);
+        r_draw_instanced(quad.vertex_count, parts_count as u32);
+        // r_draw_triangle_strip(quad.vertex_count);
+      };
+    }
+    GlSettings::default()
+        .enable_depth_mask()
+        .disable_blend()
+        .set();
+    r_unbind_vaa_7();
+    shader.stop();
+  }
+}
+
+fn update_tex_coord_info(vbo_data: &mut Vec<f32>, vbo_i: &mut usize, tex_offsets: TexOffsets) {
+  vbo_data[*vbo_i] = tex_offsets.blend; *vbo_i += 1;
+  vbo_data[*vbo_i] = tex_offsets.a.x; *vbo_i += 1;
+  vbo_data[*vbo_i] = tex_offsets.a.y; *vbo_i += 1;
+  vbo_data[*vbo_i] = tex_offsets.b.x; *vbo_i += 1;
+  vbo_data[*vbo_i] = tex_offsets.b.y; *vbo_i += 1;
+}
+fn update_mv_mat(
+  vbo_data: &mut Vec<f32>, 
+  vbo_i: &mut usize, 
+  view: &Matrix4f<f32>, 
+  pos: Position, 
+  rot: Rotation, 
+  scale: ScaleFloat, 
+) {
   let mut model: Matrix4f<f32> = Matrix4f::new();
   model.translate_v3f(pos.0);
   model.transpose3x3(&view);
@@ -98,13 +173,6 @@ fn update_mv_mat(vbo_data: &mut Vec<f32>, vbo_i: &mut usize, view: &Matrix4f<f32
     vbo_data[*vbo_i] = *n;
     *vbo_i += 1;
   }
-}
-fn update_tex_coord_info(vbo_data: &mut Vec<f32>, vbo_i: &mut usize, tex_offsets: TexOffsets) {
-  vbo_data[*vbo_i] = tex_offsets.a.x; *vbo_i += 1;
-  vbo_data[*vbo_i] = tex_offsets.a.y; *vbo_i += 1;
-  vbo_data[*vbo_i] = tex_offsets.b.x; *vbo_i += 1;
-  vbo_data[*vbo_i] = tex_offsets.b.y; *vbo_i += 1;
-  vbo_data[*vbo_i] = tex_offsets.blend; *vbo_i += 1;
 }
 
 #[derive(SystemData)]

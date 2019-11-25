@@ -132,7 +132,7 @@ impl<'a> System<'a> for PlayerGen {
           mut player, mut fall, mut texmod) = _data;
     let ent = ents.create();
     
-    pos.insert(ent, Position {0: Vector3f {x: ploc.0 as f32, y: 20.0, z: ploc.1 as f32}}).expect("Failed to insert new Position");
+    pos.insert(ent, Position {0: Vector3f {x: ploc.0 as f32, y: 0.0, z: ploc.1 as f32}}).expect("Failed to insert new Position");
     rot.insert(ent, Rotation {0: Vector3f::blank()}).expect("Failed to insert new Rotation");
     transvel.insert(ent, TransformVelocity {0: Vector3f::blank()}).expect("Failed to insert new TransformVelocity");
     vel.insert(ent, Velocity {0: Vector3f::blank()}).expect("Failed to insert new Velocity");

@@ -39,17 +39,17 @@ impl ShaderConf {
     }
   }
   pub fn with_translation_unit(self, _shader_type: GLenum, tu: TranslationUnit) -> Self {
-    let mut _self = self;
+    let mut _slf = self;
     let mut glsl_code = String::new();
     glsl::transpiler::glsl::show_translation_unit(&mut glsl_code, &tu);
     println!("GLSL Translation Unit Test:\n{}", glsl_code);
 
-    _self
+    _slf
   }
   pub fn with_geometry(self) -> Self {
-    let mut _self = self;
-    _self.shader_types_used.with_geometry();
-    _self
+    let mut slf = self;
+    slf.shader_types_used.with_geometry();
+    slf
   }
   // pub fn with_tesselation(&mut self) -> &mut Self {
   //   // TODO: Tessellation
@@ -58,70 +58,77 @@ impl ShaderConf {
   //   self
   // }
   pub fn with_compute(self) -> Self {
-    let mut _self = self;
-    _self.shader_types_used.with_compute();
-    _self
+    let mut slf = self;
+    slf.shader_types_used.with_compute();
+    slf
   }
-  pub fn with_attributes(self, names: Vec<&str>) -> Self {
-    let mut _self = self;
-    for name in names {
-      _self = _self.with_attribute(name);
+  pub fn with_attributes_auto(self, names: Vec<&str>) -> Self {
+    let mut slf = self;
+    for (count, name) in names.into_iter().enumerate() {
+      slf = slf.with_attribute(name, count as u32);
     }
-    _self
+    slf
   }
-  pub fn with_attribute(self, name: &str) -> Self {
-    let mut _self = self;
-    _self.vars.push(ShaderVar::new(name));
-    _self
+  pub fn with_attributes(self, names: Vec<(&str, u32)>) -> Self {
+    let mut slf = self;
+    for (name, id) in names {
+      slf = slf.with_attribute(name, id);
+    }
+    slf
+  }
+  pub fn with_attribute(self, name: &str, layout_id: u32) -> Self {
+    let mut slf = self;
+    slf.vars.push(ShaderVar::new(name, layout_id));
+    slf
   }
   pub fn with_uniforms(self, names: Vec<&str>) -> Self {
-    let mut _self = self;
+    let mut slf = self;
     for name in names {
-      _self = _self.with_uniform(name);
+      slf = slf.with_uniform(name);
     }
-    _self
+    slf
   }
   pub fn with_sampler_uniforms(self, names: Vec<(&str, GLint)>) -> Self {
-    let mut _self = self;
+    let mut slf = self;
     for (name, num) in names {
-      _self = _self.with_texture_uniform(name, num);
+      slf = slf.with_texture_uniform(name, num);
     }
-    _self
+    slf
   }
   pub fn with_uniforms_array(self, names: Vec<&str>, count: usize) -> Self {
-    let mut _self = self;
+    let mut slf = self;
     for name in names {
       let mut i = 0;
       while i < count {
-        _self = _self.with_uniform(&format!("{}[{}]", name, i));
+        slf = slf.with_uniform(&format!("{}[{}]", name, i));
         i += 1;
       }
     }
-    _self
+    slf
   }
   pub fn with_uniform(self, name: &str) -> Self {
-    let mut _self = self;
-    _self.unis.push(ShaderUni::new(name));
-    _self
+    let mut slf = self;
+    slf.unis.push(ShaderUni::new(name));
+    slf
   }
   pub fn with_texture_uniform(self, name: &str, texture: GLint) -> Self {
-    let mut _self = self;
+    let mut slf = self;
     let mut shuni = ShaderUni::new(name);
     shuni.texture = texture;
-    _self.unis.push(shuni);
-    _self
+    slf.unis.push(shuni);
+    slf
   }
 }
 
 pub struct ShaderVar {
     var_name: String,
-    var_id: GLint,
+    var_id: GLuint,
 }
 impl ShaderVar {
-  pub fn new(name: &str) -> Self {
+  pub fn new(name: &str, id: u32) -> Self {
     ShaderVar {
       var_name: name.to_string(),
-      var_id: -1 as GLint,
+      var_id: id,
     }
   }
 }
@@ -272,13 +279,10 @@ impl Shader {
     self
   }
   pub fn bind_attributes(&mut self) -> &mut Self { unsafe {
-    let mut count = 0 as GLint;
     let mut cname;
     for attrib in &mut self.conf.vars {
       cname = CString::new(attrib.var_name.as_bytes()).unwrap();
-      BindAttribLocation(self.program, count as GLuint, cname.as_ptr());
-      attrib.var_id = count;
-      count += 1;
+      BindAttribLocation(self.program, attrib.var_id, cname.as_ptr());
     }
     self
   }}

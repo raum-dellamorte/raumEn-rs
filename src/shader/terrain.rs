@@ -43,7 +43,7 @@ impl ShaderWrapper for TerrainShader {
 
 pub fn gen_terrain_shader() -> Shader {
   let mut shader = Shader::new(ShaderConf::new("terrain")
-      .with_attributes(vec!("a_Pos", "a_TexCoord", "a_Norm"))
+      .with_attributes_auto(vec!("a_Pos", "a_TexCoord", "a_Norm"))
       .with_uniforms(vec!(
         "u_Transform", "u_Projection", "u_View", "t_Texture",
         // "use_fake_lighting",

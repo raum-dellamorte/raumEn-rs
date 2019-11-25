@@ -67,18 +67,13 @@ impl Loader {
     self.unbind_vao();
     Model::new(vao_id, indcs.len() as i32)
   }
-  pub fn create_empty_vbo(&mut self, count: usize) -> VboID { unsafe {
-    let vbo_id: GLuint = r_gen_buffers();
-    assert!(vbo_id != 0);
-    self.vbos.push(vbo_id);
-    BindBuffer(ARRAY_BUFFER, vbo_id);
-    BufferData(ARRAY_BUFFER,
-      (count * mem::size_of::<GLfloat>()) as GLsizeiptr,
-      ptr::null(),
-      STREAM_DRAW);
-    BindBuffer(ARRAY_BUFFER, 0_u32);
-    VboID(vbo_id)
-  }}
+  pub fn create_empty_vbo(&mut self, count: usize) -> VboID {
+    let vbo_id = VboID(r_gen_buffers());
+    assert!(vbo_id.0 != 0);
+    r_create_vbo(vbo_id, count);
+    self.vbos.push(vbo_id.0);
+    vbo_id
+  }
   pub fn load_mesh(&mut self, name: &str) -> Option<&Mesh> {
     if self.meshes.get(name).is_none() {
       let mesh = match load_obj(name) {
@@ -103,7 +98,7 @@ impl Loader {
     BindBuffer(ARRAY_BUFFER, vbo_id);
     BufferData(ARRAY_BUFFER,
       (data.len() * mem::size_of::<GLfloat>()) as GLsizeiptr,
-      &data[0] as *const f32 as *const std::ffi::c_void,
+      data.as_ptr() as *const _,
       STATIC_DRAW);
     VertexAttribPointer(attrib, step, FLOAT, FALSE, 0, ptr::null());
     BindBuffer(ARRAY_BUFFER, 0_u32);

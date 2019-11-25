@@ -1,19 +1,25 @@
 
 use {
+  std::{
+    // mem,
+    ptr,
+  },
   gl::{
     *,
     types::*,
   },
-  ecs::{
-    c::{
-      flags::MultiTex,
-      components::*,
+  crate::{
+    ecs::{
+      c::{
+        flags::MultiTex,
+        components::*,
+      },
+      resource::{ Texture, ParticleVBO, },
     },
-    resource::{ Texture, },
-  },
-  util::{
-    Matrix4f, 
-    // HashMap,
+    util::{
+      Matrix4f, 
+      // HashMap,
+    },
   },
 };
 
@@ -58,7 +64,7 @@ pub fn r_gen_vertex_arrays() -> u32 { unsafe {
 // Vertex attrib bindings
 pub fn r_bind_vaa_7(vao_id: VaoID) { unsafe {
   BindVertexArray(vao_id.0);
-  // print!(" r_bind_vaa_3(model: {})", model.vao_id.0);
+  // print!(" r_bind_vaa_7(model: {})", model.vao_id.0);
   EnableVertexAttribArray(0);
   EnableVertexAttribArray(1);
   EnableVertexAttribArray(2);
@@ -109,19 +115,17 @@ pub fn r_bind_texture(texture: &Texture) { unsafe {
 }}
 
 // VBO tools
-pub fn r_add_instanced_attrib(vao: VaoID, vbo: VboID, attrib: u32, data_size: i32, stride: usize, offset: i32) { unsafe {
+pub fn r_add_instanced_attrib(vao: VaoID, vbo: VboID, attrib: u32, data_size: i32, stride: usize, offset: usize) { unsafe {
   // This is my best guess from LWJGL to Rust's GL implementation
   r_get_errors("r_add_instanced_attrib 1");
-  BindBuffer(ARRAY_BUFFER, vbo.0);
-  r_get_errors("r_add_instanced_attrib 2");
   BindVertexArray(vao.0);
+  r_get_errors("r_add_instanced_attrib 2");
+  BindBuffer(ARRAY_BUFFER, vbo.0);
   r_get_errors("r_add_instanced_attrib 3");
-  let offset = offset * std::mem::size_of::<GLfloat>() as i32;
-  let offset: *const i32 = &offset;
-  let offset = offset as *const std::ffi::c_void;
+  let offset: *const i32 = &(glfloat(offset) as i32);
   VertexAttribPointer(
     attrib, data_size, FLOAT, FALSE, 
-    (stride * std::mem::size_of::<GLfloat>()) as i32, offset
+    glfloat(stride) as i32, offset as *const _
   );
   r_get_errors("r_add_instanced_attrib 4");
   VertexAttribDivisor(attrib, 1);
@@ -131,35 +135,101 @@ pub fn r_add_instanced_attrib(vao: VaoID, vbo: VboID, attrib: u32, data_size: i3
   BindVertexArray(0);
   r_get_errors("r_add_instanced_attrib 7");
 }}
-pub fn r_update_vbo(vbo: VboID, data: &[GLfloat]) { unsafe {
+pub fn r_update_instanced_attrib(pvbo: &ParticleVBO) { unsafe {
+  // This is my best guess from LWJGL to Rust's GL implementation
+  BindBuffer(ARRAY_BUFFER, pvbo.vbo_id.0);
+  r_get_errors("r_update_instanced_attrib 2");
+  // BindVertexArray(pvbo.quad.vao_id.0);
+  // r_get_errors("r_update_instanced_attrib 3");
+  let stride = glfloat(pvbo.instance_data_length) as i32;
+  let offset: *const i32 = &(glfloat(0) as i32);
+  VertexAttribPointer(
+    1, 1, FLOAT, FALSE, 
+    stride, offset as *const _
+  );
+  let offset: *const i32 = &(glfloat(1) as i32);
+  VertexAttribPointer(
+    2, 4, FLOAT, FALSE, 
+    stride, offset as *const _
+  );
+  let offset: *const i32 = &(glfloat(5) as i32);
+  VertexAttribPointer(
+    3, 4, FLOAT, FALSE, 
+    stride, offset as *const _
+  );
+  let offset: *const i32 = &(glfloat(9) as i32);
+  VertexAttribPointer(
+    4, 4, FLOAT, FALSE, 
+    stride, offset as *const _
+  );
+  let offset: *const i32 = &(glfloat(13) as i32);
+  VertexAttribPointer(
+    5, 4, FLOAT, FALSE, 
+    stride, offset as *const _
+  );
+  let offset: *const i32 = &(glfloat(17) as i32);
+  VertexAttribPointer(
+    6, 4, FLOAT, FALSE, 
+    stride, offset as *const _
+  );
+  r_get_errors("r_update_instanced_attrib 4");
+  VertexAttribDivisor(1, 1);
+  VertexAttribDivisor(2, 1);
+  VertexAttribDivisor(3, 1);
+  VertexAttribDivisor(4, 1);
+  VertexAttribDivisor(5, 1);
+  VertexAttribDivisor(6, 1);
+  r_get_errors("r_update_instanced_attrib 5");
+}}
+pub fn r_create_vbo(vbo_id: VboID, buffer_size: usize) { unsafe {
+  r_get_errors("r_create_vbo 1");
+  BindBuffer(ARRAY_BUFFER, vbo_id.0);
+  r_get_errors("r_create_vbo 2");
+  BufferData(ARRAY_BUFFER, glfloat(buffer_size) as GLsizeiptr,
+      ptr::null(), DYNAMIC_DRAW);
+  r_get_errors("r_create_vbo 3");
+  BindBuffer(ARRAY_BUFFER, 0);
+  r_get_errors("r_create_vbo 4");
+}}
+pub fn r_update_vbo(vbo: VboID, data: Vec<f32>, max: usize) { unsafe {
   // This is my best guess from LWJGL to Rust's GL implementation
   r_get_errors("r_update_vbo 1");
-  BindBuffer(ARRAY_BUFFER, vbo.0);
-  r_get_errors("r_update_vbo 2");
-  let data_len = (data.len() * std::mem::size_of::<GLfloat>()) as GLsizeiptr;
+  BindBuffer(ARRAY_BUFFER, vbo.0); r_get_errors("r_update_vbo 2");
+  let max_len = glfloat(max) as GLsizeiptr;
+  let data_len = glfloat(data.len()) as GLsizeiptr;
   BufferData(ARRAY_BUFFER,
-      data_len,
+      max_len,
       std::ptr::null(),
-      STREAM_DRAW);
-  r_get_errors("r_update_vbo 3");
+      // data.as_ptr() as *const _,
+      DYNAMIC_DRAW); r_get_errors("r_update_vbo 3");
   BufferSubData(ARRAY_BUFFER, 
       0, data_len,
-      &data[0] as *const f32 as *const std::ffi::c_void);
-  r_get_errors("r_update_vbo 4");
-  BindBuffer(ARRAY_BUFFER, 0);
-  r_get_errors("r_update_vbo 5");
+      // std::ptr::null(),
+      data.as_ptr() as *const _, 
+      // &data[0] as *const _, 
+  ); r_get_errors("r_update_vbo 4");
+  // BindBuffer(ARRAY_BUFFER, 0);
+  // r_get_errors("r_update_vbo 5");
 }}
 
 // Draw methods
 pub fn r_draw_triangles(vertex_count: VertexCount) { unsafe {
   DrawElements(TRIANGLES, vertex_count.0, UNSIGNED_INT, std::ptr::null()); 
+  r_get_errors("r_draw_triangles 1");
 }}
 pub fn r_draw_triangle_strip(vertex_count: VertexCount) { unsafe {
   DrawElements(TRIANGLE_STRIP, vertex_count.0, UNSIGNED_INT, std::ptr::null()); 
+  r_get_errors("r_draw_triangle_strip 1");
 }}
 pub fn r_draw_instanced(vertex_count: VertexCount, particle_count: u32) { unsafe {
   DrawArraysInstanced(TRIANGLE_STRIP, 0, vertex_count.0, particle_count as i32);
+  // DrawArrays(TRIANGLE_STRIP, 0, vertex_count.0);
+  r_get_errors("r_draw_instanced 1");
 }}
+
+pub fn glfloat(n: usize) -> usize {
+  n * std::mem::size_of::<GLfloat>()
+}
 
 // Debugging
 pub fn r_get_errors(msg: &str) { unsafe {

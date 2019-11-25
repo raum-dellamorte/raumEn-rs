@@ -95,8 +95,8 @@ pub struct ParticleSystems {
 pub struct ParticleVBO {
   pub vbo_id: VboID,
   pub quad: Model,
-  max_instances: usize,
-  instance_data_length: usize,
+  pub max_instances: usize,
+  pub instance_data_length: usize,
 }
 impl Default for ParticleVBO {
   fn default() -> Self {
@@ -115,12 +115,12 @@ impl ParticleVBO {
       let mut loader = world.write_resource::<Loader>();
       slf.quad = loader.quad_0_5;
       slf.vbo_id = loader.create_empty_vbo(slf.max_instances * slf.instance_data_length);
-      r_add_instanced_attrib(slf.quad.vao_id, slf.vbo_id, 1, 4, slf.instance_data_length, 0);
-      r_add_instanced_attrib(slf.quad.vao_id, slf.vbo_id, 2, 4, slf.instance_data_length, 4);
-      r_add_instanced_attrib(slf.quad.vao_id, slf.vbo_id, 3, 4, slf.instance_data_length, 8);
-      r_add_instanced_attrib(slf.quad.vao_id, slf.vbo_id, 4, 4, slf.instance_data_length, 12);
-      r_add_instanced_attrib(slf.quad.vao_id, slf.vbo_id, 5, 4, slf.instance_data_length, 16);
-      r_add_instanced_attrib(slf.quad.vao_id, slf.vbo_id, 6, 1, slf.instance_data_length, 20);
+      r_add_instanced_attrib(slf.quad.vao_id, slf.vbo_id, 1, 1, slf.instance_data_length, 0);
+      r_add_instanced_attrib(slf.quad.vao_id, slf.vbo_id, 2, 4, slf.instance_data_length, 1);
+      r_add_instanced_attrib(slf.quad.vao_id, slf.vbo_id, 3, 4, slf.instance_data_length, 5);
+      r_add_instanced_attrib(slf.quad.vao_id, slf.vbo_id, 4, 4, slf.instance_data_length, 9);
+      r_add_instanced_attrib(slf.quad.vao_id, slf.vbo_id, 5, 4, slf.instance_data_length, 13);
+      r_add_instanced_attrib(slf.quad.vao_id, slf.vbo_id, 6, 4, slf.instance_data_length, 17);
     }
     world.insert(slf);
   }

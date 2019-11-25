@@ -73,8 +73,12 @@ use {
         },
       },
     },
+    render::{
+      RenderPostProc, RenderFont, RenderHUD,
+    },
     shader::{
       Shader,
+      ShaderWrapper,
       ParticleShader,
       TerrainShader,
       TexModShader,
@@ -95,9 +99,6 @@ pub use {
       Camera, Display, Fbo, HUD, GuiObj, Handler, Loader
     },
     text::TextMgr,
-    render::{
-      RenderMgr, RenderPostProc,
-    },
   }
 };
 
@@ -186,6 +187,9 @@ fn main() {
   // use text::metafile::test_noms;
   // test_noms();
   
+  // Specify OpenGL version
+  let gl_request = glutin::GlRequest::Specific(glutin::Api::OpenGl, (4, 3));
+  let gl_profile = glutin::GlProfile::Core;
   // Create a window
   let mut el = glutin::EventsLoop::new();
   let wb = glutin::WindowBuilder::new()
@@ -193,6 +197,8 @@ fn main() {
     .with_dimensions(glutin::dpi::LogicalSize::new(1024.0, 768.0))
     .with_maximized(false);
   let windowed_context = glutin::ContextBuilder::new()
+    .with_gl(gl_request)
+    .with_gl_profile(gl_profile)
     .build_windowed(wb, &el)
     .unwrap();
   
@@ -209,7 +215,8 @@ fn main() {
   // in favor of specs Systems, provided this whole specs expirement
   // ends with me figuring out how not to have a huge slowdown when
   // thousands of things are on screen and whatnot.
-  let mut render_mgr = RenderMgr::new();
+  let mut render_hud = RenderHUD::default();
+  let mut render_fnt = RenderFont::new();
   
   // time keeping
   let mut fps: (f32, f32);
@@ -222,15 +229,14 @@ fn main() {
   let mut world = gen_world();
   
   { // Here, we're getting the size of the window in pixels
-    // and passing it to the render manager. It in turn
+    // and passing it to the update_size() method. It in turn
     // updates the Projection Matrix and passes that to 
     // ALL THE SHADERS, so if you add a SHADER, you need
     // to REMEMBER to add that shader to the update_size()
-    // method in the RenderMgr.  There needs to be a better
-    // way to do that.
+    // method near the bottom of this file.
     let dpi = windowed_context.window().get_hidpi_factor();
     let size = windowed_context.window().get_inner_size().unwrap().to_physical(dpi);
-    render_mgr.update_size(&world, size.into());
+    update_size(&world, size.into());
   }
   { // loading models and textures
     let loader = &mut world.write_resource::<Loader>();
@@ -270,8 +276,11 @@ fn main() {
     // screen so you can see the color and depth buffers for debugging
     // purposes.
     let mut _hud = world.write_resource::<HUD>();
-    _hud.elements.push(GuiObj::new());
+    _hud.elements.push(GuiObj::new_one()); // bad practice for testing 
+    _hud.elements.push(GuiObj::new_two()); // maybe load them from a file?
     let _gui = _hud.elements.get_mut(0).unwrap();
+    _gui.tex_id = world.read_resource::<Textures>().0["cosmic"].tex_id.0;
+    let _gui = _hud.elements.get_mut(1).unwrap();
     _gui.tex_id = _fbo_final.color_tex_id;
     _gui.depth_tex_id = _fbo_final.depth_tex_id;
   }
@@ -327,15 +336,15 @@ fn main() {
       .build();
   terrain_draw.setup(&mut world);
   
-  terrain_draw.dispatch(&world);
+  // terrain_draw.dispatch(&world);
   
   let mut texmod_draw = DispatcherBuilder::new()
       .with_thread_local(DrawTexMods)
       .build();
   texmod_draw.setup(&mut world);
   
-  texmod_draw.dispatch(&world);
-  world.maintain();
+  // texmod_draw.dispatch(&world);
+  // world.maintain();
   
   let mut particle_update = DispatcherBuilder::new()
       .with(UpdateParticles, "UpdateParticles", &[])
@@ -347,8 +356,8 @@ fn main() {
       .build();
   particle_draw.setup(&mut world);
   
-  particle_draw.dispatch(&world);
-  world.maintain();
+  // particle_draw.dispatch(&world);
+  // world.maintain();
   
   let particle_rule = ParticleRules::default()
     .set_texture("cosmic")
@@ -358,7 +367,7 @@ fn main() {
     .set_life_params(3.5, 0.5)
     .set_speed_params(1.0, 0.1)
     .set_scale_params(2.0, 0.5)
-    .set_parts_per_sec(0.5)
+    .set_parts_per_sec(20.0)
   ;
   
   // Game loop!
@@ -378,7 +387,7 @@ fn main() {
             let dpi = windowed_context.window().get_hidpi_factor();
             let size = logical_size.to_physical(dpi);
             windowed_context.resize(size);
-            render_mgr.update_size(&world, size.into());
+            update_size(&world, size.into());
           },
           _ => { world.write_resource::<Handler>().window_event(&event); }
         },
@@ -401,31 +410,81 @@ fn main() {
     
     gen_particles(&mut world, &particle_rule);
     particle_update.dispatch(&world);
-    move_player.dispatch(&world);
+    // move_player.dispatch(&world);
     follow_player.dispatch(&world);
-    world.maintain();
+    // world.maintain();
     
     // *** Drawing phase
     _fbo.bind();
-    render_mgr.render(&world);
+    prepare(&world);
     // terrain_draw.dispatch(&world);
-    texmod_draw.dispatch(&world);
+    // texmod_draw.dispatch(&world);
     particle_draw.dispatch(&world);
     world.maintain();
     _fbo.unbind(&world);
     _fbo.blit_to_fbo(&world, 0, &_fbo_final);
     
-    // render_mgr.render();
     // _fbo_final.blit_to_screen();
     render_post.render();
-    render_mgr.render_gui(&world);
+    render_hud.render(&world);
+    render_fnt.render(&world);
     // Write the new frame to the screen!
     windowed_context.swap_buffers().unwrap();
+    unsafe { Flush() };
   }
   _fbo.clean_up();
   _fbo_final.clean_up();
-  render_mgr.clean_up(&world);
+  clean_up(&world);
+  render_hud.clean_up();
+  render_fnt.clean_up();
   render_post.clean_up();
+}
+
+pub fn update_size(world: &World, dimensions: (u32, u32)) {
+  world.write_resource::<Display>().update_size(dimensions);
+  {
+    let mut textmgr = world.write_resource::<TextMgr>();
+    textmgr.update_size(world);
+  }
+  let proj_mat = &world.read_resource::<Display>().proj_mat;
+  world.read_resource::<TexModShader>().update_projection(&proj_mat);
+  world.read_resource::<TerrainShader>().update_projection(&proj_mat);
+  world.read_resource::<ParticleShader>().update_projection(&proj_mat);
+}
+pub fn prepare(world: &World) {
+  unsafe {
+    // Enable(CULL_FACE);
+    // CullFace(BACK);
+    Enable(DEPTH_TEST);
+    Clear(COLOR_BUFFER_BIT|DEPTH_BUFFER_BIT);
+    ClearColor(0.2, 0.2, 0.3, 1.0);
+  }
+  { // Prep the view matrix
+    let mut cam = world.write_resource::<Camera>();
+    let view = &mut (*world.write_resource::<ViewMatrix>()).view;
+    cam.create_view_matrix(view);
+  }
+  
+  let lights = world.read_resource::<Lights>();
+  {
+    let shader = &(*world.read_resource::<TerrainShader>()).shader;
+    shader.start();
+    lights.load_to_shader(shader);
+    shader.stop();
+  }
+  {
+    let shader = &(*world.read_resource::<TexModShader>()).shader;
+    shader.start();
+    lights.load_to_shader(shader);
+    shader.stop();
+  }
+  unsafe { BindVertexArray(0); }
+}
+pub fn clean_up(world: &World) {
+  let mut loader = world.write_resource::<Loader>();
+  loader.clean_up();
+  world.read_resource::<TerrainShader>().shader.clean_up();
+  world.read_resource::<TexModShader>().shader.clean_up();
 }
 
 pub const EOF: &str = "\04";

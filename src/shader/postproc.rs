@@ -3,7 +3,7 @@
 use shader::{Shader, ShaderConf, };
 pub fn gen_fog_shader(effect: &str) -> Shader {
   let mut shader = Shader::new(ShaderConf::new(effect)
-      .with_attributes(vec!("a_Pos"))
+      .with_attributes_auto(vec!("a_Pos"))
       // .add_uniforms(vec!(
       //   // Vertex
       //   "flip_y",
