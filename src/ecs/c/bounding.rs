@@ -65,7 +65,7 @@ impl Bounds {
     let max_z = self.max_z(other);
     let max_z2 = other.min_x(self);
     
-    if !(&[min_x, max_x, min_y, max_y, min_z, max_z]).iter().any({|t| *t }) { return None }
+    if !(&[min_x, max_x, min_y, max_y, min_z, max_z]).iter().any(|t| *t ) { return None }
     
     let x_len = 
       if min_x && max_x { self.max.x - self.min.x }
