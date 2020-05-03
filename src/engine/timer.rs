@@ -1,18 +1,18 @@
 
 // use specs::{Component, DenseVecStorage};
-use time::{Duration, SteadyTime};
+use time::{Duration, Instant};
 
 #[derive(Debug)]
 pub struct Timer {
   pub delta: f32,
   pub fps: f32,
-  pub last: SteadyTime,
-  pub now: SteadyTime,
+  pub last: Instant,
+  pub now: Instant,
 }
 
 impl Default for Timer {
   fn default() -> Self {
-    let tmp = SteadyTime::now();
+    let tmp = Instant::now();
     let tmp2 = tmp + Duration::milliseconds(50_i64);
     Self {
       delta: 0.0667_f32,
@@ -25,7 +25,7 @@ impl Default for Timer {
 
 impl Timer {
   pub fn new() -> Self {
-    let tmp = SteadyTime::now();
+    let tmp = Instant::now();
     let tmp2 = tmp + Duration::milliseconds(50_i64);
     Timer {
       delta: 0.0667_f32,
@@ -37,12 +37,9 @@ impl Timer {
   
   pub fn tick(&mut self) -> &Self {
     self.last = self.now;
-    self.now = SteadyTime::now();
+    self.now = Instant::now();
     let dur = self.now - self.last;
-    self.delta = match dur.num_microseconds() {
-      Some(t) => (t as f32) / 1_000_000_f32,
-      None => 0_f32,
-    };
+    self.delta = (dur.whole_microseconds() as f32) / 1_000_000_f32;
     self.fps = if self.delta > 0_f32 { 1_f32 / self.delta } else { 0_f32 };
     self
   }
