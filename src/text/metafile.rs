@@ -1,7 +1,7 @@
 
 use {
   std::{
-    error::Error,
+    // error::Error,
     fs::File,
     io::{
       prelude::*,
@@ -279,7 +279,7 @@ impl MetaFile {
     let path = Path::new(&filename);
     let display = path.display();
     let file = match File::open(&path) {
-      Err(why) => panic!("couldn't open {}: {}", display, why.description()),
+      Err(why) => panic!("couldn't open {}: {}", display, why),
       Ok(file) => file,
     };
     let reader = BufReader::new(file);
