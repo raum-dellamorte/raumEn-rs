@@ -1,7 +1,7 @@
 #![allow(unused_imports,dead_code)]
 
 use {
-  glutin::{
+  glutin::event::{
     MouseButton as MB,
     // VirtualKeyCode::*,
   },

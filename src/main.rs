@@ -35,10 +35,10 @@ pub mod util;
 
 use {
   gl::*,
-  // glutin::{
-  //   // dpi::*,
-  //   ContextCurrentState,
-  // },
+  glutin::{
+    event::{Event, WindowEvent, Event::DeviceEvent, },
+    event_loop::{ControlFlow, EventLoop, },
+  },
   specs::{
     // Builder, Component, ReadStorage, WriteStorage, System, VecStorage, RunNow,
     DispatcherBuilder, 
@@ -191,10 +191,10 @@ fn main() {
   let gl_request = glutin::GlRequest::Specific(glutin::Api::OpenGl, (4, 3));
   let gl_profile = glutin::GlProfile::Core;
   // Create a window
-  let mut el = glutin::EventsLoop::new();
-  let wb = glutin::WindowBuilder::new()
+  let mut el = EventLoop::new();
+  let wb = glutin::window::WindowBuilder::new()
     .with_title("RaumEn")
-    .with_dimensions(glutin::dpi::LogicalSize::new(1024.0, 768.0))
+    .with_inner_size(glutin::dpi::LogicalSize::new(1024.0, 768.0))
     .with_maximized(false);
   let windowed_context = glutin::ContextBuilder::new()
     .with_gl(gl_request)
@@ -219,7 +219,7 @@ fn main() {
   let mut render_fnt = RenderFont::new();
   
   // time keeping
-  let mut fps: (f32, f32);
+  let mut fps: (f32, f32) = (1.0, 0.1);
   let mut sec = 0.0;
   
   // Set up the world, which holds all the things,
@@ -234,8 +234,8 @@ fn main() {
     // ALL THE SHADERS, so if you add a SHADER, you need
     // to REMEMBER to add that shader to the update_size()
     // method near the bottom of this file.
-    let dpi = windowed_context.window().get_hidpi_factor();
-    let size = windowed_context.window().get_inner_size().unwrap().to_physical(dpi);
+    // let dpi = windowed_context.window().get_hidpi_factor();
+    let size: glutin::dpi::PhysicalSize<u32> = windowed_context.window().inner_size();
     update_size(&world, size.into());
   }
   { // loading models and textures
@@ -372,29 +372,65 @@ fn main() {
   
   // Game loop!
   println!("Starting game loop.");
-  let mut running = true;
-  while running {
+  el.run(move |event, _, control_flow| {
+    // *control_flow = ControlFlow::Wait;
     {
       let mut handler = world.write_resource::<Handler>();
       handler.timer.tick();
       handler.reset_delta();
     }
-    el.poll_events(|event| {
-      match event {
-        glutin::Event::WindowEvent{ event, .. } => match event {
-          glutin::WindowEvent::CloseRequested => running = false,
-          glutin::WindowEvent::Resized(logical_size) => {
-            let dpi = windowed_context.window().get_hidpi_factor();
-            let size = logical_size.to_physical(dpi);
-            windowed_context.resize(size);
-            update_size(&world, size.into());
-          },
-          _ => { world.write_resource::<Handler>().window_event(&event); }
-        },
-        glutin::Event::DeviceEvent{ event, ..} => { world.write_resource::<Handler>().device_event(&event); }
-        e => println!("Other Event:\n{:?}", e)
+    
+    match event {
+      Event::LoopDestroyed => {
+        println!("Cleaning Up...");
+        _fbo.clean_up();
+        _fbo_final.clean_up();
+        clean_up(&world);
+        render_hud.clean_up();
+        render_fnt.clean_up();
+        render_post.clean_up();
+        return
       }
-    });
+      Event::WindowEvent { event, .. } => match event {
+        WindowEvent::CloseRequested => {
+          *control_flow = ControlFlow::Exit
+        },
+        WindowEvent::Resized(size) => {
+          windowed_context.resize(size);
+          update_size(&world, size.into());
+        },
+        _ => { world.write_resource::<Handler>().window_event(&event); }
+      },
+      DeviceEvent{ event, ..} => { world.write_resource::<Handler>().device_event(&event); }
+      Event::NewEvents( _time ) => {}
+      Event::MainEventsCleared => {
+        // Emitted when all of the event loop's input events have been processed and redraw processing is about to begin.
+        
+        // This event is useful as a place to put your code that should be run after all state-changing events have been 
+        // handled and you want to do stuff (updating state, performing calculations, etc) that happens as the "main body" 
+        // of your event loop. 
+        // If your program draws graphics, it's usually better to do it in response to Event::RedrawRequested, which gets 
+        // emitted immediately after this event.
+      }
+      Event::RedrawRequested(_) => {
+        // Emitted after MainEventsCleared when a window should be redrawn.
+        
+        // This gets triggered in two scenarios:
+        
+        // - The OS has performed an operation that's invalidated the window's contents (such as resizing the window).
+        // - The application has explicitly requested a redraw via Window::request_redraw.
+        
+        // During each iteration of the event loop, Winit will aggregate duplicate redraw requests into a single event, 
+        // to help avoid duplicating rendering work.
+      }
+      Event::RedrawEventsCleared => {
+        // Emitted after all RedrawRequested events have been processed and control flow is about to be taken away from 
+        // the program. If there are no RedrawRequested events, it is emitted immediately after MainEventsCleared.
+        
+        // This event is useful for doing any cleanup or bookkeeping work after all the rendering tasks have been completed.
+      }
+      e => println!("Other Event:\n{:?}", e)
+    }
     {
       {
         fps = world.read_resource::<Handler>().fps_and_delta();
@@ -410,34 +446,28 @@ fn main() {
     
     gen_particles(&mut world, &particle_rule);
     particle_update.dispatch(&world);
-    // move_player.dispatch(&world);
+    move_player.dispatch(&world);
     follow_player.dispatch(&world);
     // world.maintain();
     
     // *** Drawing phase
     _fbo.bind();
     prepare(&world);
-    // terrain_draw.dispatch(&world);
-    // texmod_draw.dispatch(&world);
+    terrain_draw.dispatch(&world);
+    texmod_draw.dispatch(&world);
     particle_draw.dispatch(&world);
     world.maintain();
     _fbo.unbind(&world);
     _fbo.blit_to_fbo(&world, 0, &_fbo_final);
     
-    // _fbo_final.blit_to_screen();
+    // _fbo_final.blit_to_screen(&world);
     render_post.render();
     render_hud.render(&world);
     render_fnt.render(&world);
     // Write the new frame to the screen!
     windowed_context.swap_buffers().unwrap();
-    unsafe { Flush() };
-  }
-  _fbo.clean_up();
-  _fbo_final.clean_up();
-  clean_up(&world);
-  render_hud.clean_up();
-  render_fnt.clean_up();
-  render_post.clean_up();
+    // unsafe { Flush() };
+  });
 }
 
 pub fn update_size(world: &World, dimensions: (u32, u32)) {

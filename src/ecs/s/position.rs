@@ -1,6 +1,6 @@
 
 use {
-  glutin::{
+  glutin::event::{
     VirtualKeyCode::*,
     MouseButton as MB,
   },
