@@ -31,6 +31,7 @@ use {
 };
 
 const GRAVITY: f32 = 10.0;
+const TERMVEL: f32 = 15.0;
 
 pub struct PlayerInput;
 impl<'a> System<'a> for PlayerInput {
@@ -96,6 +97,7 @@ impl<'a> System<'a> for PlayerInput {
       }
       if handler.read_kb_single(KC::new(Space)) { // Jumping... is useless
         vel.0.y += 10.0;
+        if vel.0.y > TERMVEL { vel.0.y = TERMVEL }
         falling.insert(e, Falling).expect("Trying to set Falling flag.");
       }
       if handler.read_kb_single(KC::new(I)) {
@@ -125,6 +127,7 @@ impl<'a> System<'a> for ApplyGravity {
     for (_, v, _) in (&ents, &mut vel, &falling).join() {
       // println!("Applying gravity");
       v.0.y -= GRAVITY * delta;
+      if v.0.y < -TERMVEL { v.0.y = -TERMVEL }
     }
   }
 }
