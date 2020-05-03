@@ -60,7 +60,7 @@ pub struct InfoVars {
   padding: Vec<u32>,
   spacing: Vec<u32>,
 }
-fn get_info(tstr: &str) -> ( InfoVars ) {
+fn get_info(tstr: &str) -> InfoVars {
   let eofs = eof(tstr);
   match _get_info(&eofs) {
     Ok((_, result)) => { result }
@@ -71,7 +71,7 @@ fn get_info(tstr: &str) -> ( InfoVars ) {
     }}
   }
 }
-named!(_get_info<&str, ( InfoVars ) >,
+named!(_get_info<&str, InfoVars >,
   do_parse!(
     tag!("info") >> space >>
     tag!("face=\"") >> face: take_until!("\"") >> char!('"') >> space >>
@@ -117,7 +117,7 @@ fn get_common(tstr: &str) -> CommonVars {
     }}
   }
 }
-named!(_get_common<&str, ( CommonVars ) >,
+named!(_get_common<&str, CommonVars >,
   do_parse!(
     tag!("common") >> space >>
     tag!("lineHeight=") >> line_height: u32_digit >> space >>
@@ -151,7 +151,7 @@ fn get_page(tstr: &str) -> PageVars {
     }}
   }
 }
-named!(_get_page<&str, ( PageVars ) >,
+named!(_get_page<&str, PageVars >,
   do_parse!(
     tag!("page") >> space >>
     tag!("id=") >> id: u32_digit >> space >>
@@ -165,7 +165,7 @@ pub fn test_get_page() {
   println!("{:?}", test);
 }
 // chars count=95
-fn get_char_count(tstr: &str) -> ( u32 ) {
+fn get_char_count(tstr: &str) -> u32 {
   let eofs = eof(tstr);
   match _get_char_count(&eofs) {
     Ok((_, result)) => { result }
@@ -176,7 +176,7 @@ fn get_char_count(tstr: &str) -> ( u32 ) {
     }}
   }
 }
-named!(_get_char_count<&str, ( u32 ) >,
+named!(_get_char_count<&str, u32 >,
   do_parse!(
     tag!("chars") >> space >> tag!("count=") >> cnt: u32_digit >> ( cnt )
   )
@@ -211,7 +211,7 @@ fn get_char(tstr: &str) -> CharVars {
     }}
   }
 }
-named!(_get_char<&str, ( CharVars ) >,
+named!(_get_char<&str, CharVars >,
   do_parse!(
     tag!("char") >> space >>
     tag!("id=") >> id: u32_digit >> space >>
