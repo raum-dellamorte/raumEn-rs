@@ -143,6 +143,7 @@ fn gen_world() -> World {
   world.register::<GravPercent>();
   world.register::<JumpArc>();
   world.register::<InScene>();
+  world.register::<IsNearby>();
   world.register::<IsPlatform>();
   world.register::<IsTexMod>();
   world.register::<LightingName>();
