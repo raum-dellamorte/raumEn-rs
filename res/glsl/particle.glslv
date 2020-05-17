@@ -19,7 +19,7 @@ void main(void){
   texCoords /= rowCount;
   coordsA = texCoords + texOffsets.xy;
   coordsB = texCoords + texOffsets.zw;
-  blend = blendFactor;
+  blend = max(blendFactor, 0.5);
     
 	gl_Position = projection * view * vec4(pos, 0.0, 1.0);
 

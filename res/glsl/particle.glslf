@@ -17,6 +17,7 @@ void main(void){
   colour2.r = 1.0;
   
   outColor = mix(colour1, colour2, blend);
+  outColor = mix(outColor, vec4(1.0,1.0,1.0,1.0), 0.5);
   outColor.a = 1.0;
 
 }
