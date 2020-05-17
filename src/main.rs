@@ -189,7 +189,7 @@ fn main() {
   // test_noms();
   
   // Specify OpenGL version
-  let gl_request = glutin::GlRequest::Specific(glutin::Api::OpenGl, (4, 3));
+  let gl_request = glutin::GlRequest::Specific(glutin::Api::OpenGl, (3, 3));
   let gl_profile = glutin::GlProfile::Core;
   // Create a window
   let mut el = EventLoop::new();
