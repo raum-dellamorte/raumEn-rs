@@ -220,8 +220,9 @@ fn main() {
   let mut render_fnt = RenderFont::new();
   
   // time keeping
-  let mut fps: (f32, f32) = (1.0, 0.1);
-  let mut sec = 0.0;
+  let mut fps: f32 = 60.0;
+  let mut once_per_sec = false;
+  let mut clean_up_time = false;
   
   // Set up the world, which holds all the things,
   // and will be passed around...
@@ -310,6 +311,7 @@ fn main() {
   follow_player.dispatch(&world);
   
   let mut move_player = DispatcherBuilder::new()
+      .with(NearbyThings, "NearbyThings", &[])
       .with(PlayerInput, "PlayerInput", &[])
       .with(ApplyGravity, "ApplyGravity", &[])
       .with(ApplyRotation, "ApplyRotation", &[])
@@ -317,26 +319,13 @@ fn main() {
       .with(Collision, "Collision", &["UpdateDeltaVelocity", "ApplyGravity"])
       .with(UpdatePos, "UpdatePos", &["Collision"])
       .build();
-  
-  // let mut move_player = DispatcherBuilder::new()
-  //     .with_thread_local(PlayerInput)
-  //     .with_thread_local(ApplyGravity)
-  //     .with_thread_local(ApplyRotation)
-  //     .with_thread_local(UpdateDeltaVelocity)
-  //     .with_thread_local(Collision)
-  //     .with_thread_local(UpdatePos)
-  //     .build();
   move_player.setup(&mut world);
-  move_player.dispatch(&world);
-  
-  // world.create_entity()
-  //     .with()
+  // move_player.dispatch(&world);
   
   let mut terrain_draw = DispatcherBuilder::new()
       .with_thread_local(DrawPlatform)
       .build();
   terrain_draw.setup(&mut world);
-  
   // terrain_draw.dispatch(&world);
   
   let mut texmod_draw = DispatcherBuilder::new()
@@ -347,54 +336,47 @@ fn main() {
   // texmod_draw.dispatch(&world);
   // world.maintain();
   
-  let mut particle_update = DispatcherBuilder::new()
-      .with(UpdateParticles, "UpdateParticles", &[])
-      .build();
-  particle_update.setup(&mut world);
+  // let mut particle_update = DispatcherBuilder::new()
+  //     .with(UpdateParticles, "UpdateParticles", &[])
+  //     .build();
+  // particle_update.setup(&mut world);
   
-  let mut particle_draw = DispatcherBuilder::new()
-      .with_thread_local(DrawParticles)
-      .build();
-  particle_draw.setup(&mut world);
+  // let mut particle_draw = DispatcherBuilder::new()
+  //     .with_thread_local(DrawParticles)
+  //     .build();
+  // particle_draw.setup(&mut world);
   
   // particle_draw.dispatch(&world);
   // world.maintain();
   
-  let particle_rule = ParticleRules::default()
-    .set_texture("cosmic")
-    .set_tex_row_count(4)
-    .set_position(Vector3f::new(0.0,5.0,10.0))
-    .set_direction(crate::util::YVEC, 0.5)
-    .set_life_params(3.5, 0.5)
-    .set_speed_params(1.0, 0.1)
-    .set_scale_params(2.0, 0.5)
-    .set_parts_per_sec(20.0)
-  ;
+  // let particle_rule = ParticleRules::default()
+  //   .set_texture("cosmic")
+  //   .set_tex_row_count(4)
+  //   .set_position(Vector3f::new(0.0,10.0,0.0))
+  //   .set_direction(crate::util::YVEC, 0.5)
+  //   .set_life_params(3.5, 0.5)
+  //   .set_speed_params(1.0, 0.1)
+  //   .set_scale_params(2.0, 0.5)
+  //   .set_parts_per_sec(20.0)
+  // ;
   
   // Game loop!
   println!("Starting game loop.");
   el.run(move |event, _, control_flow| {
-    // *control_flow = ControlFlow::Wait;
-    {
-      let mut handler = world.write_resource::<Handler>();
-      handler.timer.tick();
-      handler.reset_delta();
-    }
-    
     match event {
-      Event::LoopDestroyed => {
-        println!("Cleaning Up...");
-        _fbo.clean_up();
-        _fbo_final.clean_up();
-        clean_up(&world);
-        render_hud.clean_up();
-        render_fnt.clean_up();
-        render_post.clean_up();
-        return
-      }
+      Event::LoopDestroyed => { println!("Event::LoopDestroyed"); return; }
       Event::WindowEvent { event, .. } => match event {
         WindowEvent::CloseRequested => {
-          *control_flow = ControlFlow::Exit
+          println!("Close Requested");
+          println!("Cleaning Up...");
+          _fbo.clean_up();
+          _fbo_final.clean_up();
+          clean_up(&world);
+          render_hud.clean_up();
+          render_fnt.clean_up();
+          render_post.clean_up();
+          clean_up_time = true;
+          *control_flow = ControlFlow::Exit;
         },
         WindowEvent::Resized(size) => {
           windowed_context.resize(size);
@@ -403,7 +385,14 @@ fn main() {
         _ => { world.write_resource::<Handler>().window_event(&event); }
       },
       DeviceEvent{ event, ..} => { world.write_resource::<Handler>().device_event(&event); }
-      Event::NewEvents( _time ) => {}
+      Event::NewEvents( _time ) => {
+        // Emitted when new events arrive from the OS to be processed.
+        // 
+        // This event type is useful as a place to put code that should be done before you start processing events, such 
+        // as updating frame timing information for benchmarking or checking the StartCause][crate::event::StartCause] to 
+        // see if a timer set by [ControlFlow::WaitUntil has elapse
+        // println!("Event::NewEvents");
+      }
       Event::MainEventsCleared => {
         // Emitted when all of the event loop's input events have been processed and redraw processing is about to begin.
         
@@ -412,6 +401,32 @@ fn main() {
         // of your event loop. 
         // If your program draws graphics, it's usually better to do it in response to Event::RedrawRequested, which gets 
         // emitted immediately after this event.
+        // println!("Event::MainEventsCleared");
+        
+        {
+          let mut handler = world.write_resource::<Handler>();
+          handler.timer.tick();
+          handler.reset_delta();
+          if handler.timer.once_per_sec() {
+            fps = handler.timer.fps;
+            once_per_sec = true;
+          }
+        }
+        if once_per_sec {
+          once_per_sec = false;
+          println!("Once per second FPS: {}", &format!("FPS: {:.3}", (fps * 1000.0).round() / 1000.0 ) );
+          let mut textmgr = world.write_resource::<TextMgr>();
+          textmgr.update_text(&world, "FPS", &format!("FPS: {:.3}", (fps * 1000.0).round() / 1000.0 ) );
+        }
+        
+        // *** Do per frame calculations such as movement
+        
+        // gen_particles(&mut world, &particle_rule);
+        // particle_update.dispatch(&world);
+        move_player.dispatch(&world);
+        follow_player.dispatch(&world);
+        // world.maintain();
+        windowed_context.window().request_redraw();
       }
       Event::RedrawRequested(_) => {
         // Emitted after MainEventsCleared when a window should be redrawn.
@@ -423,51 +438,35 @@ fn main() {
         
         // During each iteration of the event loop, Winit will aggregate duplicate redraw requests into a single event, 
         // to help avoid duplicating rendering work.
+        
+        
+        if clean_up_time { return; }
+        // *** Drawing phase
+        _fbo.bind();
+        prepare(&world);
+        terrain_draw.dispatch(&world);
+        texmod_draw.dispatch(&world);
+        // particle_draw.dispatch(&world);
+        world.maintain();
+        _fbo.unbind(&world);
+        _fbo.blit_to_fbo(&world, 0, &_fbo_final);
+        
+        // _fbo_final.blit_to_screen(&world);
+        render_post.render();
+        render_hud.render(&world);
+        render_fnt.render(&world);
+        // Write the new frame to the screen!
+        windowed_context.swap_buffers().unwrap();
       }
       Event::RedrawEventsCleared => {
         // Emitted after all RedrawRequested events have been processed and control flow is about to be taken away from 
         // the program. If there are no RedrawRequested events, it is emitted immediately after MainEventsCleared.
         
         // This event is useful for doing any cleanup or bookkeeping work after all the rendering tasks have been completed.
+        // println!("Event::RedrawEventsCleared");
       }
       e => println!("Other Event:\n{:?}", e)
     }
-    {
-      {
-        fps = world.read_resource::<Handler>().fps_and_delta();
-        sec += fps.1;
-      }
-      if sec >= 1.0 {
-        sec -= 1.0;
-        let mut textmgr = world.write_resource::<TextMgr>();
-        textmgr.update_text(&world, "FPS", &format!("FPS: {:.3}", (fps.0 * 1000.0).round() / 1000.0 ) );
-      }
-    }
-    // *** Do per frame calculations such as movement
-    
-    gen_particles(&mut world, &particle_rule);
-    particle_update.dispatch(&world);
-    move_player.dispatch(&world);
-    follow_player.dispatch(&world);
-    // world.maintain();
-    
-    // *** Drawing phase
-    _fbo.bind();
-    prepare(&world);
-    terrain_draw.dispatch(&world);
-    texmod_draw.dispatch(&world);
-    particle_draw.dispatch(&world);
-    world.maintain();
-    _fbo.unbind(&world);
-    _fbo.blit_to_fbo(&world, 0, &_fbo_final);
-    
-    // _fbo_final.blit_to_screen(&world);
-    render_post.render();
-    render_hud.render(&world);
-    render_fnt.render(&world);
-    // Write the new frame to the screen!
-    windowed_context.swap_buffers().unwrap();
-    // unsafe { Flush() };
   });
 }
 
