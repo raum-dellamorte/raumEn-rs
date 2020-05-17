@@ -20,6 +20,10 @@ pub struct Falling;
 
 #[derive(Default, Component)]
 #[storage(NullStorage)]
+pub struct IsNearby;
+
+#[derive(Default, Component)]
+#[storage(NullStorage)]
 pub struct InScene;
 
 #[derive(Default, Component)]
