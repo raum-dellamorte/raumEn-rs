@@ -32,6 +32,7 @@ use {
 
 const GRAVITY: f32 = 10.0;
 const TERMVEL: f32 = 15.0;
+const NEARBY: f32 = 50.0;
 
 pub struct PlayerInput;
 impl<'a> System<'a> for PlayerInput {
@@ -204,10 +205,11 @@ impl<'a> System<'a> for Collision {
                       WriteStorage<'a, PosAdjust>,
                       WriteStorage<'a, Falling>,
                       ReadStorage<'a, Platform>,
+                      ReadStorage<'a, IsNearby>,
                       ReadStorage<'a, ActivePlayer>,
                     );
   fn run(&mut self, data: Self::SystemData) {
-    let (handler, _nodes, ents, mut pos, dvel, mut vel, mut padj, mut falling, pform, player) = data;
+    let (handler, _nodes, ents, mut pos, dvel, mut vel, mut padj, mut falling, pform, isnearby, player) = data;
     let delta = handler.timer.delta; // 
     if delta < 0.0 || delta > 0.04 { return }
     for (e, p, dv, v, pa, _) in (&ents, &mut pos, &dvel, &mut vel, &mut padj, &player).join() {
@@ -218,9 +220,9 @@ impl<'a> System<'a> for Collision {
       let mut _t_size = &mut Vector3f::new(2.0, 0.0, 2.0);
       let _p1m = p.0 + _p_size;
       let _p2m = fpos + _p_size;
-      for _tile in (&pform).join() {
-        _t_size.y = _tile.d * 200.0;
-        let _t = _tile.pos;
+      for (ptile, _) in (&pform, &isnearby).join() {  //  ptile in (&pform).join()
+        _t_size.y = ptile.d * 200.0;
+        let _t = ptile.pos;
         let _tm = _t + *_t_size;
         let collided = terrain_collide(fpos, _p2m, _t, _tm);
         match collided {
@@ -287,6 +289,35 @@ impl<'a> System<'a> for UpdatePos {
       p.0 += dvel.0;
       p.0 += tvel.0;
       tvel.0.clear();
+    }
+  }
+}
+
+pub struct NearbyThings;
+impl<'a> System<'a> for NearbyThings {
+  type SystemData = (
+                      Entities<'a>,
+                      ReadStorage<'a, Platform>,
+                      ReadStorage<'a, Position>,
+                      WriteStorage<'a, IsNearby>,
+                      ReadStorage<'a, ActivePlayer>,
+                    );
+  fn run(&mut self, data: Self::SystemData) {
+    let (ent, platforms, position, mut nearby, player) = data;
+    let mut plyrpos = Vector3f::blank();
+    for (_e, _player, pos) in (&ent, &player, &position).join() {
+      plyrpos = pos.0;
+    }
+    for (e, platform) in (&ent, &platforms).join() {
+      let xdist = (plyrpos.x - (platform.pos.x + 1.0)).abs();
+      let zdist = (plyrpos.z - (platform.pos.z + 1.0)).abs();
+      let ydist = (plyrpos.y - platform.pos.y).abs();
+      let ydist2 = (plyrpos.y - (platform.pos.y + (platform.d * 200.0))).abs();
+      if (xdist < NEARBY && zdist < NEARBY) && (ydist < NEARBY || ydist2 < NEARBY) {
+        if nearby.get(e).is_none() { nearby.insert(e, IsNearby).expect("Failed to set IsNearby"); }
+      } else {
+        if nearby.get(e).is_some() { nearby.remove(e); }
+      }
     }
   }
 }
@@ -376,3 +407,5 @@ fn terrain_collide(player_min: Vector3f<f32>, player_max: Vector3f<f32>, terrain
     TerrainCollideType::None
   }
 }
+
+
