@@ -1,32 +1,134 @@
 
-use gl::*;
-use gl::types::{GLenum, GLuint, GLint, GLfloat, }; // GLchar, GLsizeiptr, GLboolean, 
-// use std::mem;
-use std::ptr;
-use std::str;
-use std::str::from_utf8;
-use std::ffi::CStr;
-use std::ffi::CString;
-use std::mem::transmute;
-// use cgmath::{Matrix, Matrix4, };
+use {
+  gl::{
+    *,
+    types::{GLenum, GLuint, GLint, GLfloat, }, // GLchar, GLsizeiptr, GLboolean, 
+  },
+  glsl::syntax::TranslationUnit,
+  std::{
+    ptr,
+    str,
+    str::from_utf8,
+    // mem,
+    // mem::transmute;
+    ffi::{CStr, CString, },
+    fs::File,
+    io::{BufReader, prelude::*, },
+    path::Path,
+  },
+  util::{
+    rmatrix::Matrix4f,
+    Vector2f, Vector3f, Quaternion, Arc, Mutex, HashSet, HashMap,
+  },
+};
 
-use std::fs::File;
-use std::io::BufReader;
-use std::io::prelude::*;
-use std::path::Path;
+pub struct ShaderConf {
+  pub name: String,
+  pub glsl_from_file: bool,
+  pub shader_types_used: ShaderTypesUsed,
+  pub shader_src: HashMap<GLenum, String>,
+  pub vars: Vec<ShaderVar>,
+  pub unis: Vec<ShaderUni>,
+}
+impl ShaderConf {
+  pub fn new(name: &str) -> Self {
+    Self {
+      name: name.to_string(), glsl_from_file: true,
+      shader_types_used: ShaderTypesUsed::default(),
+      shader_src: HashMap::new(), vars: Vec::new(), unis: Vec::new(),
+    }
+  }
+  pub fn with_translation_unit(self, _shader_type: GLenum, tu: TranslationUnit) -> Self {
+    let mut _slf = self;
+    let mut glsl_code = String::new();
+    glsl::transpiler::glsl::show_translation_unit(&mut glsl_code, &tu);
+    println!("GLSL Translation Unit Test:\n{}", glsl_code);
 
-use util::rmatrix::Matrix4f;
-use util::{ Vector2f, Vector3f, Vector4f, RefCell, HashSet };
+    _slf
+  }
+  pub fn with_geometry(self) -> Self {
+    let mut slf = self;
+    slf.shader_types_used.with_geometry();
+    slf
+  }
+  // pub fn with_tesselation(&mut self) -> &mut Self {
+  //   // TODO: Tessellation
+  //   self.shader_types_used.with_tess_control();
+  //   self.shader_types_used.with_tess_evaluation();
+  //   self
+  // }
+  pub fn with_compute(self) -> Self {
+    let mut slf = self;
+    slf.shader_types_used.with_compute();
+    slf
+  }
+  pub fn with_attributes_auto(self, names: Vec<&str>) -> Self {
+    let mut slf = self;
+    for (count, name) in names.into_iter().enumerate() {
+      slf = slf.with_attribute(name, count as u32);
+    }
+    slf
+  }
+  pub fn with_attributes(self, names: Vec<(&str, u32)>) -> Self {
+    let mut slf = self;
+    for (name, id) in names {
+      slf = slf.with_attribute(name, id);
+    }
+    slf
+  }
+  pub fn with_attribute(self, name: &str, layout_id: u32) -> Self {
+    let mut slf = self;
+    slf.vars.push(ShaderVar::new(name, layout_id));
+    slf
+  }
+  pub fn with_uniforms(self, names: Vec<&str>) -> Self {
+    let mut slf = self;
+    for name in names {
+      slf = slf.with_uniform(name);
+    }
+    slf
+  }
+  pub fn with_sampler_uniforms(self, names: Vec<(&str, GLint)>) -> Self {
+    let mut slf = self;
+    for (name, num) in names {
+      slf = slf.with_texture_uniform(name, num);
+    }
+    slf
+  }
+  pub fn with_uniforms_array(self, names: Vec<&str>, count: usize) -> Self {
+    let mut slf = self;
+    for name in names {
+      let mut i = 0;
+      while i < count {
+        slf = slf.with_uniform(&format!("{}[{}]", name, i));
+        i += 1;
+      }
+    }
+    slf
+  }
+  pub fn with_uniform(self, name: &str) -> Self {
+    let mut slf = self;
+    slf.unis.push(ShaderUni::new(name));
+    slf
+  }
+  pub fn with_texture_uniform(self, name: &str, texture: GLint) -> Self {
+    let mut slf = self;
+    let mut shuni = ShaderUni::new(name);
+    shuni.texture = texture;
+    slf.unis.push(shuni);
+    slf
+  }
+}
 
 pub struct ShaderVar {
     var_name: String,
-    var_id: GLint,
+    var_id: GLuint,
 }
 impl ShaderVar {
-  pub fn new(name: &str) -> Self {
+  pub fn new(name: &str, id: u32) -> Self {
     ShaderVar {
-      var_name: format!("{}", name),
-      var_id: -1 as GLint,
+      var_name: name.to_string(),
+      var_id: id,
     }
   }
 }
@@ -39,7 +141,7 @@ pub struct ShaderUni {
 impl ShaderUni {
   pub fn new(name: &str) -> Self {
     ShaderUni {
-      var_name: format!("{}", name),
+      var_name: name.to_string(),
       var_id: -1 as GLint,
       texture: -1 as GLint,
     }
@@ -52,7 +154,7 @@ pub struct ShaderOutputVar {
 }
 impl ShaderOutputVar {
   pub fn new(name: &str, loc: u32) -> Self {
-    let name = format!("{}", name);
+    let name = name.to_string();
     let cname = CString::new(name.as_bytes()).unwrap();
     ShaderOutputVar {
       var_name: cname,
@@ -69,40 +171,106 @@ pub struct ShaderSrc {
 
 impl ShaderSrc {
   pub fn new(kind: GLenum, id: GLuint, src: CString) -> Self {
-    ShaderSrc { kind: kind, id: id, src: src }
+    ShaderSrc { kind, id, src, }
   }
   pub fn kind(&self) -> &str {
     match self.kind {
       VERTEX_SHADER => { "Vertex" }
+      GEOMETRY_SHADER => { "Geometry" }
+      // TESS_CONTROL_SHADER => { "Tess Control" }
+      // TESS_EVALUATION_SHADER => { "Tess Evaluation" }
       FRAGMENT_SHADER => { "Fragment" }
+      COMPUTE_SHADER => { "Compute" }
       _ => { "Unknown" }
     }
   }
 }
 
+pub struct ShaderTypesUsed {
+  pub defaults: bool,
+  pub geometry: bool,
+  // pub tess_control: bool,
+  // pub tess_eval: bool,
+  pub compute: bool, 
+}
+impl Default for ShaderTypesUsed {
+  fn default() -> Self {
+    Self {
+      defaults: true,
+      geometry: false,
+      // tess_control: false,
+      // tess_eval: false,
+      compute: false,
+    }
+  }
+}
+impl ShaderTypesUsed {
+  pub fn with_geometry(&mut self) -> &mut Self {
+    self.defaults = true;
+    self.compute = false;
+    self.geometry = true;
+    self
+  }
+  // pub fn with_tess_control(&mut self) -> &mut Self {
+  //   // TODO: Tessellation
+  //   self
+  // }
+  // pub fn with_tess_evaluation(&mut self) -> &mut Self {
+  //   // TODO: Tessellation
+  //   self
+  // }
+  pub fn with_compute(&mut self) -> &mut Self {
+    self.defaults = false;
+    self.compute = true;
+    self.geometry = false;
+    // self.tess_control = false;
+    // self.tess_eval = false;
+    self
+  }
+}
+
 pub struct Shader {
-  pub name: String,
+  pub conf: ShaderConf,
   pub program: GLuint,
   pub done: bool,
   pub shaders: Vec<ShaderSrc>,
-  pub vars: Vec<ShaderVar>,
-  pub unis: Vec<ShaderUni>,
-  pub unis_unavailable: RefCell<HashSet<String>>,
+  unis_unavailable: Arc<Mutex<HashSet<String>>>,
 }
 
 impl Shader {
-  pub fn new(name: &str) -> Self {
-    Shader { 
-      name: format!("{}", name), program: 0, done: false,
-      shaders: Vec::new(), vars: Vec::new(), unis: Vec::new(), 
-      unis_unavailable: RefCell::new(HashSet::new()),
+  pub fn new(shader_conf: ShaderConf) -> Self {
+    Self {
+      conf: shader_conf, program: 0, done: false, shaders: Vec::new(),
+      unis_unavailable: Arc::new(Mutex::new(HashSet::new())),
     }
   }
-  pub fn load_defaults(&mut self) -> &mut Self {
-    self
-    .load_vert_shader()
-    .load_frag_shader()
-    .compile_shaders()
+  pub fn start(&self) { unsafe {
+    UseProgram(self.program);
+  }}
+  pub fn stop(&self) { unsafe {
+    UseProgram(0);
+  }}
+  pub fn clean_up(&self) { unsafe {
+    self.stop();
+    for shader in &self.shaders {
+      DetachShader(self.program, shader.id);
+      DeleteShader(shader.id);
+    }
+    DeleteProgram(self.program);
+  }}
+  pub fn setup(&mut self) -> &mut Self {
+    if self.conf.shader_types_used.defaults {
+      self.load_vert_shader();
+      if self.conf.shader_types_used.geometry {
+        self.load_geom_shader();
+      }
+      self.load_frag_shader();
+    } else if self.conf.shader_types_used.compute {
+      self.load_comp_shader();
+    } else {
+      panic!("Shader: shader_types_used in unsupported state. Not a Vertex -> .. -> Fragment chain or a Compute shader")
+    }
+    self.compile_shaders()
     .link()
     .gen_uniforms();
     self.start();
@@ -110,56 +278,11 @@ impl Shader {
     self.stop();
     self
   }
-  pub fn add_attributes(&mut self, names: Vec<&str>) -> &mut Self {
-    for name in names {
-      self.add_attribute(name);
-    }
-    self
-  }
-  pub fn add_attribute(&mut self, name: &str) -> &mut Self {
-    self.vars.push(ShaderVar::new(name));
-    self
-  }
-  pub fn add_uniforms(&mut self, names: Vec<&str>) -> &mut Self {
-    for name in names {
-      self.add_uniform(name);
-    }
-    self
-  }
-  pub fn add_sampler_uniforms(&mut self, names: Vec<(&str, GLint)>) -> &mut Self {
-    for (name, num) in names {
-      self.add_texture_uniform(name, num);
-    }
-    self
-  }
-  pub fn add_uniforms_array(&mut self, names: Vec<&str>, count: usize) -> &mut Self {
-    for name in names {
-      let mut i = 0;
-      while i < count {
-        self.add_uniform(&format!("{}[{}]", name, i));
-        i += 1;
-      }
-    }
-    self
-  }
-  pub fn add_uniform(&mut self, name: &str) -> &mut Self {
-    self.unis.push(ShaderUni::new(name));
-    self
-  }
-  pub fn add_texture_uniform(&mut self, name: &str, texture: GLint) -> &mut Self {
-    let mut shuni = ShaderUni::new(name);
-    shuni.texture = texture;
-    self.unis.push(shuni);
-    self
-  }
   pub fn bind_attributes(&mut self) -> &mut Self { unsafe {
-    let mut count = 0 as GLint;
     let mut cname;
-    for attrib in &mut self.vars {
+    for attrib in &mut self.conf.vars {
       cname = CString::new(attrib.var_name.as_bytes()).unwrap();
-      BindAttribLocation(self.program, count as GLuint, cname.as_ptr());
-      attrib.var_id = count;
-      count += 1;
+      BindAttribLocation(self.program, attrib.var_id, cname.as_ptr());
     }
     self
   }}
@@ -171,29 +294,26 @@ impl Shader {
     self
   }}
   pub fn connect_sampler_uniforms(&self) {
-    for uni in &self.unis {
+    for uni in &self.conf.unis {
       if uni.texture >= 0 { self.load_int(&uni.var_name, uni.texture); }
     }
   }
   pub fn gen_uniforms(&mut self) -> &mut Self {
     self.start();
-    for uniform in &mut self.unis {
+    for uniform in &mut self.conf.unis {
       uniform.var_id = get_uniform_location(self.program, &uniform.var_name);
     }
     self.stop();
     self
   }
   pub fn get_uniform_id(&self, name: &str) -> GLint {
-    for uni in &self.unis {
+    for uni in &self.conf.unis {
       if uni.var_name == name {
         return uni.var_id
       }
     }
     println!("Uniform name not found: {}", name);
     -1 as GLint
-  }
-  pub fn load_proj_mat(&self, matrix: &Matrix4f) {
-    self.load_matrix("u_Projection", matrix);
   }
   pub fn load_int(&self, name: &str, value: GLint) { unsafe {
     let id = self.get_uniform_id(name);
@@ -210,57 +330,48 @@ impl Shader {
     if self.check_id(id, name, "load_bool") { return }
     Uniform1f(id, if value { 1.0 as GLfloat } else { 0.0 as GLfloat })
   }}
-  pub fn load_vec_4f(&self, name: &str, vector: &Vector4f) { unsafe {
+  pub fn load_quaternion(&self, name: &str, quat: Quaternion<f32>) { unsafe {
     let id = self.get_uniform_id(name);
-    if self.check_id(id, name, "load_vec_4f") { return }
-    Uniform4f(id, vector.x, vector.y, vector.z, vector.w);
+    if self.check_id(id, name, "load_quaternion") { return }
+    Uniform4f(id, quat.w, quat.x, quat.y, quat.z);
   }}
-  pub fn load_vec_3f(&self, name: &str, vector: &Vector3f) { unsafe {
+  pub fn load_vec_3f(&self, name: &str, vector: Vector3f<f32>) { unsafe {
     let id = self.get_uniform_id(name);
     if self.check_id(id, name, "load_vec_3f") { return }
     Uniform3f(id, vector.x, vector.y, vector.z);
   }}
-  pub fn load_vec_2f(&self, name: &str, vector: &Vector2f) { unsafe {
+  pub fn load_vec_2f(&self, name: &str, vector: Vector2f<f32>) { unsafe {
     let id = self.get_uniform_id(name);
     if self.check_id(id, name, "load_vec_2f") { return }
     Uniform2f(id, vector.x, vector.y);
   }}
-  pub fn load_matrix(&self, name: &str, matrix: &Matrix4f) { unsafe {
+  pub fn load_matrix(&self, name: &str, matrix: &Matrix4f<f32>) { unsafe {
     let id = self.get_uniform_id(name);
     if self.check_id(id, name, "load_matrix") { return }
-    UniformMatrix4fv(id, 1, 0, transmute(&matrix.matrix[0]) );
-  }}
-  pub fn load_vert_shader(&mut self) -> &mut Self {
-    self.add_shader(VERTEX_SHADER)
-  }
-  pub fn load_frag_shader(&mut self) -> &mut Self {
-    self.add_shader(FRAGMENT_SHADER)
-  }
-  pub fn start(&self) { unsafe {
-    UseProgram(self.program);
-  }}
-  pub fn stop(&self) { unsafe {
-    UseProgram(0);
+    UniformMatrix4fv(id, 1, 0, &matrix.matrix[0] as *const f32 );
   }}
   fn check_id(&self, id: GLint, name: &str, caller: &str) -> bool {
-    let test = self.unis_unavailable.borrow().contains(name);
-    if test { return true } else {
-      if id < 0 { 
-        self.unis_unavailable.borrow_mut().insert(name.to_string());
-        println!("{}(): Uniform {} not available for shader {}", caller, name, self.name); 
-        return true;
-      }
+    let mut unis_unavailable = self.unis_unavailable.lock().unwrap();
+    let test = unis_unavailable.contains(name);
+    if test { return true } else if id < 0 { 
+      unis_unavailable.insert(name.to_string());
+      println!("{}(): Uniform {} not available for shader {}", caller, name, self.conf.name);
+      return true;
     }
     false
   }
-  pub fn clean_up(&self) { unsafe {
-    self.stop();
-    for shader in &self.shaders {
-      DetachShader(self.program, shader.id);
-      DeleteShader(shader.id);
-    }
-    DeleteProgram(self.program);
-  }}
+  fn load_vert_shader(&mut self) -> &mut Self {
+    self.add_shader(VERTEX_SHADER)
+  }
+  fn load_geom_shader(&mut self) -> &mut Self {
+    self.add_shader(GEOMETRY_SHADER)
+  }
+  fn load_frag_shader(&mut self) -> &mut Self {
+    self.add_shader(FRAGMENT_SHADER)
+  }
+  fn load_comp_shader(&mut self) -> &mut Self {
+    self.add_shader(COMPUTE_SHADER)
+  }
   pub fn add_shader(&mut self, shader_type: GLenum) -> &mut Self {
     if self.done { return self }
     let shader_id;
@@ -268,7 +379,7 @@ impl Shader {
       shader_id = CreateShader(shader_type);
     }
     assert!(shader_id != 0);
-    let path: &str = &format!("res/glsl/{}.{}", self.name, &get_ext(shader_type));
+    let path: &str = &format!("res/glsl/{}.{}", self.conf.name, &get_ext(shader_type));
     let src = match File::open(&Path::new(path)) {
       Ok(file) => {
         let mut buf = BufReader::new(file);
@@ -281,6 +392,7 @@ impl Shader {
     self.shaders.push(ShaderSrc::new(shader_type, shader_id, CString::new(src.as_bytes()).unwrap() ));
     self
   }
+  //noinspection ALL
   pub fn compile_shaders(&mut self) -> &mut Self { unsafe {
     if self.done { return self }
     for shader in &self.shaders {
@@ -289,20 +401,21 @@ impl Shader {
       ShaderSource(shader.id, 1, &shader.src.as_ptr(), ptr::null());
       CompileShader(shader.id);
       // Get the compile status
-      let mut status = FALSE as GLint;
+      let mut status = i32::from(FALSE);
       GetShaderiv(shader.id, COMPILE_STATUS, &mut status);
       // Fail on error
-      if status != (TRUE as GLint) {
+      if status != i32::from(TRUE) {
         println!("Shader compile failed.");
         let mut buffer = [0u8; 512];
         let mut length: i32 = 0;
         GetShaderInfoLog(shader.id, buffer.len() as i32, &mut length,
           buffer.as_mut_ptr() as *mut i8);
         println!("Compiler log (length: {}):\n{}", length,
-          from_utf8(CStr::from_ptr(transmute(&buffer)).to_bytes()).unwrap());
+          from_utf8(CStr::from_ptr(&buffer as *const [u8; 512] as *const i8).to_bytes()).unwrap());
       } else { println!("Shader compiled"); }
     }
   } self }
+  //noinspection ALL
   pub fn link(&mut self) -> &mut Self { unsafe {
     if self.done { return self }
     let program = CreateProgram();
@@ -318,19 +431,19 @@ impl Shader {
     LinkProgram(program);
     //ValidateProgram(program); // Maybe not needed?
     // Get the link status
-    let mut status = FALSE as GLint;
+    let mut status = i32::from(FALSE);
     GetProgramiv(program, LINK_STATUS, &mut status);
     // Fail on error
-    if status != (TRUE as GLint) {
+    if status != i32::from(TRUE) {
       println!("Program link failed. Program: {}", program);
       let mut buffer = [0u8; 512];
       let mut length: i32 = 0;
       GetProgramInfoLog(program, buffer.len() as i32, &mut length,
         buffer.as_mut_ptr() as *mut i8);
       println!("Linker log (length: {}):\n{}", length,
-        from_utf8(CStr::from_ptr(transmute(&buffer)).to_bytes()).unwrap());
+        from_utf8(CStr::from_ptr(&buffer as *const [u8; 512] as *const i8).to_bytes()).unwrap());
     } else {
-      println!("{} shader linked. Program: {}", self.name, program);
+      println!("{} shader linked. Program: {}", self.conf.name, program);
     }
     self.done = true;
     self
@@ -347,16 +460,35 @@ pub fn get_attrib_location(program: GLuint, name: &str) -> GLint {
 }
 pub fn get_uniform_location(program: GLuint, name: &str) -> GLint {
   let cname = CString::new(name.as_bytes()).unwrap();
-  let location = unsafe { GetUniformLocation(program, cname.as_ptr()) };
-  // if location < 0 {
-  //   println!("Failed to get uniform location: {}", name);
-  // }
-  location
+  unsafe { GetUniformLocation(program, cname.as_ptr()) }
 }
 pub fn get_ext(kind: GLenum) -> String {
   match kind {
     VERTEX_SHADER => { "glslv".to_string() }
+    GEOMETRY_SHADER => { "glslg".to_string() }
+    TESS_CONTROL_SHADER => { "glsltc".to_string() }    // TODO: Tessellation Control Shaders
+    TESS_EVALUATION_SHADER => { "glslte".to_string() } // TODO: Tessellation Evaluation Shaders
     FRAGMENT_SHADER => { "glslf".to_string() }
-    _ => panic!("Unknown Shader Type for file extension.")
+    COMPUTE_SHADER => { "glslc".to_string() }
+    _ => panic!("shader::get_ext(): Unknown Shader Type")
+  }
+}
+
+pub trait ShaderWrapper {
+  fn start(&self);
+  fn stop(&self);
+  fn load_bool(&self, name: &str, value: bool);
+  fn load_int(&self, name: &str, value: GLint);
+  fn load_float(&self, name: &str, value: GLfloat);
+  fn load_vec_2f(&self, name: &str, vector: Vector2f<f32>);
+  fn load_vec_3f(&self, name: &str, vector: Vector3f<f32>);
+  fn load_quaternion(&self, name: &str, quat: Quaternion<f32>);
+  fn load_matrix(&self, name: &str, matrix: &Matrix4f<f32>);
+  fn projection_name(&self) -> String;
+  fn update_projection(&self, mat: &Matrix4f<f32>) {
+    let proj: String = self.projection_name();
+    self.start();
+    self.load_matrix(&proj, mat);
+    self.stop();
   }
 }

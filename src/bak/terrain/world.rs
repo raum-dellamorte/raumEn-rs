@@ -7,6 +7,23 @@ const LOWER_BOUNDS: (f32, f32) = (-1000_f32, -1100_f32);
 use terrain::TerrainCoords;
 use terrain::TerrainCoords::ChunkLoc;
 
+use specs::{ReadStorage, System};
+use entities::position::{Position, Velocity};
+
+pub struct SpecsWorld;
+
+impl<'a> System<'a> for SpecsWorld {
+  type SystemData = ReadStorage<'a, Position>;
+  
+  fn run(&mut self, position: Self::SystemData) {
+    use specs::Join;
+    
+    for position in position.join() {
+      println!("Hello, {:?}", &position);
+    }
+  }
+}
+
 pub struct World {
   pub chunks: HashMap<TerrainCoords, Option<Box<Chunk>>>,
       base: f32,

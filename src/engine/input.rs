@@ -1,13 +1,13 @@
 
-use glutin::WindowEvent as WEvent;
-use glutin::DeviceEvent as DEvent;
-use glutin::KeyboardInput as KB;
-use glutin::MouseButton as MB;
-use glutin::ElementState::{Pressed, Released};
-use glutin::VirtualKeyCode as VKC;
-use glutin::ModifiersState as MKS;
+use glutin::event::WindowEvent as WEvent;
+use glutin::event::DeviceEvent as DEvent;
+use glutin::event::KeyboardInput as KB;
+use glutin::event::MouseButton as MB;
+use glutin::event::ElementState::{Pressed, Released};
+use glutin::event::VirtualKeyCode as VKC;
+use glutin::event::ModifiersState as MKS;
 
-use Timer;
+use engine::timer::Timer;
 use util::HashMap;
 
 pub struct Handler {
@@ -17,12 +17,16 @@ pub struct Handler {
   pub cursor_pos: Option<(f64, f64)>,
   pub cursor_delta: Option<(f64, f64)>,
 }
-
-impl Handler {
-  pub fn new() -> Self {
+impl Default for Handler {
+  fn default() -> Self {
     let mut timer = Timer::new();
     timer.tick();
-    Handler { timer: timer, kb: HashMap::new(), mouse: HashMap::new(), cursor_pos: None, cursor_delta: None }
+    Handler { timer, kb: HashMap::<String, bool>::new(), mouse: HashMap::<MB, bool>::new(), cursor_pos: None, cursor_delta: None }
+  }
+}
+impl Handler {
+  pub fn fps_and_delta(&self) -> (f32, f32) {
+    (self.timer.fps, self.timer.delta)
   }
   pub fn reset_delta(&mut self) {
     self.cursor_delta = None;
@@ -38,14 +42,14 @@ impl Handler {
       WEvent::MouseInput { state: Released, button: bttn, ..} => {
         self.mouse.insert(*bttn, false);
       }
-      WEvent::KeyboardInput { input: KB { virtual_keycode: Some(bttn), state: Pressed, modifiers: modkey, ..}, ..} => {
+      WEvent::KeyboardInput { input: KB { virtual_keycode: Some(bttn), state: Pressed, ..}, ..} => { // , modifiers: modkey deprecated
         // print!("{:?}-{}-{}-{}-{}", bttn, modkey.shift, modkey.ctrl, modkey.alt, modkey.logo);
-        self.kb.insert(key_code(&bttn, &modkey), true);
+        self.kb.insert(key_code(*bttn), true); // , *modkey
       }
-      WEvent::KeyboardInput { input: KB { virtual_keycode: Some(bttn), state: Released, modifiers: modkey, ..}, ..} => {
-        self.kb.insert(key_code(&bttn, &modkey), false);
+      WEvent::KeyboardInput { input: KB { virtual_keycode: Some(bttn), state: Released, ..}, ..} => { // , modifiers: modkey deprecated
+        self.kb.insert(key_code(*bttn), false); // , *modkey
       }
-      WEvent::AxisMotion { device_id: _, axis: _axis, value: _val } => {} // DeviceId(X(DeviceId(2)))
+      WEvent::AxisMotion { axis: _axis, value: _val, .. } => {} // DeviceId(X(DeviceId(2)))
       // e => println!("Window Event:\n  {:?}", e)
       _ => ()
     }
@@ -61,21 +65,24 @@ impl Handler {
       DEvent::Button { button: _bttn, state: Released } => {
         // println!("Button released: {}", bttn);
       }
+      // DEvent::ModifiersChanged(_mod_state) => {
+        
+      // }
       DEvent::Motion {..} => {}
       // e => println!("Device Event:\n{:?}", e)
       _ => ()
     }
   }
   pub fn read_kb_single(&mut self, kc: KeyCode) -> bool {
-    match self.kb.insert(key_code(&kc.key, &kc.modkey), false) {
-      Some(tf) => { return tf; },
-      None     => { return false; },
+    match self.kb.insert(key_code(kc.key), false) { // , kc.modkey
+      Some(tf) => { tf },
+      None     => { false },
     }
   }
   pub fn read_kb_multi(&self, kc: KeyCode) -> bool {
-    match self.kb.get(&key_code(&kc.key, &kc.modkey)) {
-      Some(&tf) => { return tf; },
-      None      => { return false; },
+    match self.kb.get(&key_code(kc.key)) { // , kc.modkey
+      Some(&tf) => { tf },
+      None      => { false },
     }
   }
   pub fn read_kb_single_any_of(&mut self, kcs: KeyCodes) -> bool {
@@ -87,7 +94,7 @@ impl Handler {
   }
   pub fn read_kb_multi_any_of(&self, kcs: KeyCodes) -> bool {
     for kc in kcs.keys {
-      if self.read_kb_multi(kc) { return true; }
+      if self.read_kb_multi(kc) { return true }
     }
     false
   }
@@ -96,14 +103,14 @@ impl Handler {
   }
   pub fn read_mouse_single(&mut self, key: MB) -> bool {
     match self.mouse.insert(key, false) {
-      Some(tf) => { return tf; },
-      None     => { return false; },
+      Some(tf) => { tf },
+      None     => { false },
     }
   }
   pub fn read_mouse_multi(&self, key: MB) -> bool {
     match self.mouse.get(&key) {
-      Some(&tf) => { return tf; },
-      None      => { return false; },
+      Some(&tf) => { tf },
+      None      => { false },
     }
   }
   pub fn clear_mouse_bttns(&mut self) {
@@ -117,27 +124,27 @@ pub struct KeyCode {
 impl KeyCode {
   pub fn new(key: VKC) -> Self {
     KeyCode {
-      key: key,
-      modkey: MKS {shift: false, ctrl: false, alt: false, logo: false},
+      key,
+      modkey: MKS::empty(),
     }
   }
   pub fn to_str(&self) -> String {
-    key_code(&self.key, &self.modkey)
+    key_code(self.key) // , self.modkey
   }
   pub fn shift(&mut self) -> &mut Self {
-    self.modkey.shift = true;
+    self.modkey.set(MKS::SHIFT, true);
     self
   }
   pub fn ctrl(&mut self) -> &mut Self {
-    self.modkey.ctrl = true;
+    self.modkey.set(MKS::CTRL, true);
     self
   }
   pub fn alt(&mut self) -> &mut Self {
-    self.modkey.alt = true;
+    self.modkey.set(MKS::ALT, true);
     self
   }
   pub fn logo(&mut self) -> &mut Self {
-    self.modkey.logo = true;
+    self.modkey.set(MKS::LOGO, true);
     self
   }
 }
@@ -155,7 +162,7 @@ impl KeyCodes {
   pub fn to_str_vec(&self) -> Vec<String> {
     let mut out = Vec::new();
     for key in &self.keys {
-      out.push(key_code(&key.key, &key.modkey));
+      out.push(key_code(key.key)); // , key.modkey
     }
     out
   }
@@ -208,6 +215,6 @@ impl KeyCodes {
     self
   }
 }
-pub fn key_code(bttn: &VKC, modkey: &MKS) -> String {
-  format!("{:?}-{}-{}-{}-{}", bttn, modkey.shift, modkey.ctrl, modkey.alt, modkey.logo)
+pub fn key_code(bttn: VKC) -> String { // , modkey: MKS
+  format!("{:?}", bttn) // -{}-{}-{}-{} , modkey.shift(), modkey.ctrl(), modkey.alt(), modkey.logo())
 }

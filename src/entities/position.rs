@@ -1,210 +1,220 @@
 
-use std::sync::{Arc, Mutex};
-
-use terrain::World;
-use util::{Matrix4f, RVec, Vector3f, XVEC, YVEC, ZVEC, modulo};
-
-const GRAVITY: f32 = 10.0;
+use {
+  crate::{
+    constants::*,
+    util::{
+      // Arc, Mutex, 
+      Matrix4f, 
+      // RVec, // to get len() of Vector
+      Vector3f, 
+      modulo
+    },
+  },
+};
 
 pub struct PosMarker {
-  pub pos: Vector3f,
-  pub new_pos: Vector3f,
-  pub near: Feelers,
-  pub far: Feelers,
+  pub pos: Vector3f<f32>,
+  pub new_pos: Vector3f<f32>,
+  // pub near: Feelers,
+  // pub far: Feelers,
   pub jump_arc: JumpArc,
   pub rx: f32,
   pub ry: f32,
   pub rz: f32,
   pub scale: f32,
   pub distance: f32,
-  pub grav: Grav,
-  pub trans_mat: Matrix4f,
+  // pub grav: Grav,
+  pub trans_mat: Matrix4f<f32>,
   pub moving: bool,
 }
-
+impl Default for PosMarker {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 impl PosMarker {
   pub fn new() -> Self {
     PosMarker {
       pos: Vector3f::blank(),
       new_pos: Vector3f::blank(),
-      near: Feelers::blank(),
-      far: Feelers::blank(),
+      // near: Feelers::blank(),
+      // far: Feelers::blank(),
       jump_arc: JumpArc::new(),
       rx: 0_f32,
       ry: 0_f32,
       rz: 0_f32,
       scale: 1_f32,
       distance: 0_f32,
-      grav: Grav {
-        dy: 0_f32,
-        upward: 0_f32,
-        fall: false,
-        time: 0_f32,
-        ypos0: 0_f32,
-        new_ground: 0_f32,
-        peak: 0_f32,
-      },
+      // grav: Grav {
+      //   dy: 0_f32,
+      //   upward: 0_f32,
+      //   fall: false,
+      //   time: 0_f32,
+      //   ypos0: 0_f32,
+      //   new_ground: 0_f32,
+      //   peak: 0_f32,
+      // },
       trans_mat: Matrix4f::new(),
       moving: false,
     }
   }
-  pub fn prep(&mut self, world: &mut Box<World>) {
-    let grav = &mut self.grav;
-    let (u, _) = world.bounds_under_v3f(&self.pos);
-    grav.new_ground = u;
-    if !grav.fall { grav.ypos0 = self.pos.y; }
-    self.new_pos.from_v3f(&self.pos);
-  }
+  // pub fn prep(&mut self, _world: &mut Box<World>) {
+  //   // let grav = &mut self.grav;
+  //   // let (u, _) = world.bounds_under_v3f(&self.pos);
+  //   // grav.new_ground = u;
+  //   // if !grav.fall { grav.ypos0 = self.pos.y; }
+  //   // self.new_pos.from_v3f(&self.pos);
+  // }
   pub fn move_to_new_pos(&mut self, rate: f32) {
     self.calc_fall(rate);
-    self.pos.from_v3f(&self.new_pos);
+    self.pos.copy_from_v3f(self.new_pos);
   }
-  pub fn move_forward(&mut self, world: &mut Box<World>, forward: bool) {
-    if self.moving { return }
+  // pub fn move_forward(&mut self, world: &mut Box<World>, forward: bool) {
+  //   if self.moving { return }
     
-    // store orig pos final pos and height
-    let dist = if forward { 2.0 } else { -2.0 };
-    let mut dest = self.pos.dist_rot_offset(dist, self.ry);
-    dest.y = world.bounds_under_v3f(&dest).0;
-    if (self.pos.y - dest.y).abs() > 5.0 { return }
-    self.jump_arc.init(&self.pos, &dest);
+  //   // store orig pos final pos and height
+  //   let dist = if forward { 2.0 } else { -2.0 };
+  //   let mut dest = self.pos.dist_rot_offset(dist, self.ry);
+  //   dest.y = world.bounds_under_v3f(&dest).0;
+  //   if (self.pos.y - dest.y).abs() > 5.0 { return }
+  //   self.jump_arc.init(&self.pos, &dest);
     
-    self.moving = true;
-  }
-  pub fn strafe(&mut self, world: &mut Box<World>, right: bool) {
-    if self.moving { return }
+  //   self.moving = true;
+  // }
+  // pub fn strafe(&mut self, world: &mut Box<World>, right: bool) {
+  //   if self.moving { return }
     
-    // store orig pos final pos and height
-    let dist = if right { 2.0 } else { -2.0 };
-    let mut dest = self.pos.dist_rot_offset(dist, (self.ry - 90.0).round() );
-    dest.y = world.bounds_under_v3f(&dest).0;
-    if (self.pos.y - dest.y).abs() > 5.0 { return }
-    self.jump_arc.init(&self.pos, &dest);
+  //   // store orig pos final pos and height
+  //   let dist = if right { 2.0 } else { -2.0 };
+  //   let mut dest = self.pos.dist_rot_offset(dist, (self.ry - 90.0).round() );
+  //   dest.y = world.bounds_under_v3f(&dest).0;
+  //   if (self.pos.y - dest.y).abs() > 5.0 { return }
+  //   self.jump_arc.init(&self.pos, &dest);
     
-    self.moving = true;
-  }
-  pub fn strafe_left(&mut self, world: &mut Box<World>) { self.strafe(world, false); }
-  pub fn strafe_right(&mut self, world: &mut Box<World>) { self.strafe(world, true); }
-  pub fn calc_move_arc(&mut self, world: &mut Box<World>, rate: f32) {
-    if self.moving {
-      // get orig pos final pos and height and add rate to percent of arc completion
-      self.pos.from_v3f(self.jump_arc.calc_pos(rate));
-      self.moving = !self.jump_arc.fin;
-    } else {
-      self.pos.x = self.pos.x.round();
-      self.pos.z = self.pos.z.round();
-      let y = world.bounds_under_v3f(&self.pos).0;
-      if y != self.pos.y {
-        if y < self.pos.y {
-          self.pos.y -= 10_f32 * rate;
-        } else {
-          self.pos.y = y;
-        }
-      }
-    }
-  }
-  pub fn forward(&mut self, speed: f32, rate: f32, world: &mut Box<World>) {
-    let dist = speed * rate;
-    self.near.update(world, &self.pos, self.ry, dist);
-    let fdist = if dist < 0.0 { -Feelers::DIST } else { Feelers::DIST };
-    self.far.update(world, &self.pos, self.ry, fdist);
+  //   self.moving = true;
+  // }
+  // pub fn strafe_left(&mut self, world: &mut Box<World>) { self.strafe(world, false); }
+  // pub fn strafe_right(&mut self, world: &mut Box<World>) { self.strafe(world, true); }
+  // pub fn calc_move_arc(&mut self, world: &mut Box<World>, rate: f32) {
+  //   if self.moving {
+  //     // get orig pos final pos and height and add rate to percent of arc completion
+  //     self.pos.from_v3f(self.jump_arc.calc_pos(rate));
+  //     self.moving = !self.jump_arc.fin;
+  //   } else {
+  //     self.pos.x = self.pos.x.round();
+  //     self.pos.z = self.pos.z.round();
+  //     let y = world.bounds_under_v3f(&self.pos).0;
+  //     if y != self.pos.y {
+  //       if y < self.pos.y {
+  //         self.pos.y -= 10_f32 * rate;
+  //       } else {
+  //         self.pos.y = y;
+  //       }
+  //     }
+  //   }
+  // }
+  // pub fn forward(&mut self, speed: f32, rate: f32, world: &mut Box<World>) {
+  //   let dist = speed * rate;
+  //   self.near.update(world, &self.pos, self.ry, dist);
+  //   let fdist = if dist < 0.0 { -Feelers::DIST } else { Feelers::DIST };
+  //   self.far.update(world, &self.pos, self.ry, fdist);
     
-    if self.grav.fall {
-      if self.near.can_move_forward() {
-        self.new_pos.xz_from_v3f(&self.near.forward);
-        self.new_pos.y = self.pos.y;
-        self.grav.new_ground = self.near.forward.y;
-      } else if !(self.near.can_move_left_45() && self.near.can_move_right_45()) {
-        if self.near.can_move_left_45() {
-          self.new_pos.xz_from_v3f(&self.near.left_45);
-          self.new_pos.y = self.pos.y;
-          self.grav.new_ground = self.near.left_45.y;
-        } else if self.near.can_move_right_45() {
-          self.new_pos.xz_from_v3f(&self.near.right_45);
-          self.new_pos.y = self.pos.y;
-          self.grav.new_ground = self.near.right_45.y;
-        } else {
+  //   if self.grav.fall {
+  //     if self.near.can_move_forward() {
+  //       self.new_pos.xz_from_v3f(&self.near.forward);
+  //       self.new_pos.y = self.pos.y;
+  //       self.grav.new_ground = self.near.forward.y;
+  //     } else if !(self.near.can_move_left_45() && self.near.can_move_right_45()) {
+  //       if self.near.can_move_left_45() {
+  //         self.new_pos.xz_from_v3f(&self.near.left_45);
+  //         self.new_pos.y = self.pos.y;
+  //         self.grav.new_ground = self.near.left_45.y;
+  //       } else if self.near.can_move_right_45() {
+  //         self.new_pos.xz_from_v3f(&self.near.right_45);
+  //         self.new_pos.y = self.pos.y;
+  //         self.grav.new_ground = self.near.right_45.y;
+  //       } else {
           
-        }
-      }
-    } else {
-      // Not falling
-      if self.near.can_move_forward() {
-        self.new_pos.from_v3f(&self.near.forward);
-        self.grav.new_ground = self.near.forward.y;
-      } else {
-        if self.far.can_jump_forward() {
-          // auto jump
-          self.jump();
-          self.new_pos.from_v3f(&self.near.center);
-        } else {
-          // strafe?
-          if !(self.near.can_move_left_45() && self.near.can_move_right_45()) {
-            if self.near.can_move_left_45() {
-              self.new_pos.xz_from_v3f(&self.near.left_45);
-              self.new_pos.y = self.pos.y;
-              self.grav.new_ground = self.near.left_45.y;
-            } else if self.near.can_move_right_45() {
-              self.new_pos.xz_from_v3f(&self.near.right_45);
-              self.new_pos.y = self.pos.y;
-              self.grav.new_ground = self.near.right_45.y;
-            } else {
+  //       }
+  //     }
+  //   } else {
+  //     // Not falling
+  //     if self.near.can_move_forward() {
+  //       self.new_pos.from_v3f(&self.near.forward);
+  //       self.grav.new_ground = self.near.forward.y;
+  //     } else {
+  //       if self.far.can_jump_forward() {
+  //         // auto jump
+  //         self.jump();
+  //         self.new_pos.from_v3f(&self.near.center);
+  //       } else {
+  //         // strafe?
+  //         if !(self.near.can_move_left_45() && self.near.can_move_right_45()) {
+  //           if self.near.can_move_left_45() {
+  //             self.new_pos.xz_from_v3f(&self.near.left_45);
+  //             self.new_pos.y = self.pos.y;
+  //             self.grav.new_ground = self.near.left_45.y;
+  //           } else if self.near.can_move_right_45() {
+  //             self.new_pos.xz_from_v3f(&self.near.right_45);
+  //             self.new_pos.y = self.pos.y;
+  //             self.grav.new_ground = self.near.right_45.y;
+  //           } else {
               
-            }
-          }
-        }
-      }
-    }
-  }
-  pub fn calc_fall(&mut self, rate: f32){
-    let ht = self.new_pos.y;
-    let grav = &mut self.grav;
-    let ground = grav.new_ground;
-    // let prev_dy = grav.dy;
-    if !grav.fall && ht > ground {
-      grav.fall = true;
-    }
-    if grav.fall && ht < ground {
-      grav.fall = false;
-      grav.dy = 0.0;
-      grav.upward = 0.0;
-      grav.time = 0.0;
-      self.new_pos.y = ground;
-    } else if grav.fall && ht >= ground {
-      // falling
-      grav.time += rate;
-      let last_dy = grav.dy;
-      grav.dy = (grav.upward * grav.time) - (GRAVITY * grav.time * grav.time);
-      if grav.dy < last_dy && grav.peak == 0.0 { grav.peak = last_dy; println!("Jump Peak {}", grav.peak); }
-      // println!("grav.dy {}", grav.dy);
-      self.new_pos.y = grav.ypos0 + grav.dy;
-      if self.new_pos.y < ground {
-        grav.fall = false;
-        grav.dy = 0.0;
-        grav.upward = 0.0;
-        grav.time = 0.0;
-        self.new_pos.y = ground;
-      }
-    }
+  //           }
+  //         }
+  //       }
+  //     }
+  //   }
+  // }
+  pub fn calc_fall(&mut self, _rate: f32){
+    // let ht = self.new_pos.y;
+    // let grav = &mut self.grav;
+    // let ground = grav.new_ground;
+    // // let prev_dy = grav.dy;
+    // if !grav.fall && ht > ground {
+    //   grav.fall = true;
+    // }
+    // if grav.fall && ht < ground {
+    //   grav.fall = false;
+    //   grav.dy = 0.0;
+    //   grav.upward = 0.0;
+    //   grav.time = 0.0;
+    //   self.new_pos.y = ground;
+    // } else if grav.fall && ht >= ground {
+    //   // falling
+    //   grav.time += rate;
+    //   let last_dy = grav.dy;
+    //   grav.dy = (grav.upward * grav.time) - (GRAVITY * grav.time * grav.time);
+    //   if grav.dy < last_dy && grav.peak == 0.0 { grav.peak = last_dy; println!("Jump Peak {}", grav.peak); }
+    //   // println!("grav.dy {}", grav.dy);
+    //   self.new_pos.y = grav.ypos0 + grav.dy;
+    //   if self.new_pos.y < ground {
+    //     grav.fall = false;
+    //     grav.dy = 0.0;
+    //     grav.upward = 0.0;
+    //     grav.time = 0.0;
+    //     self.new_pos.y = ground;
+    //   }
+    // }
   }
   pub fn jump(&mut self) {
-    if !self.grav.fall {
-      self.grav.upward = GRAVITY * 1.35;
-      self.grav.fall = true;
-      self.grav.peak = 0.0;
-    }
+    // if !self.grav.fall {
+    //   self.grav.upward = GRAVITY * 1.35;
+    //   self.grav.fall = true;
+    //   self.grav.peak = 0.0;
+    // }
   }
-  pub fn transformation(&mut self) -> &Matrix4f {
+  pub fn transformation(&mut self) -> &Matrix4f<f32> {
     self.calc_transformation();
     &self.trans_mat
   }
   fn calc_transformation(&mut self) {
     self.trans_mat.set_identity();
-    self.trans_mat.translate_v3f(&self.pos);
-    self.trans_mat.rotate(self.rx.to_radians(), &XVEC);
-    self.trans_mat.rotate(self.ry.to_radians(), &YVEC);
-    self.trans_mat.rotate(self.rz.to_radians(), &ZVEC);
-    self.trans_mat.scale(&Vector3f::new(self.scale, self.scale, self.scale));
+    self.trans_mat.translate_v3f(self.pos);
+    self.trans_mat.rotate(self.rx.to_radians(), XVEC);
+    self.trans_mat.rotate(self.ry.to_radians(), YVEC);
+    self.trans_mat.rotate(self.rz.to_radians(), ZVEC);
+    self.trans_mat.scale(Vector3f::new(self.scale, self.scale, self.scale));
   }
   pub fn inc_rot(&mut self, dx: f32, dy: f32, dz: f32) {
     let rx = &mut self.rx; let ry = &mut self.ry; let rz = &mut self.rz;
@@ -234,19 +244,19 @@ pub struct Grav {
 }
 
 pub struct Feelers {
-  pub center: Vector3f,
-  pub forward: Vector3f,
-  pub left_45: Vector3f,
-  pub right_45: Vector3f,
-  pub left_90: Vector3f,
-  pub right_90: Vector3f,
-  pub left_135: Vector3f,
-  pub right_135: Vector3f,
-  pub backward: Vector3f,
+  pub center: Vector3f<f32>,
+  pub forward: Vector3f<f32>,
+  pub left_45: Vector3f<f32>,
+  pub right_45: Vector3f<f32>,
+  pub left_90: Vector3f<f32>,
+  pub right_90: Vector3f<f32>,
+  pub left_135: Vector3f<f32>,
+  pub right_135: Vector3f<f32>,
+  pub backward: Vector3f<f32>,
   pub ry: f32,
 }
 impl Feelers {
-  const DIST: f32 = 2.0;
+  // const DIST: f32 = 2.0;
   pub fn blank() -> Self {
     Self {
       center: Vector3f::blank(),
@@ -261,72 +271,60 @@ impl Feelers {
       ry: 0.0,
     }
   }
-  pub fn update(&mut self, world: &mut Box<World>, pos: &Vector3f, ry: f32, dist: f32) { // + is left! - is right! Turns are Counter-Clockwise!
-    self.center.from_v3f(pos);
-    self.forward.xz_from_dist_rot_offset(&self.center, dist, ry);
-    self.left_45.xz_from_dist_rot_offset(&self.center, dist, modulo(ry + 45.0, 360.0));
-    self.right_45.xz_from_dist_rot_offset(&self.center, dist, modulo(ry - 45.0, 360.0));
-    self.left_90.xz_from_dist_rot_offset(&self.center, dist, modulo(ry + 90.0, 360.0));
-    self.right_90.xz_from_dist_rot_offset(&self.center, dist, modulo(ry - 90.0, 360.0));
-    self.left_135.xz_from_dist_rot_offset(&self.center, dist, modulo(ry + 135.0, 360.0));
-    self.right_135.xz_from_dist_rot_offset(&self.center, dist, modulo(ry - 135.0, 360.0));
-    self.backward.xz_from_dist_rot_offset(&self.center, dist, modulo(ry - 180.0, 360.0));
-    self.ry = ry;
+  // pub fn update(&mut self, world: &mut Box<World>, pos: Vector3f<f32>, ry: f32, dist: f32) { // + is left! - is right! Turns are Counter-Clockwise!
+  //   self.center.from_v3f(pos);
+  //   self.forward.xz_from_dist_rot_offset(&self.center, dist, ry);
+  //   self.left_45.xz_from_dist_rot_offset(&self.center, dist, modulo(ry + 45.0, 360.0));
+  //   self.right_45.xz_from_dist_rot_offset(&self.center, dist, modulo(ry - 45.0, 360.0));
+  //   self.left_90.xz_from_dist_rot_offset(&self.center, dist, modulo(ry + 90.0, 360.0));
+  //   self.right_90.xz_from_dist_rot_offset(&self.center, dist, modulo(ry - 90.0, 360.0));
+  //   self.left_135.xz_from_dist_rot_offset(&self.center, dist, modulo(ry + 135.0, 360.0));
+  //   self.right_135.xz_from_dist_rot_offset(&self.center, dist, modulo(ry - 135.0, 360.0));
+  //   self.backward.xz_from_dist_rot_offset(&self.center, dist, modulo(ry - 180.0, 360.0));
+  //   self.ry = ry;
     
-    self.forward.y = world.bounds_under_v3f(&self.forward).0;
-    self.left_45.y = world.bounds_under_v3f(&self.left_45).0;
-    self.right_45.y = world.bounds_under_v3f(&self.right_45).0;
-    self.left_90.y = world.bounds_under_v3f(&self.left_90).0;
-    self.right_90.y = world.bounds_under_v3f(&self.right_90).0;
-    self.left_135.y = world.bounds_under_v3f(&self.left_135).0;
-    self.right_135.y = world.bounds_under_v3f(&self.right_135).0;
-    self.backward.y = world.bounds_under_v3f(&self.backward).0;
-  }
+  //   self.forward.y = world.bounds_under_v3f(&self.forward).0;
+  //   self.left_45.y = world.bounds_under_v3f(&self.left_45).0;
+  //   self.right_45.y = world.bounds_under_v3f(&self.right_45).0;
+  //   self.left_90.y = world.bounds_under_v3f(&self.left_90).0;
+  //   self.right_90.y = world.bounds_under_v3f(&self.right_90).0;
+  //   self.left_135.y = world.bounds_under_v3f(&self.left_135).0;
+  //   self.right_135.y = world.bounds_under_v3f(&self.right_135).0;
+  //   self.backward.y = world.bounds_under_v3f(&self.backward).0;
+  // }
   pub fn can_jump_forward(&self) -> bool {
-    if self.center.y < self.forward.y {
-      if self.forward.y < 5.0 + self.center.y {
-        return true
-      }
+    if self.center.y < self.forward.y && self.forward.y < 5.0 + self.center.y {
+      return true
     }
     false
   }
   pub fn can_move_forward(&self) -> bool {
-    if self.center.y >= self.forward.y {
-      if self.center.y < 50.0 + self.forward.y {
-        return true
-      }
+    if self.center.y >= self.forward.y && self.center.y < 50.0 + self.forward.y {
+      return true
     }
     false
   }
   pub fn can_move_left_45(&self) -> bool {
-    if self.center.y >= self.left_45.y {
-      if self.center.y < 50.0 + self.left_45.y {
-        return true
-      }
+    if self.center.y >= self.left_45.y && self.center.y < 50.0 + self.left_45.y {
+      return true
     }
     false
   }
   pub fn can_move_right_45(&self) -> bool {
-    if self.center.y >= self.right_45.y {
-      if self.center.y < 50.0 + self.right_45.y {
-        return true
-      }
+    if self.center.y >= self.right_45.y && self.center.y < 50.0 + self.right_45.y {
+      return true
     }
     false
   }
   pub fn can_move_left_90(&self) -> bool {
-    if self.center.y >= self.left_45.y {
-      if self.center.y < 50.0 + self.left_45.y {
-        return true
-      }
+    if self.center.y >= self.left_45.y && self.center.y < 50.0 + self.left_45.y {
+      return true
     }
     false
   }
   pub fn can_move_right_90(&self) -> bool {
-    if self.center.y >= self.right_45.y {
-      if self.center.y < 50.0 + self.right_45.y {
-        return true
-      }
+    if self.center.y >= self.right_45.y && self.center.y < 50.0 + self.right_45.y {
+      return true
     }
     false
   }
@@ -334,11 +332,16 @@ impl Feelers {
 
 #[derive(Debug)]
 pub struct JumpArc {
-  pub orig: Vector3f,
-  pub dest: Vector3f,
-  pub current: Vector3f,
+  pub orig: Vector3f<f32>,
+  pub dest: Vector3f<f32>,
+  pub current: Vector3f<f32>,
   pub time: f32,
   pub fin: bool,
+}
+impl Default for JumpArc {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 impl JumpArc {
   const PEAK: f32 = 3.0;
@@ -352,23 +355,23 @@ impl JumpArc {
       fin: true,
     }
   }
-  pub fn init(&mut self, _orig: &Vector3f, _dest: &Vector3f) {
+  pub fn init(&mut self, _orig: Vector3f<f32>, _dest: Vector3f<f32>) {
     {
       let (orig, dest, time) = (&mut self.orig, &mut self.dest, &mut self.time);
       *time = 0_f32;
-      orig.from_v3f(_orig);
-      dest.from_v3f(_dest);
+      orig.copy_from_v3f(_orig);
+      dest.copy_from_v3f(_dest);
       self.fin = false;
     }
     println!("JumpArc\n{:?}", self);
   }
-  pub fn calc_pos(&mut self, delta: f32) -> &Vector3f {
+  pub fn calc_pos(&mut self, delta: f32) -> Vector3f<f32> {
     if !self.fin {
-      let (orig, dest, current, time) = (&self.orig, &self.dest, &mut self.current, &mut self.time);
+      let (orig, dest, mut current, time) = (self.orig, self.dest, self.current, &mut self.time);
       *time += 5_f32 * delta;
       if *time >= Self::JUMPTIME {
         *time = Self::JUMPTIME;
-        current.from_v3f(dest);
+        current.copy_from_v3f(dest);
         self.fin = true;
       } else {
         let percent = *time / Self::JUMPTIME;
@@ -378,6 +381,6 @@ impl JumpArc {
         current.y = y + (Self::PEAK * if percent < 0.5 { percent * 2.0 } else { (1.0 - percent) * 2.0 });
       }
     }
-    &self.current
+    self.current
   }
 }

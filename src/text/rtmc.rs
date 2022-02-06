@@ -1,10 +1,15 @@
 
 
-
-use GameMgr;
-use text::{RChar, RLine, RWord, RTextMesh, NEWLINE_ASCII, SPACE_ASCII, LINE_HEIGHT, }; // RFontType, 
-use text::guitext::GuiTextVals;
-use text::metafile::MetaFile;
+use {
+  crate::{
+    text::{
+      // RFontType, 
+      RChar, RLine, RWord, RTextMesh, NEWLINE_ASCII, SPACE_ASCII, LINE_HEIGHT, 
+      guitext::GuiTextVals,
+      metafile::MetaFile,
+    },
+  }
+};
 
 #[derive(Debug)]
 pub struct RTextMeshCreator {
@@ -22,9 +27,8 @@ impl RTextMeshCreator {
       metadata: MetaFile::new(aspect_ratio, file),
     }
   }
-  pub fn update_size(&mut self, mgr: Box<GameMgr>) -> Box<GameMgr> {
-    self.metadata.update_size(mgr.aspect_ratio());
-    mgr
+  pub fn update_size(&mut self) {
+    self.metadata.update_size();
   }
   pub fn create_text_mesh(&mut self, text: &mut GuiTextVals) -> RTextMesh {
     let lines: Vec<RLine> = self.create_structure(text);
@@ -55,7 +59,7 @@ impl RTextMeshCreator {
     let mut current_line = RLine::new(self.metadata.space_width, text.font_size, text.line_max_size);
     let mut current_word = Some(RWord::new(text.font_size));
     for chr in chars {
-      let ascii = *chr as u32;
+      let ascii = u32::from(*chr);
       if (ascii == self.space_ascii) || (ascii == self.newline_ascii) {
         current_word = current_line.try_add_word(&mut current_word);
         if current_word.is_some() || ascii == self.newline_ascii {
@@ -84,7 +88,7 @@ impl RTextMeshCreator {
       current_line.try_add_word(&mut current_word);
     }
     lines.push(current_line);
-    return lines
+    lines
   }
 }
 fn add_verts_for_char(verts: &mut Vec<f32>, x_curser: f32, y_curser: f32, rchar: &RChar, font_size: f32) {

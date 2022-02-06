@@ -1,5 +1,7 @@
 target
 
 .idea/
+.DS_Store
 *.lock
 raumEn-rs.iml
+.vscode/settings.json

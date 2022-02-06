@@ -1,29 +1,28 @@
 
-use gl::*;
-// use gl::types::{GLuint, }; // GLfloat, GLenum, GLint, GLchar, GLsizeiptr, GLboolean, 
-use CVOID;
-
-// use Camera;
-use entities::PosMarker;
-use {GameMgr, Shader, Texture};
-use model::RawModel;
-// use Lights;
-use shader::gen_fog_shader;
-use text::{TextMgr, RFontType};
-use util::{Vector3f, Vector2f, HashMap, HashSet, Arc, Mutex}; // Vector2f, Vector4f, RVertex, RVertex2D
+use {
+  gl::*,
+  crate::{
+    ecs::resource::{
+      Texture,
+    },
+    shader::{
+      Shader,
+      gen_fog_shader,
+    }, 
+  },
+};
 
 pub struct RenderPostProc {
   pub shader: Shader,
   pub quad_id: u32,
   pub textures: Vec<Texture>,
 }
-
 impl RenderPostProc {
   pub fn new(effect: &str, quad_id: u32, textures: Vec<Texture>) -> Self {
     Self {
       shader: gen_fog_shader(effect),
-      quad_id: quad_id,
-      textures: textures,
+      quad_id,
+      textures,
     }
   }
   pub fn render(&self) {
@@ -55,10 +54,9 @@ impl RenderPostProc {
         // all the glsl variable connections I need.
         
         // Texture!
+        use util::rgl::r_bind_texture;
         for tex in &self.textures {
-          let unit = if tex.tex_unit < 0 { 0_u32 } else { tex.tex_unit as u32 };
-          ActiveTexture(TEXTURE0 + unit);
-          BindTexture(TEXTURE_2D, tex.tex_id);
+          r_bind_texture(tex);
         }
         
         // // Shader Vars!
