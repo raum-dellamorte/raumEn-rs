@@ -91,9 +91,9 @@ impl Bounds {
       if x_len > z_len {
         // If x is longer than z we hit the xy plane
         if min_z {
-          self.overlap.push((ent, crate::util::ZVEC));
+          self.overlap.push((ent, crate::constants::ZVEC));
         } else {
-          self.overlap.push((ent, -crate::util::ZVEC));
+          self.overlap.push((ent, -crate::constants::ZVEC));
         }
       } else {
         // Otherwise we hit the yz plane

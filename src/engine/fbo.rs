@@ -7,8 +7,8 @@ use {
     //   GLuint, 
     // },
   },
-  specs::{World, WorldExt, },
-  Display,
+  // specs::{World, WorldExt, },
+  DISPLAY,
   util::{
     rgl::*,
     // Rc, RefCell,
@@ -45,8 +45,8 @@ pub struct Fbo {
 }
 
 impl Fbo {
-  pub fn new(world: &World, width: i32, height: i32, color_type: ColorType, depth_type: DepthType) -> Self {
-    let (w, h) = world.read_resource::<Display>().dimensions();
+  pub fn new(width: i32, height: i32, color_type: ColorType, depth_type: DepthType) -> Self {
+    let (w, h) = DISPLAY.lock().unwrap().dimensions();
     let mut out = Fbo {
       width: if width == 0 { w as i32 } else { width },
       height: if height == 0 { h as i32 } else { height },
@@ -77,7 +77,7 @@ impl Fbo {
         DepthRenderBuffer => { _self.create_depth_buffer_attachment(); }
         NoDepth => {}
       }
-      _self.unbind(world);
+      _self.unbind();
       _self.active = true;
     }
     out
@@ -95,9 +95,8 @@ impl Fbo {
     BindFramebuffer(DRAW_FRAMEBUFFER, self.frame_buffer_id);
     Viewport(0, 0, self.width, self.height);
   }}
-  pub fn unbind(&self, world: &World) { unsafe {
-    let display = world.read_resource::<Display>();
-    let (w, h) = display.dimensions();
+  pub fn unbind(&self) { unsafe {
+    let (w, h) = DISPLAY.lock().unwrap().dimensions();
     BindFramebuffer(FRAMEBUFFER, 0);
     Viewport(0, 0, w as i32, h as i32);
   }}
@@ -106,20 +105,20 @@ impl Fbo {
     BindFramebuffer(READ_FRAMEBUFFER, self.frame_buffer_id);
     ReadBuffer(COLOR_ATTACHMENT0);
   }}
-  pub fn blit_to_fbo(&self, world: &World, color_attachment: u32, other: &Self) { unsafe {
+  pub fn blit_to_fbo(&self, color_attachment: u32, other: &Self) { unsafe {
     BindFramebuffer(DRAW_FRAMEBUFFER, other.frame_buffer_id);
     BindFramebuffer(READ_FRAMEBUFFER, self.frame_buffer_id);
     ReadBuffer(COLOR_ATTACHMENT0 + color_attachment);
     BlitFramebuffer(0, 0, self.width, self.height, 0, 0, other.width, other.height, 
         COLOR_BUFFER_BIT | DEPTH_BUFFER_BIT, NEAREST);
-    self.unbind(world);
+    self.unbind();
   }}
-  pub fn blit_to_screen(&self, world: &World) { unsafe {
-    let (w, h) = world.read_resource::<Display>().dimensions();
+  pub fn blit_to_screen(&self) { unsafe {
+    let (w, h) = DISPLAY.lock().unwrap().dimensions();
     BindFramebuffer(DRAW_FRAMEBUFFER, 0);
     BindFramebuffer(READ_FRAMEBUFFER, self.frame_buffer_id);
     BlitFramebuffer(0, 0, self.width, self.height, 0, 0, w as i32, h as i32, COLOR_BUFFER_BIT, NEAREST);
-    self.unbind(world);
+    self.unbind();
   }}
   fn create_frame_buffer(&mut self) { unsafe {
     let id = r_gen_framebuffers();

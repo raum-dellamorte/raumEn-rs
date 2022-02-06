@@ -1,12 +1,14 @@
 
 use {
-  util::{
-    // Arc, Mutex, 
-    Matrix4f, 
-    // RVec, // to get len() of Vector
-    Vector3f, 
-    XVEC, YVEC, ZVEC, 
-    modulo
+  crate::{
+    constants::*,
+    util::{
+      // Arc, Mutex, 
+      Matrix4f, 
+      // RVec, // to get len() of Vector
+      Vector3f, 
+      modulo
+    },
   },
 };
 

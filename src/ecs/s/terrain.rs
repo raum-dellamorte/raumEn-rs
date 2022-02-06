@@ -21,7 +21,7 @@ use {
       rgl::*, 
       // Vector3f, 
     },
-    ViewMatrix,
+    DISPLAY,
     shader::TerrainShader,
   },
 };
@@ -41,7 +41,10 @@ impl<'a> System<'a> for DrawPlatform {
     let mut texture: &Texture = &data.textures.0.get(last_texture)
         .unwrap_or_else(|| panic!("DrawPlatform: No such Texture :{}", last_texture));
     shader.start();
-    shader.load_matrix("u_View", &(*data.view).view);
+    {
+      let view = DISPLAY.lock().unwrap().camera.view_mat;
+      shader.load_matrix("u_View", &view);
+    }
     // shader.load_vec_3f("light_pos", &(*light).pos); // Unimplemented
     // shader.load_vec_3f("light_color", &(*light).color);
     r_bind_vaa_3(model.vao_id);
@@ -78,7 +81,6 @@ impl<'a> System<'a> for DrawPlatform {
 #[derive(SystemData)]
 pub struct DrawPlatformData<'a> {
   pub shader:    Read<'a, TerrainShader>, 
-  pub view:      Read<'a, ViewMatrix>,
   pub models:    Read<'a, Models>, 
   pub textures:  Read<'a, Textures>, 
   pub lightings: Read<'a, Lightings>, 

@@ -19,6 +19,7 @@ extern crate rand;
 extern crate noise;
 extern crate specs;
 #[macro_use] extern crate specs_derive;
+#[macro_use] extern crate lazy_static;
 // extern crate shred;
 // #[macro_use]
 // extern crate shred_derive;
@@ -32,7 +33,32 @@ pub mod render;
 pub mod shader;
 pub mod text;
 pub mod util;
+pub mod constants {
+  use {
+    crate::{
+      util::{
+        Mutex, Vector3f, 
+      },
+    },
+  };
+  
+  pub const XVEC: Vector3f<f32> = Vector3f {x: 1.0_f32, y: 0.0_f32, z: 0.0_f32};
+  pub const YVEC: Vector3f<f32> = Vector3f {x: 0.0_f32, y: 1.0_f32, z: 0.0_f32};
+  pub const ZVEC: Vector3f<f32> = Vector3f {x: 0.0_f32, y: 0.0_f32, z: 1.0_f32};
+  pub const XVEC64: Vector3f<f64> = Vector3f {x: 1.0_f64, y: 0.0_f64, z: 0.0_f64};
+  pub const YVEC64: Vector3f<f64> = Vector3f {x: 0.0_f64, y: 1.0_f64, z: 0.0_f64};
+  pub const ZVEC64: Vector3f<f64> = Vector3f {x: 0.0_f64, y: 0.0_f64, z: 1.0_f64};
+  pub const GRAVITY: f32 = 10.0;
+  pub const TERMVEL: f32 = 15.0;
+  pub const NEARBY: f32 = 50.0;
+  pub const TOLERANCE64: f32 = 0.00001;
 
+  lazy_static!{
+    pub static ref DISPLAY: Mutex<crate::engine::Display> = Mutex::new(crate::engine::Display::default());
+  }
+}
+
+#[allow(unused_imports)]
 use {
   gl::*,
   glutin::{
@@ -45,6 +71,7 @@ use {
     World, WorldExt, 
   },
   crate::{
+    constants::DISPLAY,
     ecs::{
       c::{
         flags::*,
@@ -83,7 +110,9 @@ use {
       TerrainShader,
       TexModShader,
     },
-    util::Vector3f,
+    util::{
+      Vector3f, Mutex, 
+    },
     // util::rgl::*,
     // entities::{
     //   EntityMgr,
@@ -96,7 +125,7 @@ pub use {
   crate::{
     ecs::resource::Model,
     engine::{
-      Camera, Display, Fbo, HUD, GuiObj, Handler, Loader
+      Fbo, HUD, GuiObj, Handler, Loader
     },
     text::TextMgr,
   }
@@ -116,8 +145,8 @@ use engine::fbo::DepthType::{
 
 fn gen_world() -> World {
   let mut world = World::new();
-  world.insert(Camera::default());
-  world.insert(Display::default());
+  // world.insert(Camera::default());
+  // world.insert(Display::default());
   // world.insert(DrawModelsWithTextures::default());
   world.insert(Handler::default());
   world.insert(LandscapeGen::default());
@@ -267,8 +296,8 @@ fn main() {
   // based on its distance from the camera!
   // Couldn't get it to work in the Kotlin version.
   // I may go back to it and try to replicate how it's done here.
-  let mut _fbo = Fbo::new(&world, 0, 0, ColorMultisampleRenderBuffers2, DepthRenderBuffer);
-  let mut _fbo_final = Fbo::new(&world, 0, 0, ColorTexture, DepthTexture);
+  let mut _fbo = Fbo::new(0, 0, ColorMultisampleRenderBuffers2, DepthRenderBuffer);
+  let mut _fbo_final = Fbo::new(0, 0, ColorTexture, DepthTexture);
   let render_post = RenderPostProc::new("fog", world.read_resource::<HUD>().quad.vao_id.0, 
       vec![
         Texture::new("fbo color", _fbo_final.color_tex_id).assign_tex_unit(0_i32),
@@ -448,8 +477,8 @@ fn main() {
         texmod_draw.dispatch(&world);
         // particle_draw.dispatch(&world);
         world.maintain();
-        _fbo.unbind(&world);
-        _fbo.blit_to_fbo(&world, 0, &_fbo_final);
+        _fbo.unbind();
+        _fbo.blit_to_fbo(0, &_fbo_final);
         
         // _fbo_final.blit_to_screen(&world);
         render_post.render();
@@ -471,12 +500,12 @@ fn main() {
 }
 
 pub fn update_size(world: &World, dimensions: (u32, u32)) {
-  world.write_resource::<Display>().update_size(dimensions);
+  DISPLAY.lock().unwrap().update_size(dimensions);
   {
     let mut textmgr = world.write_resource::<TextMgr>();
     textmgr.update_size(world);
   }
-  let proj_mat = &world.read_resource::<Display>().proj_mat;
+  let proj_mat = DISPLAY.lock().unwrap().proj_mat.clone();
   world.read_resource::<TexModShader>().update_projection(&proj_mat);
   world.read_resource::<TerrainShader>().update_projection(&proj_mat);
   world.read_resource::<ParticleShader>().update_projection(&proj_mat);
@@ -490,9 +519,8 @@ pub fn prepare(world: &World) {
     ClearColor(0.2, 0.2, 0.3, 1.0);
   }
   { // Prep the view matrix
-    let mut cam = world.write_resource::<Camera>();
-    let view = &mut (*world.write_resource::<ViewMatrix>()).view;
-    cam.create_view_matrix(view);
+    // let view = &mut (*world.write_resource::<ViewMatrix>()).view;
+    DISPLAY.lock().unwrap().camera.create_view_matrix();
   }
   
   let lights = world.read_resource::<Lights>();

@@ -1,7 +1,5 @@
 
 use {
-  Camera, 
-  Display, 
   EntityMgr, 
   Handler, 
   HUD, 
@@ -27,8 +25,6 @@ pub struct GameMgr {
   pub handler: Option<Box<Handler>>,
   pub loader: Rc<RefCell<Loader>>,
   pub lights: Rc<RefCell<Lights>>,
-  pub camera: Option<Box<Camera>>,
-  pub display: Rc<RefCell<Display>>,
   // pub world: Option<Box<World>>,
   // pub world_builder: WorldBuilder,
   pub textmgr: Option<Rc<RefCell<TextMgr>>>,
@@ -51,8 +47,6 @@ impl GameMgr {
     lights.lights[0].pos.from_isize(0,500,-10);
     // let handler = Arc::new(Mutex::new(Handler::new()));
     let handler = Some(Box::new(Handler::new()));
-    let camera = Some(Box::new(Camera::new()));
-    let display = Rc::new(RefCell::new(Display::new()));
     // let ents = Entities::new(loader.clone());
     let textmgr = TextMgr::new();
     // let mut world = Box::new(World::new());
@@ -66,8 +60,6 @@ impl GameMgr {
       handler: handler,
       loader: loader,
       lights: Rc::new(RefCell::new(lights)),
-      camera: camera,
-      display: display,
       // world: Some(world),
       // world_builder: builder,
       textmgr: Some(Rc::new(RefCell::new(textmgr))),
@@ -93,9 +85,6 @@ impl GameMgr {
   }
   pub fn aspect_ratio(&self) -> f32 {
     self.display.borrow().aspect_ratio
-  }
-  pub fn display_clone(&self) -> Rc<RefCell<Display>> {
-    self.display.clone()
   }
   pub fn dimensions(&self) -> (u32, u32) {
     let d = self.display.borrow();
@@ -134,21 +123,6 @@ impl GameMgr {
     f(&mut h);
     // println!("Lights out");
   }
-  pub fn take_camera(&mut self) -> Box<Camera> {
-    let out = self.camera.take();
-    Box::new(*out.unwrap())
-  }
-  pub fn return_camera(&mut self, camera: Box<Camera>) {
-    self.camera = Some(camera)
-  }
-  // pub fn camera_do<F>(&mut self, f: F)
-  //   where F: Fn(&mut Camera, &mut Handler) -> ()
-  // {
-  //   let mut c = self.take_camera();
-  //   let mut h = self.take_handler();
-  //   f(&mut c, &mut h);
-  //   self.return_handler(h);
-  // }
   // pub fn take_world(&mut self) -> Box<World> {
   //   let out = self.world.take();
   //   Box::new(*out.unwrap())

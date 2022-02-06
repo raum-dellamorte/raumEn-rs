@@ -4,35 +4,34 @@ use {
     VirtualKeyCode::*,
     MouseButton as MB,
   },
-  engine::input::{
-    KeyCode as KC,
-    KeyCodes as KCS,
-  },
   specs::{
     Entities, System, Read, Write, ReadStorage, WriteStorage, Join, 
   },
-  Handler, // World, 
-  ecs::{
-    c::{
-      flags::*,
-      components::*,
+  crate::{
+    constants::*,
+    Handler, // World, 
+    engine::input::{
+      KeyCode as KC,
+      KeyCodes as KCS,
     },
-    resource::{
-      TerrainNodes,
+    ecs::{
+      c::{
+        flags::*,
+        components::*,
+      },
+      resource::{
+        TerrainNodes,
+      },
+      // s::{
+        
+      // },
     },
-    // s::{
-      
-    // },
-  },
-  util::{
-    Vector3f, 
-    modulo,
+    util::{
+      Vector3f, 
+      modulo,
+    },
   },
 };
-
-const GRAVITY: f32 = 10.0;
-const TERMVEL: f32 = 15.0;
-const NEARBY: f32 = 50.0;
 
 pub struct PlayerInput;
 impl<'a> System<'a> for PlayerInput {

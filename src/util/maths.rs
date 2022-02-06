@@ -3,19 +3,20 @@ use {
   std::{
     ops::{AddAssign, SubAssign, Neg, MulAssign, DivAssign},
     fmt,
-    f32::consts::{ PI, },
+    // f32::consts::{ PI, TAU, },
     marker::{
       Sync, Send, 
     },
   },
-  util::{
-    rmatrix::Matrix4f,
-    rvector::{Vector2f, Vector3f, XVEC, YVEC, ZVEC},
-    Float, NumCast, 
+  crate::{
+    constants::*,
+    util::{
+      rmatrix::Matrix4f,
+      rvector::{Vector2f, Vector3f},
+      Float, NumCast, 
+    },
   },
 };
-
-pub const TAU: f32 = 2.0 * PI;
 
 pub trait RFloat: 'static + Float + NumCast + AddAssign + SubAssign + MulAssign + DivAssign + Neg + 
     fmt::Display + Sync + Send + Copy

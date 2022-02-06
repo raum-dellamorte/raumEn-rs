@@ -1,12 +1,16 @@
 
 
 use {
-  // std::{
-  //   f32::consts::{ PI, },
-  // },
+  std::{
+    f32::consts::{
+      // PI,
+      TAU,
+    },
+  },
   specs::{*, WorldExt, },
   rand::Rng,
   crate::{
+    constants::*,
     ecs::{
       c::{
         flags::*,
@@ -19,13 +23,10 @@ use {
     util::{
       RVec, Vector3f, 
       // HashSet,
-      TAU, ZVEC, 
       specs::*,
     },
   }
 };
-
-const TOLERANCE64: f32 = 0.00001;
 
 pub fn gen_particles(world: &mut World, system: &ParticleRules) {
   let mut rng = rand::thread_rng();

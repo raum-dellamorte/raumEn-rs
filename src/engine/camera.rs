@@ -5,7 +5,7 @@ use {
     MouseButton as MB,
     // VirtualKeyCode::*,
   },
-  // GameMgr,
+  constants::*,
   Handler,
   ecs::{
     c::{
@@ -19,7 +19,7 @@ use {
   },
   util::{
     // ZVEC, RVertex,
-    Matrix4f, RVec, Vector3f, XVEC, YVEC, modulo, Rc, RefCell, 
+    Matrix4f, RVec, Vector3f, modulo, Rc, RefCell, 
   },
 };
 
@@ -156,7 +156,8 @@ impl Camera {
     self.to_focus_pos.dot(self.to_pos)
   }
   
-  pub fn create_view_matrix(&mut self, view_mat: &mut Matrix4f<f32>) {
+  pub fn create_view_matrix(&mut self) {
+    let view_mat = &mut self.view_mat;
     view_mat.set_identity();
     view_mat.rotate(self.pitch.to_radians(), XVEC);
     view_mat.rotate(self.yaw.to_radians(), YVEC);

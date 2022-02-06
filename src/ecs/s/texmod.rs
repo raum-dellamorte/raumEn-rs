@@ -2,26 +2,25 @@
 use {
   std::cmp::Ordering,
   
-  util::{
-    Matrix4f, 
-  },
   specs::{
     System, Read, ReadStorage, Entities, Join, 
   },
-  ecs::{
-    c::{
-      flags::*,
-      components::*,
+  crate::{
+    DISPLAY,
+    ecs::{
+      c::{
+        flags::*,
+        components::*,
+      },
+      resource::*,
     },
-    resource::*,
+    shader::TexModShader,
+    util::{
+      Matrix4f, 
+      // Vector3f,
+      rgl::*,
+    },
   },
-  util::{
-    // Vector3f,
-    rgl::*,
-  },
-  
-  ViewMatrix,
-  shader::TexModShader,
 };
 
 pub struct DrawTexMods;
@@ -29,7 +28,6 @@ impl<'a> System<'a> for DrawTexMods {
   type SystemData = (
     (
       Read<'a, TexModShader>, 
-      Read<'a, ViewMatrix>,
       Read<'a, Models>, 
       Read<'a, Textures>, 
       Read<'a, Lightings>, 
@@ -45,7 +43,7 @@ impl<'a> System<'a> for DrawTexMods {
     ),
   );
   fn run(&mut self, data: Self::SystemData) {
-    let (shader, view, models, textures, lightings) = data.0;
+    let (shader, models, textures, lightings) = data.0;
     let shader = &shader.shader;
     let mut transform = Matrix4f::new();
     let (e, pos, rot, mc, tc, lc, is_tex_mod) = data.1;
@@ -67,7 +65,10 @@ impl<'a> System<'a> for DrawTexMods {
     let mut texture: &Texture = &textures.0.get(last_texture)
         .unwrap_or_else(|| panic!("DrawTexMods: No such Texture :{}", last_texture));
     shader.start();
-    shader.load_matrix("u_View", &(*view).view);
+    {
+      let view = DISPLAY.lock().unwrap().camera.view_mat;
+      shader.load_matrix("u_View", &view);
+    }
     // shader.load_vec_3f("light_pos", &(*light).pos); // Unimplemented
     // shader.load_vec_3f("light_color", &(*light).color);
     r_bind_vaa_3(model.vao_id);
@@ -88,7 +89,7 @@ impl<'a> System<'a> for DrawTexMods {
       }
       transform.set_identity();
       transform.translate_v3f(p.0);
-      transform.rotate(r.0.y.to_radians(), crate::util::YVEC);
+      transform.rotate(r.0.y.to_radians(), crate::constants::YVEC);
       // transform.scale(&p.scale(200.0));
       shader.load_matrix("u_Transform", &transform);
       r_draw_triangles(model.vertex_count);

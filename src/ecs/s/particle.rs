@@ -6,6 +6,8 @@ use {
     System, Read, ReadStorage, WriteStorage, Entities, Join, 
   },
   crate::{
+    Handler,
+    constants::DISPLAY,
     ecs::{
       c::{
         flags::*,
@@ -22,9 +24,6 @@ use {
       rgl::*,
       specs::*,
     },
-    Camera,
-    Handler,
-    ViewMatrix,
   },
 };
 
@@ -42,7 +41,7 @@ impl<'a> System<'a> for DrawParticles {
     // let mut transform: Matrix4f<f32> = Matrix4f::new();
     let d = data.entities();
     if d.is_empty() { return }
-    let view = (*data.view).view;
+    let view = DISPLAY.lock().unwrap().camera.view_mat.clone();
     // println!("{:?}", view);
     shader.start();
     r_bind_vaa_7(quad.vao_id);
@@ -50,7 +49,7 @@ impl<'a> System<'a> for DrawParticles {
         .disable_depth_mask()
         .enable_blend()
         .set();
-    RBlend::AdditiveBlend.r_blend_func();
+    RBlend::AdditiveBlend.exec();
     for tex in d.keys() {
       if let Some(batch) = d.get(tex) {
         let texture: &Texture = &data.textures.0.get(tex)
@@ -102,7 +101,7 @@ impl<'a> System<'a> for DrawParticlesNotInstanced {
     let mut _transform: Matrix4f<f32> = Matrix4f::new();
     let d = data.entities();
     if d.is_empty() { return }
-    let view = (*data.view).view;
+    let view = DISPLAY.lock().unwrap().camera.view_mat.clone();
     // println!("{:?}", view);
     shader.start();
     r_bind_vaa_7(quad.vao_id);
@@ -110,7 +109,7 @@ impl<'a> System<'a> for DrawParticlesNotInstanced {
         .disable_depth_mask()
         .enable_blend()
         .set();
-    RBlend::AdditiveBlend.r_blend_func();
+    RBlend::AdditiveBlend.exec();
     for tex in d.keys() {
       if let Some(batch) = d.get(tex) {
         let texture: &Texture = &data.textures.0.get(tex)
@@ -165,7 +164,7 @@ fn update_mv_mat(
   let mut model: Matrix4f<f32> = Matrix4f::new();
   model.translate_v3f(pos.0);
   model.transpose3x3(&view);
-  model.rotate(rot.0.z.to_radians(), crate::util::ZVEC);
+  model.rotate(rot.0.z.to_radians(), crate::constants::ZVEC);
   model.scale(Vector3f::new(scale.0, scale.0, scale.0));
   let mv_mat = *view * model;
   // mv_mat.transpose();
@@ -179,7 +178,6 @@ fn update_mv_mat(
 pub struct DrawParticlesData<'a> {
   pub shader:      Read<'a, ParticleShader>, 
   pub pvbo:        Read<'a, ParticleVBO>,
-  pub view:        Read<'a, ViewMatrix>,
   pub models:      Read<'a, Models>, 
   pub textures:    Read<'a, Textures>, 
   pub lightings:   Read<'a, Lightings>, 
@@ -264,7 +262,6 @@ impl<'a> System<'a> for UpdateParticles {
 #[derive(SystemData)]
 pub struct UpdateParticlesData<'a> {
   pub handler:      Read<'a, Handler>, 
-  pub camera:       Read<'a, Camera>, 
   pub ents:         Entities<'a>,
   pub position:     WriteStorage<'a, Position>,
   pub velocity:     WriteStorage<'a, Velocity>,
@@ -303,7 +300,7 @@ impl<'a> UpdateParticlesData<'a> {
     self.handler.timer.delta
   }
   pub fn cam_pos(&self) -> Vector3f<f32> {
-    self.camera.pos
+    DISPLAY.lock().unwrap().camera.pos
   }
 }
 

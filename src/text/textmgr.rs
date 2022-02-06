@@ -1,13 +1,15 @@
 
 use {
   specs::{World, WorldExt, },
-  Display,
-  Loader,
-  Textures,
-  text::{
-    guitext::GuiText,
-    RFontType,
-  },
+  crate::{
+    DISPLAY,
+    Loader,
+    Textures,
+    text::{
+      guitext::GuiText,
+      RFontType,
+    },
+  }
 };
 use util::{Vector2f, HashMap, HashSet};
 
@@ -31,8 +33,7 @@ impl TextMgr {
     let mut loader = world.write_resource::<Loader>();
     let mut textures = world.write_resource::<Textures>();
     // println!("Adding Font: {}", fname);
-    let display = world.read_resource::<Display>();
-    self.fonts.insert(fname.to_owned(), RFontType::new(display.aspect_ratio, fname));
+    self.fonts.insert(fname.to_owned(), RFontType::new(DISPLAY.lock().unwrap().aspect_ratio, fname));
     // println!("Adding Font Texture: {}", fname);
     textures.load_texture(&mut loader, fname);
   }
@@ -101,7 +102,7 @@ impl TextMgr {
     for font in &fonts {
       let mut fnt = self.fonts.remove(font);
       if let Some(ref mut fnt) = fnt {
-        fnt.update_size(world);
+        fnt.update_size();
       }
       if let Some(fnt) = fnt { self.fonts.insert(font.to_owned(), fnt); }
     }

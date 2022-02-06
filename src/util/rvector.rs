@@ -12,14 +12,6 @@ use {
   },
 }; // , Div, DivAssign, Mul, MulAssign
 
-pub const XVEC: Vector3f<f32> = Vector3f {x: 1.0_f32, y: 0.0_f32, z: 0.0_f32};
-pub const YVEC: Vector3f<f32> = Vector3f {x: 0.0_f32, y: 1.0_f32, z: 0.0_f32};
-pub const ZVEC: Vector3f<f32> = Vector3f {x: 0.0_f32, y: 0.0_f32, z: 1.0_f32};
-pub const XVEC64: Vector3f<f64> = Vector3f {x: 1.0_f64, y: 0.0_f64, z: 0.0_f64};
-pub const YVEC64: Vector3f<f64> = Vector3f {x: 0.0_f64, y: 1.0_f64, z: 0.0_f64};
-pub const ZVEC64: Vector3f<f64> = Vector3f {x: 0.0_f64, y: 0.0_f64, z: 1.0_f64};
-
-
 #[derive(Debug, Copy, Clone)]
 // #[repr(C, packed)]
 pub struct Vector2f<F: RFloat> {

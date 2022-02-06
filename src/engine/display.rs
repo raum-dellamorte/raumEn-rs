@@ -2,7 +2,10 @@
 use {
   gl::Viewport,
   std::f32::consts::PI,
-  util::Matrix4f,
+  crate::{
+    engine::Camera,
+    util::Matrix4f,
+  },
 };
 
 pub struct Display {
@@ -10,6 +13,7 @@ pub struct Display {
   pub h: u32,
   pub aspect_ratio: f32,
   pub proj_mat: Matrix4f<f32>,
+  pub camera: Camera,
 }
 impl Default for Display {
   fn default() -> Self {
@@ -18,6 +22,7 @@ impl Default for Display {
       h: 480,
       aspect_ratio: 1.333_334,
       proj_mat: Matrix4f::new(),
+      camera: Camera::default(),
     }
   }
 }
@@ -27,6 +32,7 @@ impl Display {
   }
   pub fn update_size(&mut self, dimensions: (u32, u32)) {
     let (w, h) = dimensions;
+    // println!("Display: update_size w{} h{}", w, h);
     unsafe { Viewport(0, 0, w as i32, h as i32); }
     self.w = w;
     self.h = h;

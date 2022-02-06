@@ -391,9 +391,9 @@ pub struct Rotators {
 impl Default for Rotators {
   fn default() -> Self {
     let mut rx = Rotator::default();
-    rx.set_axis(crate::util::XVEC64);
+    rx.set_axis(crate::constants::XVEC64);
     let mut rz = Rotator::default();
-    rz.set_axis(crate::util::ZVEC64);
+    rz.set_axis(crate::constants::ZVEC64);
     Self {
       rx, ry: Rotator::default(), rz,
       rstrange: Rotator::default(),
