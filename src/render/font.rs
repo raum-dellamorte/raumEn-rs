@@ -79,12 +79,12 @@ impl RenderFont {
           for gtstr in gtexts {
             if let Some(gtext) = textmgr.texts.get(gtstr) {
               unsafe {
-                BindVertexArray(gtext.text_mesh_vao);
+                BindVertexArray(gtext.text_mesh_vao.0);
                 EnableVertexAttribArray(0);
                 EnableVertexAttribArray(1);
                 self.shader.load_vec_3f("colour", gtext.colour);
                 self.shader.load_vec_2f("translation", gtext.position);
-                DrawArrays(TRIANGLES, 0, gtext.vertex_count as i32);
+                DrawArrays(TRIANGLES, 0, gtext.vertex_count.0);
                 DisableVertexAttribArray(0);
                 DisableVertexAttribArray(1);
                 BindVertexArray(0);

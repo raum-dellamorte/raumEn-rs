@@ -6,7 +6,6 @@ use {
   },
   gl::{
     *,
-    types::*,
   },
   crate::{
     ecs::{
@@ -23,15 +22,27 @@ use {
   },
 };
 
-#[derive(Copy, Clone, Default, Debug)]
+pub use {
+  gl::{
+    ARRAY_BUFFER, 
+    STREAM_DRAW, STATIC_DRAW, 
+    FLOAT, 
+    TRUE, FALSE, 
+    types::{
+      GLenum, GLuint, GLsizeiptr, GLfloat, GLboolean, GLint, GLintptr, 
+    },
+  },
+};
+
+#[derive(Copy, Clone, Default, Debug, PartialEq)]
 pub struct VaoID(pub u32);
-#[derive(Copy, Clone, Default, Debug)]
+#[derive(Copy, Clone, Default, Debug, PartialEq)]
 pub struct VboID(pub u32);
-#[derive(Copy, Clone, Default, Debug)]
+#[derive(Copy, Clone, Default, Debug, PartialEq)]
 pub struct VertexCount(pub i32);
-#[derive(Copy, Clone, Default, Debug)]
+#[derive(Copy, Clone, Default, Debug, PartialEq)]
 pub struct TextureID(pub u32);
-#[derive(Copy, Clone, Default, Debug)]
+#[derive(Copy, Clone, Default, Debug, PartialEq)]
 pub struct TextureUnit(pub i32);
 
 // Gen methods
@@ -62,29 +73,41 @@ pub fn r_gen_vertex_arrays() -> u32 { unsafe {
 }}
 
 // Vertex attrib bindings
-pub fn r_bind_vaa_7(vao_id: VaoID) { unsafe {
+pub fn r_bind_vertex_array(vao_id: VaoID) { unsafe {
   BindVertexArray(vao_id.0);
+}}
+pub fn r_unbind_vertex_array() {
+  r_bind_vertex_array(VaoID(0));
+}
+pub fn r_enable_vertex_attrib_array(num: GLuint) { unsafe {
+  EnableVertexAttribArray(num);
+}}
+pub fn r_disable_vertex_attrib_array(num: GLuint) { unsafe {
+  DisableVertexAttribArray(num);
+}}
+pub fn r_bind_vaa_7(vao_id: VaoID) {
+  r_bind_vertex_array(vao_id);
   // print!(" r_bind_vaa_7(model: {})", model.vao_id.0);
-  EnableVertexAttribArray(0);
-  EnableVertexAttribArray(1);
-  EnableVertexAttribArray(2);
-  EnableVertexAttribArray(3);
-  EnableVertexAttribArray(4);
-  EnableVertexAttribArray(5);
-  EnableVertexAttribArray(6);
-}}
-pub fn r_bind_vaa_3(vao_id: VaoID) { unsafe {
-  BindVertexArray(vao_id.0);
+  r_enable_vertex_attrib_array(0);
+  r_enable_vertex_attrib_array(1);
+  r_enable_vertex_attrib_array(2);
+  r_enable_vertex_attrib_array(3);
+  r_enable_vertex_attrib_array(4);
+  r_enable_vertex_attrib_array(5);
+  r_enable_vertex_attrib_array(6);
+}
+pub fn r_bind_vaa_3(vao_id: VaoID) {
+  r_bind_vertex_array(vao_id);
   // print!(" r_bind_vaa_3(model: {})", model.vao_id.0);
-  EnableVertexAttribArray(0);
-  EnableVertexAttribArray(1);
-  EnableVertexAttribArray(2);
-}}
-pub fn r_bind_vaa_2(vao_id: VaoID) { unsafe {
-  BindVertexArray(vao_id.0);
-  EnableVertexAttribArray(0);
-  EnableVertexAttribArray(1);
-}}
+  r_enable_vertex_attrib_array(0);
+  r_enable_vertex_attrib_array(1);
+  r_enable_vertex_attrib_array(2);
+}
+pub fn r_bind_vaa_2(vao_id: VaoID) {
+  r_bind_vertex_array(vao_id);
+  r_enable_vertex_attrib_array(0);
+  r_enable_vertex_attrib_array(1);
+}
 pub fn r_unbind_vaa_7() { unsafe {
   DisableVertexAttribArray(6);
   DisableVertexAttribArray(5);
@@ -115,6 +138,27 @@ pub fn r_bind_texture(texture: &Texture) { unsafe {
 }}
 
 // VBO tools
+pub fn r_bind_buffer(btype: GLenum, id: VboID) {
+  unsafe { BindBuffer(btype, id.0); }
+}
+pub fn r_buffer_data(target: GLenum, size: GLsizeiptr, data: Option<&Vec<f32>>, usage: GLenum) { unsafe {
+  match data {
+    Some(data) => { BufferData(target, size, data.as_ptr() as *const _, usage); }
+    None =>       { BufferData(target, size, ptr::null(), usage); }
+  }
+}}
+pub fn r_buffer_sub_data(target: GLenum, offset: GLintptr, size: GLsizeiptr, data: Option<&Vec<f32>> ) { unsafe {
+  match data {
+    Some(data) => { BufferSubData(target, offset, size, data.as_ptr() as *const _ ); }
+    None =>       { BufferSubData(target, offset, size, ptr::null() ); }
+  }
+}}
+pub fn r_vertex_attrib_pointer(index: GLuint, size: GLint, gltype: GLenum, normalized: GLboolean, stride: types::GLsizei, pointer: i32, ) { unsafe {
+  VertexAttribPointer(index, size, gltype, normalized, stride, pointer as *const _ );
+}}
+pub fn r_vertex_attrib_divisor(attrib: u32, num: u32) { unsafe {
+  VertexAttribDivisor(attrib, num);
+}}
 pub fn r_add_instanced_attrib(vao: VaoID, vbo: VboID, attrib: u32, data_size: i32, stride: usize, offset: usize) { unsafe {
   // This is my best guess from LWJGL to Rust's GL implementation
   r_get_errors("r_add_instanced_attrib 1");
@@ -221,6 +265,10 @@ pub fn r_draw_triangle_strip(vertex_count: VertexCount) { unsafe {
   DrawElements(TRIANGLE_STRIP, vertex_count.0, UNSIGNED_INT, std::ptr::null()); 
   r_get_errors("r_draw_triangle_strip 1");
 }}
+pub fn r_draw_arrays_triangle_strip(vertex_count: VertexCount) { unsafe {
+  DrawArrays(TRIANGLE_STRIP, 0, vertex_count.0); 
+  r_get_errors("r_draw_triangle_strip 1");
+}}
 pub fn r_draw_instanced(vertex_count: VertexCount, particle_count: u32) { unsafe {
   DrawArraysInstanced(TRIANGLE_STRIP, 0, vertex_count.0, particle_count as i32);
   // DrawArrays(TRIANGLE_STRIP, 0, vertex_count.0);
@@ -245,10 +293,16 @@ pub enum RBlend {
   AdditiveBlend,
 }
 impl RBlend {
-  pub fn r_blend_func(&self) { unsafe {
+  pub fn exec(&self) { unsafe {
     match self {
-      RBlend::DefaultBlend => { BlendFunc(SRC_ALPHA, ONE_MINUS_SRC_ALPHA); }
-      RBlend::AdditiveBlend => { BlendFunc(SRC_ALPHA, ONE) }
+      RBlend::DefaultBlend => {
+        // println!("Default Blend");
+        BlendFunc(SRC_ALPHA, ONE_MINUS_SRC_ALPHA);
+      }
+      RBlend::AdditiveBlend => {
+        // println!("Additive Blend");
+        BlendFunc(SRC_ALPHA, ONE);
+      }
     }
   }}
 }

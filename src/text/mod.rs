@@ -46,15 +46,15 @@ impl RFontType {
 pub struct RTextMesh {
   pub verts: Vec<f32>,
   pub tex_coords: Vec<f32>,
-  pub vert_count: u32,
+  pub vert_count: VertexCount,
 }
 impl RTextMesh {
   pub fn new(verts: Vec<f32>, tex_coords: Vec<f32>) -> Self {
-    let count = verts.len() / 2;
+    let vert_count = VertexCount((verts.len() / 2) as i32);
     Self {
       verts,
       tex_coords,
-      vert_count: count as u32,
+      vert_count,
     }
   }
 }

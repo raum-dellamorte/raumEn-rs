@@ -2,9 +2,7 @@
 use {
   gl::{
     *,
-    types::{
-      GLfloat, GLint, GLuint, GLsizeiptr, // GLenum, GLchar, GLboolean, 
-    },
+    //types::*,
   },
   std::{
     mem,
@@ -29,8 +27,8 @@ use {
 };
 
 pub struct Loader {
-  vaos: Vec<GLuint>,
-  vbos: Vec<GLuint>,
+  vaos: Vec<VaoID>,
+  vbos: Vec<VboID>,
   meshes: HashMap<String, Mesh>,
   textures: Vec<GLuint>,
   pub quad_1_0: Model,
@@ -65,13 +63,13 @@ impl Loader {
     let tdata = verts_tex_coords_to_glfloats(&verts) ; self.bind_attrib(1, 2_i32, &tdata);
     let ndata = verts_norms_to_glfloats(&verts); self.bind_attrib(2, 3_i32, &ndata);
     self.unbind_vao();
-    Model::new(vao_id, indcs.len() as i32)
+    Model::new(vao_id, VertexCount(indcs.len() as i32))
   }
   pub fn create_empty_vbo(&mut self, count: usize) -> VboID {
     let vbo_id = VboID(r_gen_buffers());
     assert!(vbo_id.0 != 0);
     r_create_vbo(vbo_id, count);
-    self.vbos.push(vbo_id.0);
+    self.vbos.push(vbo_id);
     vbo_id
   }
   pub fn load_mesh(&mut self, name: &str) -> Option<&Mesh> {
@@ -84,18 +82,18 @@ impl Loader {
     }
     self.meshes.get(name)
   }
-  pub fn create_vao(&mut self) -> GLuint { unsafe {
-    let vao_id: GLuint = r_gen_vertex_arrays();
-    assert!(vao_id != 0);
+  fn create_vao(&mut self) -> VaoID {
+    let vao_id = VaoID(r_gen_vertex_arrays());
+    assert!(vao_id.0 != 0);
     self.vaos.push(vao_id);
-    BindVertexArray(vao_id);
+    r_bind_vertex_array(vao_id);
     vao_id
-  }}
+  }
   pub fn bind_attrib(&mut self, attrib: u32, step: GLint, data: &[GLfloat]) { unsafe {
-    let vbo_id: GLuint = r_gen_buffers();
-    assert!(vbo_id != 0);
+    let vbo_id = VboID(r_gen_buffers());
+    assert!(vbo_id.0 != 0);
     self.vbos.push(vbo_id);
-    BindBuffer(ARRAY_BUFFER, vbo_id);
+    BindBuffer(ARRAY_BUFFER, vbo_id.0);
     BufferData(ARRAY_BUFFER,
       (data.len() * mem::size_of::<GLfloat>()) as GLsizeiptr,
       data.as_ptr() as *const _,
@@ -103,16 +101,19 @@ impl Loader {
     VertexAttribPointer(attrib, step, FLOAT, FALSE, 0, ptr::null());
     BindBuffer(ARRAY_BUFFER, 0_u32);
   }}
-  pub fn bind_indices(&mut self, idxs: &[u16]) { unsafe {
-    let vbo_id = r_gen_buffers();
+  pub fn bind_indices(&mut self, idxs: &[u16]) {
+    let vbo_id = VboID(r_gen_buffers());
     self.vbos.push(vbo_id);
-    BindBuffer(ELEMENT_ARRAY_BUFFER, vbo_id);
+    r_bind_buffer(ELEMENT_ARRAY_BUFFER, vbo_id);
     let _idxs = indices_to_gluints(idxs);
-    BufferData(ELEMENT_ARRAY_BUFFER,
-      (_idxs.len() * mem::size_of::<GLuint>()) as GLsizeiptr,
-      &_idxs[0] as *const u32 as *const std::ffi::c_void,
-      STATIC_DRAW);
-  }}
+    unsafe {
+      BufferData(ELEMENT_ARRAY_BUFFER,
+        (_idxs.len() * mem::size_of::<GLuint>()) as GLsizeiptr,
+        // &_idxs[0] as *const u32 as *const std::ffi::c_void,
+        _idxs.as_ptr() as *const _,
+        STATIC_DRAW);
+    }
+  }
   pub fn unbind_vao(&self) { unsafe {
     BindVertexArray(0_u32);
   }}
@@ -151,28 +152,28 @@ impl Loader {
     let vao_id = self.create_vao();
     self.bind_attrib(0, 2, &verts);
     self.unbind_vao();
-    Model::new(vao_id, (verts.len() / 2) as i32)
+    Model::new(vao_id, VertexCount((verts.len() / 2) as i32) )
   }
-  pub fn load_to_vao_2d(&mut self, verts: &[f32], tex_coords: &[f32]) -> u32 {
+  pub fn load_to_vao_2d(&mut self, verts: &[f32], tex_coords: &[f32]) -> VaoID {
     let vao_id = self.create_vao();
     self.bind_attrib(0, 2, &verts);
     self.bind_attrib(1, 2, &tex_coords);
     self.unbind_vao();
     vao_id
   }
-  pub fn rm_vao(&mut self, id: u32) {
+  pub fn rm_vao(&mut self, id: VaoID) {
     for i in 0..self.vaos.len() {
       if self.vaos[i] == id {
         self.vaos.remove(i);
         break; } }
-    unsafe { DeleteVertexArrays(1_i32, &id); }
+    unsafe { DeleteVertexArrays(1_i32, &id.0); }
   }
   pub fn clean_up(&mut self) { unsafe {
     for vao in &self.vaos {
-      DeleteVertexArrays(1_i32, vao);
+      DeleteVertexArrays(1_i32, &vao.0);
     }
     for vbo in &self.vbos {
-      DeleteVertexArrays(1_i32, vbo);
+      DeleteBuffers(1_i32, &vbo.0);
     }
     for tex in &self.textures {
       DeleteTextures(1_i32, tex);
@@ -220,4 +221,22 @@ pub fn indices_to_gluints(idxs: &[u16]) -> Vec<GLuint> {
     out.push(u32::from(*idx));
   }
   out
+}
+
+#[test]
+fn test_glfloat_size() {
+  let x = mem::size_of::<GLfloat>();
+  assert_eq!(x, 4);
+}
+
+#[test]
+fn test_glint_size() {
+  let x = mem::size_of::<GLint>();
+  assert_eq!(x, 4);
+}
+
+#[test]
+fn test_gluint_size() {
+  let x = mem::size_of::<GLuint>();
+  assert_eq!(x, 4);
 }

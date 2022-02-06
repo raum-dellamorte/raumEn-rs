@@ -8,6 +8,7 @@ use {
   },
   util::{
     Vector2f, Vector3f, 
+    rgl::*,
   },
 };
 
@@ -21,8 +22,8 @@ pub struct GuiText {
   pub is_centered: bool,
   pub num_of_lines: u32,
   pub colour: Vector3f<f32>,
-  pub text_mesh_vao: u32,
-  pub vertex_count: u32,
+  pub text_mesh_vao: VaoID,
+  pub vertex_count: VertexCount,
   pub loaded: bool,
 }
 impl GuiText {
@@ -37,8 +38,8 @@ impl GuiText {
       is_centered,
       num_of_lines: 0,
       colour: Vector3f::blank(),
-      text_mesh_vao: 0,
-      vertex_count: 0,
+      text_mesh_vao: VaoID(0),
+      vertex_count: VertexCount(0),
       loaded: false,
     }
   }
@@ -67,7 +68,7 @@ impl GuiText {
     self.update_size(textmgr, world);
   }
   pub fn update_size(&mut self, textmgr: &mut TextMgr, world: &World) {
-    if self.text_mesh_vao == 0 { return }
+    if self.text_mesh_vao == VaoID(0) { return }
     {
       let mut loader = world.write_resource::<Loader>();
       loader.rm_vao(self.text_mesh_vao);
@@ -77,7 +78,7 @@ impl GuiText {
     self.load(textmgr, world);
   }
   pub fn set_colour(&mut self, r: f32, g: f32, b: f32) { self.colour.copy_from_float(r, g, b); }
-  pub fn set_mesh_info(&mut self, vao: u32, vert_count: u32) {
+  pub fn set_mesh_info(&mut self, vao: VaoID, vert_count: VertexCount) {
     self.text_mesh_vao = vao;
     self.vertex_count = vert_count;
   }

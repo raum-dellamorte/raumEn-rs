@@ -29,8 +29,8 @@ pub struct Model {
     pub vertex_count: VertexCount,
 }
 impl Model {
-  pub fn new(id: u32, count: i32) -> Self {
-    Model { vao_id: VaoID(id), vertex_count: VertexCount(count) }
+  pub fn new(vao_id: VaoID, vertex_count: VertexCount) -> Self {
+    Model { vao_id, vertex_count }
   }
 }
 impl PartialEq for Model {
