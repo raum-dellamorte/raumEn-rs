@@ -76,6 +76,7 @@ impl ParticleMgr {
     let mut s = self;
     let quad_vec = vec!(-0.5,0.5, -0.5,-0.5, 0.5,0.5, 0.5,-0.5); // alt -0.5,-0.5, 0.5,-0.5, 0.5,0.5, -0.5,0.5
     let pmat = DISPLAY.lock().unwrap().proj_mat.clone();
+    // println!("ParticleMgr::init() ProjMat\n{}", pmat);
     s.quad = s.loader.load_to_vao(&quad_vec);
     s.shader.start();
     s.shader.update_projection(&pmat);
@@ -111,6 +112,16 @@ impl ParticleMgr {
         .set();
     r_unbind_vaa_1();
     self.shader.stop();
+  }
+  fn update_model_view_matrix(&self, position: Vector3f<f32>, rotation: f32, scale: f32, view: &Matrix4f<f32>) {
+    let mut model_mat: Matrix4f<f32> = Matrix4f::default();
+    model_mat.translate_v3f(position);
+    model_mat.transpose3x3(view);
+    model_mat.rotate(rotation.to_radians(), Vector3f { x: 0_f32, y: 0_f32, z: 1_f32 });
+    model_mat.scale(Vector3f { x: scale, y: scale, z: scale });
+    let model_view = *view * model_mat;
+    // println!("ParticleMgr::init() ModelViewMat\n{}", model_view);
+    self.shader.load_matrix("modelview", &model_view);
   }
   fn emit_particle(&mut self, system_id: SystemID) {
     let p = self.acquire_particle();
@@ -168,15 +179,6 @@ impl ParticleMgr {
       if *p == particle { return Some(id) }
     }
     None
-  }
-  fn update_model_view_matrix(&self, position: Vector3f<f32>, rotation: f32, scale: f32, view: &Matrix4f<f32>) {
-    let mut model_mat: Matrix4f<f32> = Matrix4f::default();
-    model_mat.translate_v3f(position);
-    model_mat.transpose3x3(view);
-    model_mat.rotate(rotation.to_radians(), Vector3f { x: 0_f32, y: 0_f32, z: 1_f32 });
-    model_mat.scale(Vector3f { x: scale, y: scale, z: scale });
-    let model_view = *view * model_mat;
-    self.shader.load_matrix("modelview", &model_view);
   }
   pub fn clean_up(&mut self) {
     self.shader.shader.clean_up();
