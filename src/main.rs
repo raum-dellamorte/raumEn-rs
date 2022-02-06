@@ -464,7 +464,7 @@ fn main() {
         let delta = world.read_resource::<Handler>().timer.delta;
         if once_per_sec {
           once_per_sec = false;
-          println!("Once per second FPS: {}", &format!("FPS: {:.3}", (fps * 1000.0).round() / 1000.0 ) );
+          // println!("Once per second FPS: {}", &format!("FPS: {:.3}", (fps * 1000.0).round() / 1000.0 ) );
           let mut textmgr = world.write_resource::<TextMgr>();
           textmgr.update_text(&world, "FPS", &format!("FPS: {:.3}", (fps * 1000.0).round() / 1000.0 ) );
         }
