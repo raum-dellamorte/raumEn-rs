@@ -26,7 +26,7 @@ use {
 
 use noise::NoiseFn;
 use noise::Fbm;
-use noise::Point2;
+// use noise::Point2;
 use noise::Seedable;
 use specs::*;
 
@@ -96,11 +96,11 @@ impl<'a> System<'a> for PlatformGen {
 
 fn node_group(x: i32) -> i32 { (if x < 0 { -(NODE_SIZE - 1) + x } else { x }) / NODE_SIZE }
 
-fn point(x: i32, z: i32, precision: u32) -> Point2<f64> {
+fn point(x: i32, z: i32, precision: u32) -> [f64; 2] {
   let p = 2_isize.pow(precision) as f64;
   let x = f64::from(x) / p;
   let z = f64::from(z) / p;
-  let pt: Point2<f64> = [x, z];
+  let pt: [f64; 2] = [x, z];
   pt
 }
 
