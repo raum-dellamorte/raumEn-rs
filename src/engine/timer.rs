@@ -24,7 +24,7 @@ impl Default for Timer {
       now,
       sec_passed: false,
       tick_count: 0,
-      sec: Duration::zero(),
+      sec: Duration::ZERO,
     }
   }
 }
@@ -44,7 +44,7 @@ impl Timer {
     let ms = self.sec.whole_microseconds();
     if ms > 1_000_000 {
       self.sec_passed = true;
-      self.sec -= Duration::second();
+      self.sec -= Duration::SECOND;
       // println!("tick count {}", self.tick_count);
       self.fps = self.tick_count as f32 / (ms as f32 / 1_000_000_f32 );
       self.tick_count = 0;
