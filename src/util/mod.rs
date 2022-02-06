@@ -1,5 +1,6 @@
 pub mod maths;
 pub mod rgl;
+pub mod rotator;
 pub mod rvector;
 pub mod rmatrix;
 pub mod rvertex;
@@ -10,9 +11,11 @@ pub use {
     maths::*, 
     // rgl::*, 
     rmatrix::Matrix4f, 
+    rotator::{
+      Rotator, Rotators,
+    },
     rvector::{
       RVec, Vector2f, Vector3f, Quaternion, 
-      XVEC, YVEC, ZVEC, XVEC64, YVEC64, ZVEC64, 
     },
   },
   num::{ Float, NumCast, Zero, },
