@@ -1,6 +1,7 @@
 #![recursion_limit="128"]
 #![allow(clippy::type_complexity, clippy::module_inception, clippy::too_many_arguments, clippy::len_without_is_empty)]
 #![feature(proc_macro_hygiene)]
+// #![feature(vec_remove_item)]
 // #![feature(nightly)]
 // #![allow(unused_imports,dead_code)]
 
@@ -224,7 +225,7 @@ fn main() {
   let gl_request = glutin::GlRequest::Specific(glutin::Api::OpenGl, (3, 3));
   let gl_profile = glutin::GlProfile::Core;
   // Create a window
-  let mut el = EventLoop::new();
+  let el = EventLoop::new();
   let wb = glutin::window::WindowBuilder::new()
     .with_title("RaumEn")
     .with_inner_size(glutin::dpi::LogicalSize::new(1024.0, 768.0))

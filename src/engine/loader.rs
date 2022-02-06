@@ -122,7 +122,7 @@ impl Loader {
     let img = match image::open(&Path::new(path)) {
       Ok(image) => {
         // println!("Image loaded");
-        image.to_rgba()
+        image.to_rgba8()
       },
       _ => panic!("Failed to load image")
     };
