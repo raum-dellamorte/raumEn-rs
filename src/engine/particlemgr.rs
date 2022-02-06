@@ -74,7 +74,7 @@ impl Default for ParticleMgr {
 impl ParticleMgr {
   pub fn init(self) -> Self {
     let mut s = self;
-    let quad_vec = vec!(-0.5,0.5, -0.5,-0.5, 0.5,0.5, 0.5,-0.5);
+    let quad_vec = vec!(-0.5,0.5, -0.5,-0.5, 0.5,0.5, 0.5,-0.5); // alt -0.5,-0.5, 0.5,-0.5, 0.5,0.5, -0.5,0.5
     let pmat = DISPLAY.lock().unwrap().proj_mat.clone();
     s.quad = s.loader.load_to_vao(&quad_vec);
     s.shader.start();
@@ -92,8 +92,7 @@ impl ParticleMgr {
     let view = DISPLAY.lock().unwrap().camera.view_mat.clone();
     self.shader.start();
     // Prepare
-    r_bind_vertex_array(self.quad.vao_id);
-    r_enable_vertex_attrib_array(0);
+    r_bind_vaa_1(self.quad.vao_id);
     GlSettings::default()
         .disable_depth_mask()
         .enable_blend()
@@ -110,8 +109,7 @@ impl ParticleMgr {
         .enable_depth_mask()
         .disable_blend()
         .set();
-    r_disable_vertex_attrib_array(0);
-    r_unbind_vertex_array();
+    r_unbind_vaa_1();
     self.shader.stop();
   }
   fn emit_particle(&mut self, system_id: SystemID) {
@@ -488,7 +486,7 @@ impl Default for ParticleLoader {
 }
 #[allow(dead_code)]
 impl ParticleLoader {
-  fn create_vao(&mut self) -> VaoID {
+  fn create_and_bind_vao(&mut self) -> VaoID {
     let vao_id = VaoID(r_gen_vertex_arrays());
     assert!(vao_id.0 != 0);
     self.vaos.push(vao_id);
@@ -496,13 +494,13 @@ impl ParticleLoader {
     vao_id
   }
   pub fn load_to_vao(&mut self, verts: &Vec<f32>) -> Model {
-    let vao_id = self.create_vao();
+    let vao_id = self.create_and_bind_vao();
     self.bind_attrib(0, 2, verts);
     r_unbind_vertex_array();
     Model::new(vao_id, VertexCount((verts.len() / 2) as i32) )
   }
   pub fn load_to_vao_textured(&mut self, verts: &Vec<f32>, tex_coords: &Vec<f32>) -> VaoID {
-    let vao_id = self.create_vao();
+    let vao_id = self.create_and_bind_vao();
     self.bind_attrib(0, 2, verts);
     self.bind_attrib(1, 2, tex_coords);
     r_unbind_vertex_array();

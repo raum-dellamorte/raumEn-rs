@@ -108,6 +108,10 @@ pub fn r_bind_vaa_2(vao_id: VaoID) {
   r_enable_vertex_attrib_array(0);
   r_enable_vertex_attrib_array(1);
 }
+pub fn r_bind_vaa_1(vao_id: VaoID) {
+  r_bind_vertex_array(vao_id);
+  r_enable_vertex_attrib_array(0);
+}
 pub fn r_unbind_vaa_7() { unsafe {
   DisableVertexAttribArray(6);
   DisableVertexAttribArray(5);
@@ -116,15 +120,22 @@ pub fn r_unbind_vaa_7() { unsafe {
   DisableVertexAttribArray(2);
   DisableVertexAttribArray(1);
   DisableVertexAttribArray(0);
+  BindVertexArray(0);
 }}
 pub fn r_unbind_vaa_3() { unsafe {
   DisableVertexAttribArray(2);
   DisableVertexAttribArray(1);
   DisableVertexAttribArray(0);
+  BindVertexArray(0);
 }}
 pub fn r_unbind_vaa_2() { unsafe {
   DisableVertexAttribArray(1);
   DisableVertexAttribArray(0);
+  BindVertexArray(0);
+}}
+pub fn r_unbind_vaa_1() { unsafe {
+  DisableVertexAttribArray(0);
+  BindVertexArray(0);
 }}
 
 // Texture tools
