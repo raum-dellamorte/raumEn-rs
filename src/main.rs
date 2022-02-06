@@ -9,7 +9,7 @@ extern crate glutin;
 extern crate glsl;
 extern crate glsl_quasiquote;
 // extern crate cheddar; 
-#[macro_use] extern crate nom;
+extern crate nom;
 extern crate image;
 extern crate num;
 extern crate nalgebra;

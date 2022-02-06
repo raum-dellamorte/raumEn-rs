@@ -1,4 +1,3 @@
-
 use {
   std::{
     // error::Error,
@@ -16,13 +15,16 @@ use {
   //   // Matrix4,
   // },
   nom::{
+    bytes::complete::{ tag, },
     character::complete::{
       space1 as space,
       digit1 as digit,
       // alpha1, 
       // alphanumeric1, 
     },
+    combinator::{ map_res, },
     number::complete::float,
+    IResult,
   },
   crate::{
     eof,
@@ -39,116 +41,105 @@ pub struct Mesh {
 
 pub struct MeshBuffers;
 
-named!(usize_digit<&str, usize >,
-    map_res!( digit, FromStr::from_str )
-);
+pub fn usize_digit(i: &str) -> IResult<&str, usize> {
+  map_res(digit, FromStr::from_str )(i)
+}
 
 fn get_v(tstr: &str) -> (f32, f32, f32) {
   let eofs = eof(tstr);
-  match _get_v(&eofs) {
-    Ok((_, result)) => { result }
-    Err(e) => { match e {
-      nom::Err::Error((s,e)) => { panic!("{:?} {}", e,s) }
-      nom::Err::Failure((s,e)) => { panic!("{:?} {}", e,s) }
-      nom::Err::Incomplete(e) => { panic!("{:?}", e) }
-    }}
-  }
+  let (_, x) = _get_v(&eofs)
+    .expect("Failed at crate::importobj::get_v");
+  x
 }
-named!(_get_v<&str, (f32, f32, f32) >,
-  do_parse!(
-    tag!("v") >>
-    space >>
-    x: float >>
-    space >>
-    y: float >>
-    space >>
-    z: float >>
-    (x, y, z)
-  )
-);
+fn _get_v(i: &str) -> IResult<&str, (f32, f32, f32)> {
+  let (i, _) = tag("v")(i)?;
+  let (i, _) = space(i)?;
+  let (i, x) = float(i)?;
+  let (i, _) = space(i)?;
+  let (i, y) = float(i)?;
+  let (i, _) = space(i)?;
+  let (i, z) = float(i)?;
+  Ok(( i, (x,y,z) ))
+}
 
 fn get_vt(tstr: &str) -> (f32, f32) {
   let eofs = eof(tstr);
-  match _get_vt(&eofs) {
-    Ok((_, result)) => { result }
-    Err(e) => { match e {
-      nom::Err::Error((s,e)) => { panic!("{:?} {}", e,s) }
-      nom::Err::Failure((s,e)) => { panic!("{:?} {}", e,s) }
-      nom::Err::Incomplete(e) => { panic!("{:?}", e) }
-    }}
-  }
+  let (_, x) = _get_vt(&eofs)
+    .expect("Failed at crate::importobj::get_vt");
+  x
 }
-named!(_get_vt<&str, (f32, f32) >,
-  do_parse!(
-    tag!("vt") >>
-    space >>
-    x: float >>
-    space >>
-    y: float >>
-    (x, y)
-  )
-);
+// named!(_get_vt<&str, (f32, f32) >,
+//   do_parse!(
+//     tag!("vt") >>
+//     space >>
+//     x: float >>
+//     space >>
+//     y: float >>
+//     (x, y)
+//   )
+// );
+fn _get_vt(i: &str) -> IResult<&str, (f32, f32)> {
+  let (i, _) = tag("vt")(i)?;
+  let (i, _) = space(i)?;
+  let (i, x) = float(i)?;
+  let (i, _) = space(i)?;
+  let (i, y) = float(i)?;
+  Ok(( i, (x,y) ))
+}
 
 fn get_vn(tstr: &str) -> (f32, f32, f32) {
   let eofs = eof(tstr);
-  match _get_vn(&eofs) {
-    Ok((_, result)) => { result }
-    Err(e) => { match e {
-      nom::Err::Error((s,e)) => { panic!("{:?} {}", e,s) }
-      nom::Err::Failure((s,e)) => { panic!("{:?} {}", e,s) }
-      nom::Err::Incomplete(e) => { panic!("{:?}", e) }
-    }}
-  }
+  let (_, x) = _get_vn(&eofs)
+    .expect("Failed at crate::importobj::get_vn");
+  x
 }
-named!(_get_vn<&str, (f32, f32, f32) >,
-  do_parse!(
-    tag!("vn") >>
-    space >>
-    x: float >>
-    space >>
-    y: float >>
-    space >>
-    z: float >>
-    (x, y, z)
-  )
-);
+fn _get_vn(i: &str) -> IResult<&str, (f32, f32, f32)> {
+  let (i, _) = tag("vn")(i)?;
+  let (i, _) = space(i)?;
+  let (i, x) = float(i)?;
+  let (i, _) = space(i)?;
+  let (i, y) = float(i)?;
+  let (i, _) = space(i)?;
+  let (i, z) = float(i)?;
+  Ok(( i, (x,y,z) ))
+}
 
-named!(get_f_chunk<&str, (usize,  usize,  usize) >,
-  alt!(
-    do_parse!(
-      idx1: usize_digit >>
-      tag!("/") >>
-      idx2: usize_digit >>
-      tag!("/") >>
-      idx3: usize_digit >>
-      ( idx1, idx2, idx3 )
-    ) | do_parse!(
-      idx1: usize_digit >>
-      tag!("//") >>
-      idx3: usize_digit >>
-      ( idx1, 1, idx3 )
-    )
-  )
-);
+fn get_f_chunk(i: &str) -> IResult<&str, (usize,usize,usize)> {
+  let x = _get_f_chunk_a(i);
+  if x.is_ok() { return x }
+  _get_f_chunk_b(i)
+}
+fn _get_f_chunk_a(i: &str) -> IResult<&str, (usize,usize,usize)> {
+  let (i, x) = usize_digit(i)?;
+  let (i, _) = tag("/")(i)?;
+  let (i, y) = usize_digit(i)?;
+  let (i, _) = tag("/")(i)?;
+  let (i, z) = usize_digit(i)?;
+  Ok(( i, (x,y,z) ))
+}
+fn _get_f_chunk_b(i: &str) -> IResult<&str, (usize,usize,usize)> {
+  let (i, x) = usize_digit(i)?;
+  let (i, _) = tag("//")(i)?;
+  let (i, z) = usize_digit(i)?;
+  Ok(( i, (x,1,z) ))
+}
 
 fn get_f(tstr: &str) -> ( (usize,  usize,  usize), (usize, usize, usize), (usize, usize, usize) ) {
   let eofs = eof(tstr);
-  match _get_f(&eofs) {
-    Ok((_, result)) => { result }
-    Err(e) => { match e {
-      nom::Err::Error((s,e)) => { panic!("{:?} {}", e,s) }
-      nom::Err::Failure((s,e)) => { panic!("{:?} {}", e,s) }
-      nom::Err::Incomplete(e) => { panic!("{:?}", e) }
-    }}
-  }
+  let (_, x) = _get_f(&eofs)
+    .expect("Failed at crate::importobj::get_f");
+  x
 }
-named!(_get_f<&str, ( (usize,  usize,  usize), (usize, usize, usize), (usize, usize, usize) ) >,
-  do_parse!(
-    tag!("f") >>
-    space >> v1: get_f_chunk >> space >> v2: get_f_chunk >> space >> v3: get_f_chunk >>
-    ( v1, v2, v3 )
-  )
-);
+fn _get_f(i: &str) -> IResult<&str, ( (usize,usize,usize), (usize,usize,usize), (usize,usize,usize) )> {
+  let (i, _) = tag("f")(i)?;
+  let (i, _) = space(i)?;
+  let (i, x) = get_f_chunk(i)?;
+  let (i, _) = space(i)?;
+  let (i, y) = get_f_chunk(i)?;
+  let (i, _) = space(i)?;
+  let (i, z) = get_f_chunk(i)?;
+  Ok(( i, (x,y,z) ))
+}
 
 pub fn test_nom() {
   {
