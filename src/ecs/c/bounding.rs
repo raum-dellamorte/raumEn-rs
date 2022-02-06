@@ -174,15 +174,15 @@ fn between(min: f32, max: f32, n: f32) -> bool {
   (min..max).contains(&n)
 }
 
-#[cfg(test)]
-mod test_bounding {
-  use super::*;
+// #[cfg(test)]
+// mod test_bounding {
+//   use super::*;
   
-  #[test]
-  fn test_bounds() {
-    let mut a = Bounds::default().set_origin(Vector3f::new(-1.,0.,0.)).set_size(Vector3f::new(1.,3.,1.));
-    let mut b = Bounds::default().set_origin(Vector3f::new(1.,0.,0.)).set_size(Vector3f::new(1.,3.,1.));
+//   #[test]
+//   fn test_bounds() {
+//     let mut a = Bounds::default().set_origin(Vector3f::new(-1.,0.,0.)).set_size(Vector3f::new(1.,3.,1.));
+//     let mut b = Bounds::default().set_origin(Vector3f::new(1.,0.,0.)).set_size(Vector3f::new(1.,3.,1.));
     
     
-  }
-}
+//   }
+// }
