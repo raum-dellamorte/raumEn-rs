@@ -3,6 +3,7 @@ pub mod font;
 pub mod glslmaker;
 pub mod hud;
 pub mod particle;
+pub mod testparticle;
 pub mod postproc;
 pub mod terrain;
 pub mod texmod;
@@ -10,6 +11,7 @@ pub mod texmod;
 
 pub use shader::shader::*;
 pub use shader::particle::ParticleShader;
+pub use shader::testparticle::TestParticleShader;
 pub use shader::texmod::TexModShader;
 pub use shader::terrain::TerrainShader;
 pub use shader::font::gen_font_shader;

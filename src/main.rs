@@ -100,6 +100,9 @@ use {
         },
       },
     },
+    engine::{
+      particlemgr::ParticleMgr,
+    },
     render::{
       RenderPostProc, RenderFont, RenderHUD,
     },
@@ -389,6 +392,21 @@ fn main() {
   //   .set_parts_per_sec(20.0)
   // ;
   
+  let mut particle_mgr = ParticleMgr::default().init();
+  particle_mgr.position_mut().copy_from_isize(0, 10, 0);
+  
+  let rule_set = particle_mgr.systems_mut().new_rule_set(|rule_set|
+    rule_set
+      .set_texture("cosmic")
+      .set_tex_row_count(4)
+      .set_position(Vector3f::new(0.0,10.0,0.0))
+      .set_direction(crate::constants::ZVEC, 0.3)
+      .set_life_params(3.5, 0.5) // second number is random tolerance
+      .set_speed_params(20.0, 0.1)
+      .set_scale_params(2.0, 0.5)
+      .set_parts_per_sec(20.0)
+  );
+  
   // Game loop!
   println!("Starting game loop.");
   el.run(move |event, _, control_flow| {
@@ -404,6 +422,7 @@ fn main() {
           render_hud.clean_up();
           render_fnt.clean_up();
           render_post.clean_up();
+          particle_mgr.clean_up();
           clean_up_time = true;
           *control_flow = ControlFlow::Exit;
         },
@@ -441,6 +460,7 @@ fn main() {
             once_per_sec = true;
           }
         }
+        let delta = world.read_resource::<Handler>().timer.delta;
         if once_per_sec {
           once_per_sec = false;
           println!("Once per second FPS: {}", &format!("FPS: {:.3}", (fps * 1000.0).round() / 1000.0 ) );
@@ -449,13 +469,16 @@ fn main() {
         }
         
         // *** Do per frame calculations such as movement
-        
-        // gen_particles(&mut world, &particle_rule);
-        // particle_update.dispatch(&world);
-        move_player.dispatch(&world);
-        follow_player.dispatch(&world);
-        // world.maintain();
-        windowed_context.window().request_redraw();
+        if delta < 0.06 {
+          // gen_particles(&mut world, &particle_rule);
+          // particle_update.dispatch(&world);
+          particle_mgr.emit_particles(rule_set, delta);
+          particle_mgr.update_particles(delta);
+          move_player.dispatch(&world);
+          follow_player.dispatch(&world);
+          // world.maintain();
+          windowed_context.window().request_redraw();
+        }
       }
       Event::RedrawRequested(_) => {
         // Emitted after MainEventsCleared when a window should be redrawn.
@@ -475,13 +498,14 @@ fn main() {
         prepare(&world);
         terrain_draw.dispatch(&world);
         texmod_draw.dispatch(&world);
-        // particle_draw.dispatch(&world);
         world.maintain();
         _fbo.unbind();
         _fbo.blit_to_fbo(0, &_fbo_final);
         
         // _fbo_final.blit_to_screen(&world);
         render_post.render();
+        // particle_draw.dispatch(&world);
+        particle_mgr.render();
         render_hud.render(&world);
         render_fnt.render(&world);
         // Write the new frame to the screen!

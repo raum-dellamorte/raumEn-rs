@@ -5,6 +5,7 @@ pub mod fbo;
 pub mod hud;
 pub mod input;
 pub mod loader;
+pub mod particlemgr;
 pub mod timer;
 
 pub use engine::camera::Camera;

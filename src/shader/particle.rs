@@ -102,6 +102,6 @@ pub fn gen_particle_shader() -> Shader {
   // })
   // ;
   // println!("{:?}", _test);
-  // println!("Created particle shader.");
+  println!("Created particle shader.");
   shader
 }
