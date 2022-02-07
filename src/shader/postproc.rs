@@ -1,8 +1,8 @@
 
 
 use shader::{Shader, ShaderConf, };
-pub fn gen_fog_shader(effect: &str) -> Shader {
-  let mut shader = Shader::new(ShaderConf::new(effect)
+pub fn gen_fog_shader() -> Shader {
+  let mut shader = Shader::new(ShaderConf::new("fog")
       .with_attributes_auto(vec!("a_Pos"))
       // .add_uniforms(vec!(
       //   // Vertex
@@ -16,5 +16,24 @@ pub fn gen_fog_shader(effect: &str) -> Shader {
   );
   shader.setup();
   println!("Created PostProc shader.");
+  shader
+}
+
+pub fn gen_overlay_shader() -> Shader {
+  let mut shader = Shader::new(ShaderConf::new("overlay")
+      .with_attributes_auto(vec!("a_Pos", "a_TexCoord"))
+      // .with_uniforms(vec!(
+      //   "translation",
+      //   "offset",
+      //   "colour",
+      //   "fontAtlas",
+      // ))
+      .with_sampler_uniforms(vec!(
+        ("bg_color", 0),
+        ("fg_color", 1),
+      ))
+  );
+  shader.setup();
+  println!("Created font shader.");
   shader
 }

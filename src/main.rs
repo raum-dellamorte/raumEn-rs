@@ -292,12 +292,20 @@ fn main() {
   // Couldn't get it to work in the Kotlin version.
   // I may go back to it and try to replicate how it's done here.
   let mut _fbo = Fbo::new(0, 0, ColorMultisampleRenderBuffers2, DepthRenderBuffer);
+  let mut _fbo_particle = Fbo::new(0, 0, ColorTexture, NoDepth);
   let mut _fbo_final = Fbo::new(0, 0, ColorTexture, DepthTexture);
-  let render_post = RenderPostProc::new("fog", world.read_resource::<HUD>().quad.vao_id.0, 
+  let render_post = RenderPostProc::new(world.read_resource::<HUD>().quad.vao_id.0)
+    .with_shader(crate::shader::gen_fog_shader(),
       vec![
         Texture::new("fbo color", _fbo_final.color_tex_id).assign_tex_unit(0_i32),
         Texture::new("fbo depth", _fbo_final.depth_tex_id).assign_tex_unit(1_i32),
-      ]);
+      ])
+    .with_shader(crate::shader::gen_overlay_shader(),
+      vec![
+        Texture::new("fbo color", _fbo_final.color_tex_id).assign_tex_unit(0_i32),
+        Texture::new("particles", _fbo_particle.color_tex_id).assign_tex_unit(1_i32),
+      ]
+    );
   { // Right now, the HUD is displaying a small version of the whole
     // screen so you can see the color and depth buffers for debugging
     // purposes.
@@ -392,7 +400,7 @@ fn main() {
       .set_texture("cosmic")
       .set_tex_row_count(4)
       .set_position(Vector3f::new(0.0,10.0,0.0))
-      .set_direction(crate::constants::ZVEC, 0.3)
+      .set_direction(crate::constants::YVEC, 0.3)
       .set_life_params(3.5, 0.5) // second number is random tolerance
       .set_speed_params(20.0, 0.1)
       .set_scale_params(2.0, 0.5)
@@ -409,6 +417,7 @@ fn main() {
           println!("Close Requested");
           println!("Cleaning Up...");
           _fbo.clean_up();
+          _fbo_particle.clean_up();
           _fbo_final.clean_up();
           clean_up(&world);
           render_hud.clean_up();
@@ -493,11 +502,20 @@ fn main() {
         world.maintain();
         _fbo.unbind();
         _fbo.blit_to_fbo(0, &_fbo_final);
-        
-        // _fbo_final.blit_to_screen(&world);
-        render_post.render();
-        // particle_draw.dispatch(&world);
+
+        _fbo_particle.bind();
         particle_mgr.render();
+        _fbo_particle.unbind();
+        
+        // _fbo_final.blit_to_screen();
+        _fbo_final.bind();
+        render_post.render_fog();
+        _fbo_final.unbind();
+        
+        render_post.render_overlay();
+        // _fbo_particle.blit_to_screen();
+
+        // particle_draw.dispatch(&world);
         render_hud.render(&world);
         render_fnt.render(&world);
         // Write the new frame to the screen!

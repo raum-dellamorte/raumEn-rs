@@ -91,6 +91,8 @@ impl ParticleMgr {
   }
   pub fn render(&self) {
     let view = DISPLAY.lock().unwrap().camera.view_mat.clone();
+    
+    crate::util::rgl::r_clear_particle_fbo();
     self.shader.start();
     // Prepare
     r_bind_vaa_1(self.quad.vao_id);
@@ -98,12 +100,13 @@ impl ParticleMgr {
         .disable_depth_mask()
         .enable_blend()
         .set();
-    RBlend::DefaultBlend.exec();
+    RBlend::ParticleBlend.exec();
     // Render
     for p in &self.active {
       self.update_model_view_matrix(self.attribs.position(*p), self.attribs.rotation(*p), self.attribs.scale(*p), &view);
       // print!("I should be drawing - ");
       r_draw_arrays_triangle_strip(self.quad.vertex_count);
+      // r_draw_triangle_strip(self.quad.vertex_count);
     }
     // Cleanup
     GlSettings::default()
@@ -361,7 +364,7 @@ impl ParticleAttribs {
   pub fn apply_rule_set(&mut self, particle: Particle, system: &ParticleSystem) {
     self.position_mut(particle).copy_from_v3f(system.base_pos);
     let mut direction = if system.is_directional {
-      gen_random_unit_vector3f_within_cone(&mut self.rng, &mut self.rotator, ZVEC, system.dir_error )
+      gen_random_unit_vector3f_within_cone(&mut self.rng, &mut self.rotator, system.base_dir, system.dir_error )
     } else {
       gen_random_unit_vector3f(&mut self.rng)
     };
@@ -580,6 +583,11 @@ fn gen_random_unit_vector3f_within_cone(
   } else if (cone_dir.z + 1.0).abs() < TOLERANCE64 {
     dir_tmp.z *= -1.0;
   }
+  // A dirty hack
+  let ny = dir_tmp.z;
+  let nz = dir_tmp.y;
+  dir_tmp.y = ny;
+  dir_tmp.z = nz;
   dir_tmp
 }
 
