@@ -310,6 +310,7 @@ pub fn r_get_errors(msg: &str) { unsafe {
 pub enum RBlend {
   DefaultBlend,
   AdditiveBlend,
+  ParticleBlend,
 }
 impl RBlend {
   pub fn exec(&self) { unsafe {
@@ -321,6 +322,9 @@ impl RBlend {
       RBlend::AdditiveBlend => {
         // println!("Additive Blend");
         BlendFunc(SRC_ALPHA, ONE);
+      }
+      RBlend::ParticleBlend => {
+        BlendFunc(ONE, ONE_MINUS_SRC_ALPHA);
       }
     }
   }}
