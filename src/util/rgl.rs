@@ -278,7 +278,7 @@ pub fn r_draw_triangle_strip(vertex_count: VertexCount) { unsafe {
 }}
 pub fn r_draw_arrays_triangle_strip(vertex_count: VertexCount) { unsafe {
   DrawArrays(TRIANGLE_STRIP, 0, vertex_count.0); 
-  r_get_errors("r_draw_triangle_strip 1");
+  r_get_errors("r_draw_arrays_triangle_strip 1");
 }}
 pub fn r_draw_instanced(vertex_count: VertexCount, particle_count: u32) { unsafe {
   DrawArraysInstanced(TRIANGLE_STRIP, 0, vertex_count.0, particle_count as i32);
