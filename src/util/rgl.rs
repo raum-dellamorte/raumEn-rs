@@ -267,6 +267,14 @@ pub fn r_update_vbo(vbo: VboID, data: Vec<f32>, max: usize) { unsafe {
   // r_get_errors("r_update_vbo 5");
 }}
 
+// Clear methods
+pub fn r_clear_particle_fbo() { unsafe {
+  Disable(DEPTH_TEST);
+  Clear(COLOR_BUFFER_BIT);
+  ClearColor(0.0, 0.0, 0.0, 0.0);
+  BlendFuncSeparate(SRC_ALPHA, ONE_MINUS_SRC_ALPHA, ONE, ONE_MINUS_SRC_ALPHA);
+}}
+
 // Draw methods
 pub fn r_draw_triangles(vertex_count: VertexCount) { unsafe {
   DrawElements(TRIANGLES, vertex_count.0, UNSIGNED_INT, std::ptr::null()); 
