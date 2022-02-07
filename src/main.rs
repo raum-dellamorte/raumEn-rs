@@ -135,17 +135,8 @@ pub use {
   }
 };
 
-use engine::fbo::ColorType::{
-  // ColorMultisampleRenderBuffer, 
-  ColorMultisampleRenderBuffers2, 
-  ColorTexture, 
-  // NoColor, 
-};
-use engine::fbo::DepthType::{
-  DepthRenderBuffer, 
-  DepthTexture, 
-  // NoDepth, 
-};
+use engine::fbo::ColorType::*;
+use engine::fbo::DepthType::*;
 
 fn gen_world() -> World {
   let mut world = World::new();
