@@ -219,7 +219,7 @@ fn main() {
   let el = EventLoop::new();
   let wb = glutin::window::WindowBuilder::new()
     .with_title("RaumEn")
-    .with_inner_size(glutin::dpi::LogicalSize::new(1024.0, 768.0))
+    .with_inner_size(glutin::dpi::LogicalSize::new(1024.0_f64, 768.0_f64))
     .with_maximized(false);
   let windowed_context = glutin::ContextBuilder::new()
     .with_gl(gl_request)
