@@ -1,65 +1,90 @@
 
 use gl::*;
 // use gl::types::{GLuint, }; // GLfloat, GLenum, GLint, GLchar, GLsizeiptr, GLboolean, 
-use CVOID;
+// use CVOID;
 
-use {GameMgr, Shader, Texture}; // Lights, Camera, 
-use entities::PosMarker;
-use model::RawModel;
-use shader::gen_font_shader;
-use text::{TextMgr, RFontType};
-use util::{Vector3f, HashMap, HashSet, Arc, Mutex, }; // Vector2f, Vector4f, RVertex, RVertex2D
+use {
+  specs::{World, WorldExt, },
+  // Camera, 
+  // GameMgr, 
+  // Lights, 
+  Shader, 
+  // Texture, 
+  // entities::PosMarker,
+  // model::Model,
+  Textures,
+  TextMgr,
+  shader::gen_font_shader,
+  // text::{
+  //   // TextMgr, 
+  //   // RFontType,
+  // },
+  util::{
+    HashMap, 
+    HashSet, 
+    // Arc, 
+    // Mutex,
+    // Vector3f, 
+    // Vector2f, 
+    // Vector4f, 
+    // RVertex, 
+    // RVertex2D
+  }, 
+};
 
 pub struct RenderFont {
   pub shader: Shader,
 }
-
-impl RenderFont {
-  pub fn new() -> Self {
+impl Default for RenderFont {
+  fn default() -> Self {
     Self {
       shader: gen_font_shader(),
     }
   }
-  pub fn render(&mut self, mgr: Box<GameMgr>) -> Box<GameMgr> {
-    let mut mgr = mgr;
+}
+impl RenderFont {
+  pub fn new() -> Self {
+    Self::default()
+  }
+  // pub fn render(&mut self, mgr: Box<GameMgr>) -> Box<GameMgr> {
+  pub fn render(&mut self, world: &World) {
+    // let mut mgr = mgr;
     unsafe {
       Enable(BLEND);
       BlendFunc(SRC_ALPHA, ONE_MINUS_SRC_ALPHA);
       Disable(DEPTH_TEST);
     }
     // println!("Running Text Render Pass");
-    let _textmgr = mgr.textmgr.take().unwrap();
     {
-      let mut textmgr = _textmgr.borrow_mut();
+      let mut textmgr = world.write_resource::<TextMgr>();
       self.shader.start();
       let _tmp: HashMap<String, HashSet<String>> = (*textmgr).active_text.clone();
-      let fonts: Vec<&String> = _tmp.keys().clone().into_iter().collect();
+      let fonts: Vec<&String> = _tmp.keys().clone().collect();
+      use util::rgl::r_bind_texture;
       for font in fonts {
-        let tex_id = match textmgr.fonts.get_mut(font) {
+        match textmgr.fonts.get_mut(font) {
           Some(x) => {
-            let texs = mgr.textures.borrow_mut();
-            match texs.get(&x.tex_atlas) {
-              Some(tid) => { tid.tex_id }
+            let texs = world.write_resource::<Textures>();
+            match texs.0.get(&x.tex_atlas) {
+              Some(tid) => { 
+                // println!("tex_id: {}", tex_id);
+                r_bind_texture(&tid); 
+              }
               _ => { println!("No font atlas texture {}", &x.tex_atlas); continue }
             }
           }
           _ => { println!("No ftype {}", font); continue }
         };
-        // println!("tex_id: {}", tex_id);
-        unsafe {
-          ActiveTexture(TEXTURE0);
-          BindTexture(TEXTURE_2D, tex_id);
-        }
-        for gtexts in textmgr.active_text.get(font) {
+        if let Some(gtexts) = textmgr.active_text.get(font) {
           for gtstr in gtexts {
-            for gtext in textmgr.texts.get(gtstr) {
+            if let Some(gtext) = textmgr.texts.get(gtstr) {
               unsafe {
-                BindVertexArray(gtext.text_mesh_vao);
+                BindVertexArray(gtext.text_mesh_vao.0);
                 EnableVertexAttribArray(0);
                 EnableVertexAttribArray(1);
-                self.shader.load_vec_3f("colour", &gtext.colour);
-                self.shader.load_vec_2f("translation", &gtext.position);
-                DrawArrays(TRIANGLES, 0, gtext.vertex_count as i32);
+                self.shader.load_vec_3f("colour", gtext.colour);
+                self.shader.load_vec_2f("translation", gtext.position);
+                DrawArrays(TRIANGLES, 0, gtext.vertex_count.0);
                 DisableVertexAttribArray(0);
                 DisableVertexAttribArray(1);
                 BindVertexArray(0);
@@ -74,8 +99,6 @@ impl RenderFont {
         Enable(DEPTH_TEST);
       }
     }
-    mgr.textmgr = Some(_textmgr);
-    mgr
   }
   pub fn clean_up(&mut self) {
     self.shader.clean_up();

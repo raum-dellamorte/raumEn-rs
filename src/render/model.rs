@@ -1,34 +1,52 @@
 
 
-use gl::*;
-// use gl::types::{GLuint, }; // GLfloat, GLenum, GLint, GLchar, GLsizeiptr, GLboolean, 
-use CVOID;
-
-use entities::position::PosMarker;
-use {GameMgr, Shader, Texture, }; // Camera, 
-use model::RawModel;
-use shader::gen_model_shader;
-use util::{Vector3f, Rc, RefCell, }; // Vector2f, Vector4f, 
-// use util::rvertex::{RVertex, RVertex2D};
+use {
+  // gl::{
+  //   *,
+  //   // types::{
+  //   //   // GLuint, GLfloat, GLenum, GLint, GLchar, GLsizeiptr, GLboolean, 
+  //   // }, 
+  // },
+  // CVOID,
+  specs::World,
+  shader::{
+    Shader,
+    TexModShader,
+  },
+  // text::{
+  //   // TextMgr, 
+  //   // RFontType,
+  // },
+  util::{
+    rgl::*,
+    // Vector3f, 
+    // Rc, RefCell, 
+    // Vector3f, 
+    // Vector2f, 
+    // HashMap, 
+    // HashSet, 
+    // Arc, Mutex,
+    // Vector2f, Vector4f, RVertex, RVertex2D,
+  }, 
+};
 
 pub struct RenderTexModel {
-  pub shader: Shader,
+  pub shader: TexModShader,
 }
 impl RenderTexModel {
   pub fn new() -> Self {
     RenderTexModel {
-      shader: gen_model_shader(),
+      shader: TexModShader::default(),
     }
   }
-  pub fn render(&mut self, mgr: Box<GameMgr>) -> Box<GameMgr> {
-    let mut mgr = mgr;
-    let shader = &self.shader;
+  pub fn render(&mut self, world: &World) {
+    let shader = &self.shader.shader;
     shader.start();
     shader.load_matrix("u_View", &mgr.view_mat);
     mgr.lights_do(|lights| { lights.load_to_shader(shader); });
     // shader.load_vec_4f("plane", &Vector4f {x: 0_f32, y: 10000_f32, z: 0_f32, w: 1_f32, }); // vec4 plane;
     // shader.load_bool("use_clip_plane", false); // float useClipPlane;
-    // shader.load_vec_3f("sky_color", &Vector3f::new(0.5, 0.6, 0.5));
+    // shader.load_vec_3f("sky_color", Vector3f::new(0.5, 0.6, 0.5));
     {
       let emgr = &mgr.entity_mgr;
       let entities = emgr.entities.borrow_mut();
@@ -36,8 +54,8 @@ impl RenderTexModel {
       for _entity in entities.values() {
         let entity = _entity.borrow_mut();
         let model = mgr.model(&entity.model);
-        Self::bind_model(&model);
-        Self::use_material(&mgr, &self.shader, &entity.material);
+        r_bind_vaa_3(&model);
+        Self::use_material(&mgr, &self.shader.shader, &entity.material);
         if let Some(_instances) = instances.get(&entity.name) {
           for ent_inst in _instances {
             let ent = ent_inst.borrow();
@@ -47,17 +65,16 @@ impl RenderTexModel {
               shader.load_matrix("u_Transform", trans_mat);
             }
             shader.load_vec_3f("color_id", &ent.color_id.borrow()); // add color id to entities to use here.
-            unsafe { DrawElements(TRIANGLES, model.vertex_count, UNSIGNED_INT, CVOID); }
+            r_draw_triangles(&model);
           }
         }
-        Self::unbind();
+        r_unbind_vaa_3();
       }
     }
     shader.stop();
-    mgr
   }
   pub fn clean_up(&mut self) {
-    self.shader.clean_up();
+    self.shader.shader.clean_up();
   }
   fn use_material(mgr: &GameMgr, shader: &Shader, material: &str) {
     let (lighting, texture) = {
@@ -73,22 +90,7 @@ impl RenderTexModel {
     }
     {
       let texture = mgr.texture(texture);
-      Self::bind_texture(&texture);
+      r_bind_texture(&texture);
     }
   }
-  fn bind_model(model: &RawModel) { unsafe {
-    BindVertexArray(model.vao_id);
-    EnableVertexAttribArray(0);
-    EnableVertexAttribArray(1);
-    EnableVertexAttribArray(2);
-  }}
-  fn bind_texture(texture: &Texture) { unsafe {
-    ActiveTexture(TEXTURE0);
-    BindTexture(TEXTURE_2D, texture.tex_id);
-  }}
-  fn unbind() { unsafe {
-    DisableVertexAttribArray(2);
-    DisableVertexAttribArray(1);
-    DisableVertexAttribArray(0);
-  }}
 }

@@ -32,7 +32,7 @@ impl Entity {
     f(&mut out.borrow_mut());
   }
   pub fn first(&self) -> Rc<RefCell<EntityInstance>> {
-    if self.instances.len() == 0 { panic!("No instances of Entity<{}>", &self.name) }
+    if self.instances.is_empty() { panic!("No instances of Entity<{}>", &self.name) }
     self.instances[0].clone()
   }
 }
@@ -40,12 +40,12 @@ impl Entity {
 pub struct EntityInstance {
   pub id: u32,
   pub marker: Rc<RefCell<PosMarker>>,
-  pub color_id: RefCell<Vector3f>,
+  pub color_id: RefCell<Vector3f<f32>>,
 }
 impl EntityInstance {
   pub fn new(id: u32) -> Self {
-    EntityInstance {
-      id: id,
+    Self {
+      id,
       marker: Rc::new(RefCell::new(PosMarker::new())),
       color_id: RefCell::new(Vector3f::blank()),
     }
@@ -55,6 +55,6 @@ impl EntityInstance {
     Mob::new(name, self.marker.clone())
   }
   pub fn set_pos(&self, x: f32, y: f32, z: f32) {
-    self.marker.borrow_mut().pos.from_f32(x, y, z);
+    self.marker.borrow_mut().pos.copy_from_float(x, y, z);
   }
 }

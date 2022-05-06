@@ -1,19 +1,40 @@
-
-use std::error::Error;
-use std::fs::File;
-use std::io::prelude::*;
-use std::io::BufReader;
-use std::path::Path;
-use std::str;
-use std::str::FromStr;
-
-use nom::{space, digit, float_s, }; // alpha, alphanumeric, 
-
-use eof;
-use GameMgr;
-use text::{RChar, }; // RLine, RWord, RFontType, SPACE_ASCII, LINE_HEIGHT, 
-use text::{LINE_HEIGHT, SPACE_ASCII};
-use util::HashMap;
+use {
+  std::{
+    // error::Error,
+    fs::File,
+    io::{
+      prelude::*,
+      BufReader,
+    },
+    path::Path,
+    str,
+    str::FromStr,
+  },
+  nom::{
+    bytes::complete::{ tag, take_until, },
+    character::complete::{
+      char, 
+      space1 as space,
+      digit1 as digit,
+      // alpha1, 
+      // alphanumeric1, 
+    },
+    combinator::{ map_res, },
+    number::complete::float,
+    IResult,
+  },
+  crate::{
+    DISPLAY,
+    eof,
+    text::{
+      RChar, 
+      LINE_HEIGHT, 
+      SPACE_ASCII, 
+      // RLine, RWord, RFontType, 
+    },
+    util::HashMap,
+  }
+};
 
 pub fn test_noms() {
   test_get_info();
@@ -23,13 +44,15 @@ pub fn test_noms() {
   test_get_char();
 }
 
-named!(u32_digit<&str, u32 >,
-    map_res!( digit, FromStr::from_str )
-);
-named!(i32_digit<&str, i32 >,
-    map_res!( digit, FromStr::from_str )
-);
+pub fn u32_digit(i: &str) -> IResult<&str, u32> {
+  map_res(digit, FromStr::from_str )(i)
+}
+
+pub fn i32_digit(i: &str) -> IResult<&str, i32> {
+  map_res(digit, FromStr::from_str )(i)
+}
 // info face="Times New Roman" size=59 bold=0 italic=0 charset="" unicode=0 stretchH=100 smooth=1 aa=1 padding=8,8,8,8 spacing=0,0
+#[allow(dead_code)]
 #[derive(Debug)]
 pub struct InfoVars {
   face: String,
@@ -44,33 +67,62 @@ pub struct InfoVars {
   padding: Vec<u32>,
   spacing: Vec<u32>,
 }
-fn get_info(tstr: &str) -> ( InfoVars ) {
+fn get_info(tstr: &str) -> InfoVars {
   let eofs = eof(tstr);
-  match _get_info(&eofs) {
-    Ok((_, result)) => { result }
-    Err(e) => panic!("{}", e)
-  }
+  let (_, x) = _get_info(&eofs)
+    .expect("");
+  x
 }
-named!(_get_info<&str, ( InfoVars ) >,
-  do_parse!(
-    tag!("info") >> space >>
-    tag!("face=\"") >> face: take_until!("\"") >> char!('"') >> space >>
-    tag!("size=") >> size: u32_digit >> space >>
-    tag!("bold=") >> bold: u32_digit >> space >>
-    tag!("italic=") >> italic: u32_digit >> space >>
-    tag!("charset=\"") >> charset: take_until!("\"") >> char!('"') >> space >>
-    tag!("unicode=") >> unicode: u32_digit >> space >>
-    tag!("stretchH=") >> stretch_h: u32_digit >> space >>
-    tag!("smooth=") >> smooth: u32_digit >> space >>
-    tag!("aa=") >> aa: u32_digit >> space >>
-    tag!("padding=") >> p1: u32_digit >> char!(',') >> p2: u32_digit >> 
-    char!(',') >> p3: u32_digit >> char!(',') >> p4: u32_digit >> space >>
-    tag!("spacing=") >> s1: u32_digit >> char!(',') >> s2: u32_digit >>
-    ( InfoVars { face: face.to_string(), size: size, bold: bold, italic: italic, charset: charset.to_string(), 
+fn _get_info(i: &str) -> IResult<&str, InfoVars > {
+  let (i, _) = tag("info")(i)?;
+  let (i, _) = space(i)?;
+  let (i, _) = tag("face=\"")(i)?;
+  let (i, face) = take_until("\"")(i)?;
+  let (i, _) = char('"')(i)?;
+  let (i, _) = space(i)?;
+  let (i, _) = tag("size=")(i)?;
+  let (i, size) = u32_digit(i)?;
+  let (i, _) = space(i)?;
+  let (i, _) = tag("bold=")(i)?;
+  let (i, bold) = u32_digit(i)?;
+  let (i, _) = space(i)?;
+  let (i, _) = tag("italic=")(i)?;
+  let (i, italic) = u32_digit(i)?;
+  let (i, _) = space(i)?;
+  let (i, _) = tag("charset=\"")(i)?;
+  let (i, charset) = take_until("\"")(i)?;
+  let (i, _) = char('"')(i)?;
+  let (i, _) = space(i)?;
+  let (i, _) = tag("unicode=")(i)?;
+  let (i, unicode) = u32_digit(i)?;
+  let (i, _) = space(i)?;
+  let (i, _) = tag("stretchH=")(i)?;
+  let (i, stretch_h) = u32_digit(i)?;
+  let (i, _) = space(i)?;
+  let (i, _) = tag("smooth=")(i)?;
+  let (i, smooth) = u32_digit(i)?;
+  let (i, _) = space(i)?;
+  let (i, _) = tag("aa=")(i)?;
+  let (i, aa) = u32_digit(i)?;
+  let (i, _) = space(i)?;
+  let (i, _) = tag("padding=")(i)?;
+  let (i, p1) = u32_digit(i)?;
+  let (i, _) = char(',')(i)?;
+  let (i, p2) = u32_digit(i)?;
+  let (i, _) = char(',')(i)?;
+  let (i, p3) = u32_digit(i)?;
+  let (i, _) = char(',')(i)?;
+  let (i, p4) = u32_digit(i)?;
+  let (i, _) = space(i)?;
+  let (i, _) = tag("spacing=")(i)?;
+  let (i, s1) = u32_digit(i)?;
+  let (i, _) = char(',')(i)?;
+  let (i, s2) = u32_digit(i)?;
+  
+  Ok( (i, InfoVars { face: face.to_string(), size: size, bold: bold, italic: italic, charset: charset.to_string(), 
       unicode: unicode, stretch_h: stretch_h, smooth: smooth, aa: aa, 
-      padding: vec![p1, p2, p3, p4], spacing: vec![s1, s2] } )
-  )
-);
+      padding: vec![p1, p2, p3, p4], spacing: vec![s1, s2] }) )
+}
 pub fn test_get_info() {
   let tstr = "info face=\"Times New Roman\" size=59 bold=0 italic=0 charset=\"\" unicode=0 stretchH=100 smooth=1 aa=1 padding=8,8,8,8 spacing=0,0";
   let test = get_info(tstr);
@@ -88,29 +140,39 @@ pub struct CommonVars {
 }
 fn get_common(tstr: &str) -> CommonVars {
   let eofs = eof(tstr);
-  match _get_common(&eofs) {
-    Ok((_, result)) => { result }
-    Err(e) => panic!("{}", e)
-  }
+  let (_, x) = _get_common(&eofs)
+    .expect("");
+  x
 }
-named!(_get_common<&str, ( CommonVars ) >,
-  do_parse!(
-    tag!("common") >> space >>
-    tag!("lineHeight=") >> line_height: u32_digit >> space >>
-    tag!("base=") >> base: u32_digit >> space >>
-    tag!("scaleW=") >> scale_w: u32_digit >> space >>
-    tag!("scaleH=") >> scale_h: u32_digit >> space >>
-    tag!("pages=") >> pages: u32_digit >> space >>
-    tag!("packed=") >> packed: u32_digit >>
-    ( CommonVars { line_height: line_height, base: base, scale_w: scale_w, scale_h: scale_h, pages: pages, packed: packed } )
-  )
-);
+fn _get_common(i: &str) -> IResult<&str, CommonVars > {
+  let (i, _) = tag("common")(i)?;
+  let (i, _) = space(i)?;
+  let (i, _) = tag("lineHeight=")(i)?;
+  let (i, line_height) = u32_digit(i)?;
+  let (i, _) = space(i)?;
+  let (i, _) = tag("base=")(i)?;
+  let (i, base) = u32_digit(i)?;
+  let (i, _) = space(i)?;
+  let (i, _) = tag("scaleW=")(i)?;
+  let (i, scale_w) = u32_digit(i)?;
+  let (i, _) = space(i)?;
+  let (i, _) = tag("scaleH=")(i)?;
+  let (i, scale_h) = u32_digit(i)?;
+  let (i, _) = space(i)?;
+  let (i, _) = tag("pages=")(i)?;
+  let (i, pages) = u32_digit(i)?;
+  let (i, _) = space(i)?;
+  let (i, _) = tag("packed=")(i)?;
+  let (i, packed) = u32_digit(i)?;
+  Ok( (i, CommonVars { line_height: line_height, base: base, scale_w: scale_w, scale_h: scale_h, pages: pages, packed: packed }) )
+}
 pub fn test_get_common() {
   let tstr = "common lineHeight=84 base=54 scaleW=512 scaleH=512 pages=1 packed=0";
   let test = get_common(tstr);
   println!("{:?}", test);
 }
 // page id=0 file="TimesNewRoman.png"
+#[allow(dead_code)]
 #[derive(Debug)]
 pub struct PageVars {
   id: u32,
@@ -118,37 +180,41 @@ pub struct PageVars {
 }
 fn get_page(tstr: &str) -> PageVars {
   let eofs = eof(tstr);
-  match _get_page(&eofs) {
-    Ok((_, result)) => { result }
-    Err(e) => panic!("{}", e)
-  }
+  let (_, x) = _get_page(&eofs)
+    .expect("");
+  x
 }
-named!(_get_page<&str, ( PageVars ) >,
-  do_parse!(
-    tag!("page") >> space >>
-    tag!("id=") >> id: u32_digit >> space >>
-    tag!("file=\"") >> file: take_until!("\"") >> char!('"') >> 
-    ( PageVars { id: id, file: file.to_string() } )
-  )
-);
+fn _get_page(i: &str) -> IResult<&str, PageVars > {
+  let (i, _) = tag("page")(i)?;
+  let (i, _) = space(i)?;
+  let (i, _) = tag("id=")(i)?;
+  let (i, id) = u32_digit(i)?;
+  let (i, _) = space(i)?;
+  let (i, _) = tag("file=\"")(i)?;
+  let (i, file) = take_until("\"")(i)?;
+  let (i, _) = char('"')(i)?;
+  
+  Ok( (i, PageVars { id: id, file: file.to_string() }) )
+}
 pub fn test_get_page() {
   let tstr = &eof("page id=0 file=\"TimesNewRoman.png\"");
   let test = get_page(tstr);
   println!("{:?}", test);
 }
 // chars count=95
-fn get_char_count(tstr: &str) -> ( u32 ) {
+fn get_char_count(tstr: &str) -> u32 {
   let eofs = eof(tstr);
-  match _get_char_count(&eofs) {
-    Ok((_, result)) => { result }
-    Err(e) => panic!("{}", e)
-  }
+  let (_, x) = _get_char_count(&eofs)
+    .expect("");
+  x
 }
-named!(_get_char_count<&str, ( u32 ) >,
-  do_parse!(
-    tag!("chars") >> space >> tag!("count=") >> cnt: u32_digit >> ( cnt )
-  )
-);
+fn _get_char_count(i: &str) -> IResult<&str, u32 > {
+  let (i, _) = tag("chars")(i)?;
+  let (i, _) = space(i)?;
+  let (i, _) = tag("count=")(i)?;
+  let (i, cnt) = u32_digit(i)?;
+  Ok( (i, cnt) )
+}
 pub fn test_get_char_count() {
   let tstr = &eof("chars count=95");
   let test = get_char_count(tstr);
@@ -170,28 +236,46 @@ pub struct CharVars {
 }
 fn get_char(tstr: &str) -> CharVars {
   let eofs = eof(tstr);
-  match _get_char(&eofs) {
-    Ok((_, result)) => { result }
-    Err(e) => panic!("{}", e)
-  }
+  let (_, x) = _get_char(&eofs)
+    .expect("");
+  x
 }
-named!(_get_char<&str, ( CharVars ) >,
-  do_parse!(
-    tag!("char") >> space >>
-    tag!("id=") >> id: u32_digit >> space >>
-    tag!("x=") >> x: i32_digit >> space >>
-    tag!("y=") >> y: i32_digit >> space >>
-    tag!("width=") >> width: i32_digit >> space >>
-    tag!("height=") >> height: i32_digit >> space >>
-    tag!("xoffset=") >> xoffset: float_s >> space >>
-    tag!("yoffset=") >> yoffset: float_s >> space >>
-    tag!("xadvance=") >> xadvance: i32_digit >> space >>
-    tag!("page=") >> page: u32_digit >> space >>
-    tag!("chnl=") >> chnl: u32_digit >> space >>
-    ( CharVars { id: id, x: x, y: y, width: width, height: height, 
-        xoffset: xoffset, yoffset: yoffset, xadvance: xadvance, page: page, chnl: chnl } )
-  )
-);
+fn _get_char(i: &str) -> IResult<&str, CharVars > {
+  let (i, _) = tag("char")(i)?;
+  let (i, _) = space(i)?;
+  let (i, _) = tag("id=")(i)?;
+  let (i, id) = u32_digit(i)?;
+  let (i, _) = space(i)?;
+  let (i, _) = tag("x=")(i)?;
+  let (i, x) = i32_digit(i)?;
+  let (i, _) = space(i)?;
+  let (i, _) = tag("y=")(i)?;
+  let (i, y) = i32_digit(i)?;
+  let (i, _) = space(i)?;
+  let (i, _) = tag("width=")(i)?;
+  let (i, width) = i32_digit(i)?;
+  let (i, _) = space(i)?;
+  let (i, _) = tag("height=")(i)?;
+  let (i, height) = i32_digit(i)?;
+  let (i, _) = space(i)?;
+  let (i, _) = tag("xoffset=")(i)?;
+  let (i, xoffset) = float(i)?;
+  let (i, _) = space(i)?;
+  let (i, _) = tag("yoffset=")(i)?;
+  let (i, yoffset) = float(i)?;
+  let (i, _) = space(i)?;
+  let (i, _) = tag("xadvance=")(i)?;
+  let (i, xadvance) = i32_digit(i)?;
+  let (i, _) = space(i)?;
+  let (i, _) = tag("page=")(i)?;
+  let (i, page) = u32_digit(i)?;
+  let (i, _) = space(i)?;
+  let (i, _) = tag("chnl=")(i)?;
+  let (i, chnl) = u32_digit(i)?;
+  let (i, _) = space(i)?;
+  Ok( (i, CharVars { id: id, x: x, y: y, width: width, height: height, 
+        xoffset: xoffset, yoffset: yoffset, xadvance: xadvance, page: page, chnl: chnl }) )
+}
 pub fn test_get_char() {
   let tstr = "char id=32   x=0     y=0     width=0     height=0     xoffset=-5     yoffset=54    xadvance=31     page=0  chnl=0 ";
   let test = get_char(tstr);
@@ -224,7 +308,7 @@ pub struct MetaFile {
 impl MetaFile {
   pub fn new(aspect_ratio: f32, font_file: &str) -> Self {
     let mut out = Self {
-      aspect_ratio: aspect_ratio,
+      aspect_ratio,
       vertical_per_pixel_size: 0.0,
       horizontal_per_pixel_size: 0.0,
       image_width: 512.0,
@@ -243,7 +327,7 @@ impl MetaFile {
     let path = Path::new(&filename);
     let display = path.display();
     let file = match File::open(&path) {
-      Err(why) => panic!("couldn't open {}: {}", display, why.description()),
+      Err(why) => panic!("couldn't open {}: {}", display, why),
       Ok(file) => file,
     };
     let reader = BufReader::new(file);
@@ -286,8 +370,8 @@ impl MetaFile {
     self.image_width = common.scale_w as f32;
     self.common = Some(common);
   }
-  pub fn update_size(&mut self, aspect_ratio: f32) {
-    self.aspect_ratio = aspect_ratio;
+  pub fn update_size(&mut self) {
+    self.aspect_ratio = DISPLAY.lock().unwrap().aspect_ratio;
     self.horizontal_per_pixel_size = self.vertical_per_pixel_size / self.aspect_ratio;
     self.metadata.clear();
     self.load_char_data();

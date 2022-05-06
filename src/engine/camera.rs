@@ -1,17 +1,31 @@
+#![allow(unused_imports,dead_code)]
 
-// use glutin::VirtualKeyCode::*;
-use glutin::MouseButton as MB;
-
-use entities::mobs::Mob;
-use entities::position::PosMarker;
-use GameMgr;
-use Handler;
-use util::{Matrix4f, RVec, Vector3f, XVEC, YVEC, modulo, Rc, RefCell, }; // ZVEC, 
-// use util::rvertex::RVertex;
+use {
+  glutin::event::{
+    MouseButton as MB,
+    // VirtualKeyCode::*,
+  },
+  constants::*,
+  Handler,
+  ecs::{
+    c::{
+      Position,
+      Rotation,
+    },
+  },
+  entities::{
+    mobs::Mob,
+    // position::PosMarker,
+  },
+  util::{
+    // ZVEC, RVertex,
+    Matrix4f, RVec, Vector3f, modulo, Rc, RefCell, 
+  },
+};
 
 pub struct Camera {
-  pub pos: Vector3f,
-  pub pos_bak: Vector3f,
+  pub pos: Vector3f<f32>,
+  pub pos_bak: Vector3f<f32>,
   pub pitch: f32,
   pub pitch_bak: f32,
   pub yaw: f32,
@@ -23,14 +37,14 @@ pub struct Camera {
   pub focus_ry: f32,
   pub mouse_rate: f32,
   
-  to_pos: Vector3f,
-  to_focus_pos: Vector3f,
+  to_pos: Vector3f<f32>,
+  to_focus_pos: Vector3f<f32>,
+  initialised: bool,
   
-  pub view_mat: Matrix4f,
+  pub view_mat: Matrix4f<f32>,
 }
-
-impl Camera {
-  pub fn new() -> Self {
+impl Default for Camera {
+  fn default() -> Self {
     Camera {
       pos: Vector3f {x: 0_f32, y: 5_f32, z: 0_f32},
       pos_bak: Vector3f {x: 0_f32, y: 5_f32, z: 0_f32},
@@ -46,26 +60,28 @@ impl Camera {
       mouse_rate: 1.0_f32,
       to_pos: Vector3f {x: 0_f32, y: 0_f32, z: 0_f32},
       to_focus_pos: Vector3f {x: 0_f32, y: 0_f32, z: 0_f32},
+      initialised: false,
       view_mat: Matrix4f::new(),
     }
   }
-  
+}
+impl Camera {
   pub fn store(&mut self) {
-    self.pos_bak.from_v3f(&self.pos);
+    self.pos_bak.copy_from_v3f(self.pos);
     self.pitch_bak = self.pitch;
     self.yaw_bak = self.yaw;
     self.roll_bak = self.roll;
   }
 
   pub fn restore(&mut self) {
-    self.pos.from_v3f(&self.pos_bak);
+    self.pos.copy_from_v3f(self.pos_bak);
     self.pitch = self.pitch_bak;
     self.yaw = self.yaw_bak;
     self.roll = self.roll_bak;
   }
   
   pub fn drift_to_origin(&mut self, rate: f32) {
-    if self.pitch != 25.0 {
+    if (self.pitch - 25.0).abs() > 0.0001 {
       self.pitch = drift_to_zero(self.pitch - 25.0, rate, 0.05) + 25.0;
     }
     if self.focus_angle != 0.0 {
@@ -73,40 +89,44 @@ impl Camera {
     }
   }
 
-  pub fn calc_pos(&mut self, handler: &mut Handler, follow: &PosMarker) {
+  pub fn calc_pos(&mut self, handler: &mut Handler, follow_pos: &Position, follow_rot: &Rotation) {
     {
       if handler.read_mouse_multi(MB::Right) {
-        match handler.cursor_delta {
-          Some((dx, dy)) => {
-            self.pitch -= (dy as f32) * self.mouse_rate;
-            self.focus_angle -= (dx as f32) * self.mouse_rate;
-          }
-          _ => ()
+        if let Some((dx, dy)) = handler.cursor_delta {
+          self.pitch -= (dy as f32) * self.mouse_rate;
+          self.focus_angle -= (dx as f32) * self.mouse_rate;
         }
       } else {
         self.drift_to_origin(handler.timer.delta);
       }
     }
-    self.calc_cam_pos(follow, handler.timer.delta);
+    self.calc_cam_pos(follow_pos, follow_rot, handler.timer.delta);
   }
 
-  pub fn calc_cam_pos(&mut self, follow: &PosMarker, rate: f32) {
+  pub fn calc_cam_pos(&mut self, follow_pos: &Position, follow_rot: &Rotation, rate: f32) {
     let h_dist: f32 = self.calc_h_distance();
     let v_dist: f32 = self.calc_v_distance() + 10_f32;
     
-    let ry_new = follow.ry;
+    let ry_new = follow_rot.0.y;
     let ry_diff = self.focus_ry - ry_new;
-    if ry_diff.abs() > 0.01 {
-      self.focus_ry = drift_to_zero(ry_diff, rate, 0.1) + ry_new;
-    }
+    self.focus_ry = if self.initialised && ry_diff.abs() > 0.01 {
+      drift_to_zero(ry_diff, rate, 1.0) + ry_new
+    } else { ry_new };
     self.yaw = 180_f32 - (self.focus_ry + self.focus_angle);
     
     let theta = self.focus_ry + self.focus_angle;
     let x_offset = h_dist * theta.to_radians().sin();
     let z_offset = h_dist * theta.to_radians().cos();
-    self.pos.x = follow.pos.x - x_offset;
-    self.pos.z = follow.pos.z - z_offset;
-    self.pos.y = follow.pos.y + v_dist;
+    self.pos.x = follow_pos.0.x - x_offset;
+    self.pos.z = follow_pos.0.z - z_offset;
+    let y_new = follow_pos.0.y + v_dist;
+    let y_diff = self.pos.y - y_new;
+    self.pos.y = if self.initialised && y_diff.abs() > 0.05 {
+      drift_to_zero(y_diff, rate, 2.0) + y_new
+    } else {
+      self.initialised = true;
+      y_new
+    };
   }
 
   fn calc_h_distance(&self) -> f32 {self.dist_from_focus_pos * self.pitch.to_radians().cos()}
@@ -122,35 +142,34 @@ impl Camera {
     self.pitch = -self.pitch;
   }
 
-  pub fn dist_to_pos(&mut self, vec: &Vector3f) -> f32 {
-    vec.sub_to(&self.pos, &mut self.to_pos);
+  pub fn dist_to_pos(&mut self, vec: Vector3f<f32>) -> f32 {
+    vec.sub_to(self.pos, &mut self.to_pos);
     self.to_pos.len()
   }
 
-  pub fn angle_to_entity(&mut self, focus_pos: &Vector3f, mob: &mut Mob) -> f32 {
+  pub fn angle_to_entity(&mut self, focus_pos: Vector3f<f32>, mob: &mut Mob) -> f32 {
     let mut marker = mob.pos.borrow_mut();
-    marker.distance = self.dist_to_pos(&marker.pos);
+    marker.distance = self.dist_to_pos(marker.pos);
     self.to_pos.normalize();
-    focus_pos.sub_to(&self.pos, &mut self.to_focus_pos);
+    focus_pos.sub_to(self.pos, &mut self.to_focus_pos);
     self.to_focus_pos.normalize();
-    self.to_focus_pos.dot(&self.to_pos)
+    self.to_focus_pos.dot(self.to_pos)
   }
   
-  pub fn create_view_matrix(&mut self, view_mat: &mut Matrix4f) {
+  pub fn create_view_matrix(&mut self) {
+    let view_mat = &mut self.view_mat;
     view_mat.set_identity();
-    view_mat.rotate(self.pitch.to_radians(), &XVEC);
-    view_mat.rotate(self.yaw.to_radians(), &YVEC);
+    view_mat.rotate(self.pitch.to_radians(), XVEC);
+    view_mat.rotate(self.yaw.to_radians(), YVEC);
     let pos = self.pos;
     let mut neg_cam = Vector3f::blank();
     pos.negate_to(&mut neg_cam);
-    view_mat.translate_v3f(&neg_cam);
+    view_mat.translate_v3f(neg_cam);
   }
 }
 
 pub fn degree_cap(val: f32) -> f32 {
-  if (val <= 180.0) && (val > -180.0) { val } else {
-    if val > 0.0 { degree_cap(val - 360.0) } else { degree_cap(val + 360.0) }
-  }
+  if (val <= 180.0) && (val > -180.0) { val } else if val > 0.0 { degree_cap(val - 360.0) } else { degree_cap(val + 360.0) }
 }
 
 pub fn drift_to_zero(val: f32, rate: f32, min: f32) -> f32 {

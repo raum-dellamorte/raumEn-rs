@@ -1,32 +1,46 @@
 
-use gl::*;
-// use gl::types::{GLuint, }; // GLfloat, GLenum, GLint, GLchar, GLsizeiptr, GLboolean, 
-use CVOID;
-
-// use Camera;
-use entities::PosMarker;
-use {GameMgr, Shader, Texture};
-use model::RawModel;
-// use Lights;
-use shader::gen_fog_shader;
-use text::{TextMgr, RFontType};
-use util::{Vector3f, Vector2f, HashMap, HashSet, Arc, Mutex}; // Vector2f, Vector4f, RVertex, RVertex2D
+use {
+  gl::*,
+  crate::{
+    ecs::resource::{
+      Texture,
+    },
+    // engine::{ fbo::Fbo, },
+    shader::{
+      Shader,
+    },
+    util::{
+      // rgl::*,
+      HashMap,
+    },
+  },
+};
 
 pub struct RenderPostProc {
-  pub shader: Shader,
+  pub shaders: HashMap<String, Shader>,
   pub quad_id: u32,
-  pub textures: Vec<Texture>,
+  pub textures: HashMap<String, Vec<Texture>>,
 }
-
 impl RenderPostProc {
-  pub fn new(effect: &str, quad_id: u32, textures: Vec<Texture>) -> Self {
+  pub fn new(quad_id: u32) -> Self {
+    let shaders: HashMap<String, Shader> = HashMap::new();
+    let textures: HashMap<String, Vec<Texture>> = HashMap::new();
     Self {
-      shader: gen_fog_shader(effect),
-      quad_id: quad_id,
-      textures: textures,
+      shaders,
+      quad_id,
+      textures,
     }
   }
-  pub fn render(&self) {
+  pub fn with_shader(mut self, shader: Shader, textures: Vec<Texture>) -> Self {
+    let name = &shader.conf.name.to_owned();
+    {
+      let s = &mut self;
+      s.shaders.insert(name.to_owned(), shader);
+      s.textures.insert(name.to_owned(), textures);
+    }
+    self
+  }
+  pub fn render_fog(&self) {
     unsafe {
       Enable(BLEND);
       BlendFunc(SRC_ALPHA, ONE_MINUS_SRC_ALPHA);
@@ -35,7 +49,7 @@ impl RenderPostProc {
     // println!("Running Gui Render Pass");
     {
       // todo: switch from HUD to fullscreen texture to process
-      self.shader.start();
+      self.shaders["fog"].start();
       unsafe {
         BindVertexArray(self.quad_id);
         EnableVertexAttribArray(0);
@@ -55,10 +69,8 @@ impl RenderPostProc {
         // all the glsl variable connections I need.
         
         // Texture!
-        for tex in &self.textures {
-          let unit = if tex.tex_unit < 0 { 0_u32 } else { tex.tex_unit as u32 };
-          ActiveTexture(TEXTURE0 + unit);
-          BindTexture(TEXTURE_2D, tex.tex_id);
+        for tex in &self.textures["fog"] {
+          crate::util::rgl::r_bind_texture(tex);
         }
         
         // // Shader Vars!
@@ -69,7 +81,40 @@ impl RenderPostProc {
         DisableVertexAttribArray(0);
         BindVertexArray(0);
       }
-      self.shader.stop();
+      self.shaders["fog"].stop();
+      unsafe {
+        Disable(BLEND);
+        Enable(DEPTH_TEST);
+      }
+    }
+  }
+  pub fn render_overlay(&self) {
+    unsafe {
+      Enable(BLEND);
+      BlendFunc(SRC_ALPHA, ONE_MINUS_SRC_ALPHA);
+      Disable(DEPTH_TEST);
+    }
+    // println!("Running Gui Render Pass");
+    {
+      // todo: switch from HUD to fullscreen texture to process
+      self.shaders["overlay"].start();
+      unsafe {
+        BindVertexArray(self.quad_id);
+        EnableVertexAttribArray(0);
+        
+        for tex in &self.textures["overlay"] {
+          crate::util::rgl::r_bind_texture(tex);
+        }
+        
+        // // Shader Vars!
+        // self.shader.load_bool("flip_y", false);
+        
+        // Draw!
+        DrawArrays(TRIANGLE_STRIP, 0, 4_i32);
+        DisableVertexAttribArray(0);
+        BindVertexArray(0);
+      }
+      self.shaders["overlay"].stop();
       unsafe {
         Disable(BLEND);
         Enable(DEPTH_TEST);
@@ -77,6 +122,8 @@ impl RenderPostProc {
     }
   }
   pub fn clean_up(&self) {
-    self.shader.clean_up();
+    for (_,s) in &self.shaders {
+      s.clean_up();
+    }
   }
 }

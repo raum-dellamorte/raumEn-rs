@@ -1,12 +1,19 @@
 
-use util::{Rc, RefCell};
-
-use gl::*;
-// use gl::types::{GLuint, }; // GLfloat, GLenum, GLint, GLchar, GLsizeiptr, GLboolean, 
-use CVOID;
-
-use Display;
-use util::rgl::*;
+use {
+  gl::{
+    *,
+    // types::{
+    //   // GLfloat, GLenum, GLint, GLchar, GLsizeiptr, GLboolean,
+    //   GLuint, 
+    // },
+  },
+  // specs::{World, WorldExt, },
+  DISPLAY,
+  util::{
+    rgl::*,
+    // Rc, RefCell,
+  },
+};
 
 pub enum ColorType {
   ColorTexture,
@@ -24,7 +31,6 @@ use engine::fbo::ColorType::{ColorTexture, ColorMultisampleRenderBuffer, ColorMu
 use engine::fbo::DepthType::{DepthTexture, DepthRenderBuffer, NoDepth};
 
 pub struct Fbo {
-  pub display: Rc<RefCell<Display>>,
   pub width: i32,
   pub height: i32,
   pub color_type: ColorType,
@@ -39,14 +45,13 @@ pub struct Fbo {
 }
 
 impl Fbo {
-  pub fn new(display: Rc<RefCell<Display>>, width: i32, height: i32, color_type: ColorType, depth_type: DepthType) -> Self {
-    let (w, h) = display.borrow().dimensions();
+  pub fn new(width: i32, height: i32, color_type: ColorType, depth_type: DepthType) -> Self {
+    let (w, h) = DISPLAY.lock().unwrap().dimensions();
     let mut out = Fbo {
-      display: display,
       width: if width == 0 { w as i32 } else { width },
       height: if height == 0 { h as i32 } else { height },
-      color_type: color_type,
-      depth_type: depth_type,
+      color_type,
+      depth_type,
       frame_buffer_id: 0,
       color_tex_id: 0,
       depth_tex_id: 0,
@@ -91,7 +96,7 @@ impl Fbo {
     Viewport(0, 0, self.width, self.height);
   }}
   pub fn unbind(&self) { unsafe {
-    let (w, h) = self.display.borrow().dimensions();
+    let (w, h) = DISPLAY.lock().unwrap().dimensions();
     BindFramebuffer(FRAMEBUFFER, 0);
     Viewport(0, 0, w as i32, h as i32);
   }}
@@ -109,7 +114,7 @@ impl Fbo {
     self.unbind();
   }}
   pub fn blit_to_screen(&self) { unsafe {
-    let (w, h) = self.display.borrow().dimensions();
+    let (w, h) = DISPLAY.lock().unwrap().dimensions();
     BindFramebuffer(DRAW_FRAMEBUFFER, 0);
     BindFramebuffer(READ_FRAMEBUFFER, self.frame_buffer_id);
     BlitFramebuffer(0, 0, self.width, self.height, 0, 0, w as i32, h as i32, COLOR_BUFFER_BIT, NEAREST);
@@ -121,19 +126,16 @@ impl Fbo {
     self.frame_buffer_id = id;
     BindFramebuffer(FRAMEBUFFER, id);
     let mut buffers = vec![COLOR_ATTACHMENT0];
-    match self.color_type {
-      ColorMultisampleRenderBuffers2 => { buffers.push(COLOR_ATTACHMENT1); }
-      _ => {}
-    }
-    use std::mem;
-    DrawBuffers(buffers.len() as i32, mem::transmute(&buffers[0]));
+    if let ColorMultisampleRenderBuffers2 = self.color_type { buffers.push(COLOR_ATTACHMENT1); }
+    // use std::mem;
+    DrawBuffers(buffers.len() as i32, &buffers[0] as *const u32);
   }}
   fn create_color_texture_attachment(&mut self) { unsafe {
     let id = r_gen_textures();
     if id == 0_u32 { panic!("GenTextures failed in Fbo::create_color_texture_attachment") }
     self.color_tex_id = id;
     BindTexture(TEXTURE_2D, id);
-    TexImage2D(TEXTURE_2D, 0, RGBA8 as i32, self.width, self.height, 0, RGBA, UNSIGNED_BYTE, CVOID);
+    TexImage2D(TEXTURE_2D, 0, RGBA8 as i32, self.width, self.height, 0, RGBA, UNSIGNED_BYTE, std::ptr::null());
     TexParameteri(TEXTURE_2D, TEXTURE_MAG_FILTER, LINEAR as i32);
     TexParameteri(TEXTURE_2D, TEXTURE_MIN_FILTER, LINEAR as i32);
     TexParameteri(TEXTURE_2D, TEXTURE_WRAP_S, CLAMP_TO_EDGE as i32);
@@ -145,7 +147,7 @@ impl Fbo {
     if id == 0_u32 { panic!("GenTextures failed in Fbo::create_depth_texture_attachment") }
     self.depth_tex_id = id;
     BindTexture(TEXTURE_2D, id);
-    TexImage2D(TEXTURE_2D, 0, DEPTH_COMPONENT24 as i32, self.width, self.height, 0, DEPTH_COMPONENT, FLOAT, CVOID);
+    TexImage2D(TEXTURE_2D, 0, DEPTH_COMPONENT24 as i32, self.width, self.height, 0, DEPTH_COMPONENT, FLOAT, std::ptr::null());
     TexParameteri(TEXTURE_2D, TEXTURE_MAG_FILTER, LINEAR as i32);
     TexParameteri(TEXTURE_2D, TEXTURE_MIN_FILTER, LINEAR as i32);
     FramebufferTexture2D(FRAMEBUFFER, DEPTH_ATTACHMENT, TEXTURE_2D, id, 0);
