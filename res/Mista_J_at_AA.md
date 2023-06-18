@@ -25,9 +25,9 @@ It was then that some of the costumed men began rolling several large tanks into
 
 "Anyway, I'm here to tell you... that you don't _need_ help!" he said, pointing around the room, "What you all need, is a ___good stiff drink!___  And ___this one___ is on the house!"
 
-The hissing release of a green gas coming from the tanks shocked many of the attending. The costumed men were quick to remind the crowd that it was rude to be disruptive while someone was speaking. This they did by firing several machine gun bursts into the ceiling. Many hadn't noticed the the three and a half foot high henchman deliver an object to just behind the podium. The speaker reached down for this item now. It was a mask connected with a tube to a small tank.  He pressed it to his face and inhaled through it before speaking again.
+The hissing release of a green gas coming from the tanks shocked the crowd! The costumed men were quick to remind the crowd that it was rude to be disruptive while someone was speaking by firing several rounds from their machine guns into the ceiling. Many hadn't noticed the the three and a half foot high henchman deliver an object to just behind the podium. The speaker reached down for this item now. It was a mask connected with a tube to a small tank.  He pressed it to his face and inhaled through it before speaking again.
 
-"This stuff you're breathing in, provided you're not too keen on suffocation, is going to put so much hair on your chest you'll think you've taken 2 evolutionary steps backward!  You'll Karaoke harder than all of Tokyo on any given night!  You will turn this city into the biggest bar fight this side of the Rio Grande!"
+"This stuff you're breathing in, provided you're not too keen on suffocation, is going to put so much hair on your chest you'll think you've taken 2 evolutionary steps backward!  You'll Karaoke harder than all of Tokyo on any given night!  You will run over every mailbox and postman between Santa Monica and Queems! You will turn this city into the biggest bar fight this side of the Rio Grande!"
 
 He paused again, breathing from the mask.
 
